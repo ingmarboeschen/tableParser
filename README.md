@@ -22,7 +22,7 @@ table2text(file.path)
 # parse tabled content in HTML, HML, DOCX, PDF documents to text vector with statistical results and check consistency of reported and coded p-values 
 table2stats(file.path,check=TRUE,estimateZ=T)
 
-# Example with file "test.docx" from repo
+## Example with file "test.docx" from this repo
 download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/test.docx","test.docx")
 # extract tables
 tableParser::table2matrix("test.docx")
@@ -32,6 +32,5 @@ tableParser::table2text("test.docx")
 tableParser::table2stats("test.docx",check=TRUE,estimateZ=T)
 # activate next line to remove file
 # file.remove("test.docx")
-
  
 ```
