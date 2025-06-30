@@ -37,5 +37,5 @@ tableParser::table2stats("test.docx",check=TRUE,estimateZ=T)
 
 ## Web application
 Test tableParser without installation here:
-http://134.100.146.165:3838/tableParser/
+[http://134.100.146.165:3838/tableParser/](http://134.100.146.165:3838/tableParser/)
 
