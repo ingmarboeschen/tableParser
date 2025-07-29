@@ -8,8 +8,11 @@ matrix2text(
   x,
   legend = NULL,
   unifyMatrix = TRUE,
+  correctComma = FALSE,
   expandAbbreviations = TRUE,
+  superscript2bracket = TRUE,
   standardPcoding = FALSE,
+  addDF = TRUE,
   rotate = FALSE,
   split = FALSE
 )
@@ -21,13 +24,19 @@ matrix2text(
 
 \item{unifyMatrix}{Logical. If TRUE, matrix cells are unified for better post processing.}
 
+\item{correctComma}{Logical. If TRUE and unifyMatrix=TRUE, decimal sign commas are converted to dots.}
+
 \item{expandAbbreviations}{Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footer with tableParser::legendCodings().}
+
+\item{superscript2bracket}{Logical. If TRUE, detected superscript codings are inserted inside parentheses.}
 
 \item{standardPcoding}{Logical. If TRUE, and no other detection of p-value coding is detected, standard coding of p-values is assumed to be: * p<.05, ** p<.01 and *** p<.001.}
 
+\item{addDF}{Logical. If TRUE, detected sample size N in caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom.}
+
 \item{rotate}{Logical. If TRUE, matrix/matrices is rotated before parsing.}
 
-\item{split}{Logical. If TRUE, matrix/matrices are split for multi model tables.}
+\item{split}{Logical. If TRUE, matrix/matrices are split for multi-model tables.}
 }
 \value{
 Character vector with a parsed and straight forward readable form of the input table. The result vector can be further processed with standardStats() to extract and structure the statistical standard test results only.

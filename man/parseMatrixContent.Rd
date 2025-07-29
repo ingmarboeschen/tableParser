@@ -8,7 +8,9 @@ parseMatrixContent(
   x,
   legend = NULL,
   standardPcoding = TRUE,
-  expandAbbreviations = TRUE
+  expandAbbreviations = TRUE,
+  superscript2bracket = FALSE,
+  addDF = TRUE
 )
 }
 \arguments{
@@ -19,10 +21,14 @@ parseMatrixContent(
 \item{standardPcoding}{Logical. If TRUE, and no other detection of p-value coding is detected, standard coding of p-values is assumed to be: * p<.05, ** p<.01 and *** p<.001.}
 
 \item{expandAbbreviations}{Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footer with tableParser::legendCodings().}
+
+\item{superscript2bracket}{Logical. If TRUE, detected superscript codings are inserted inside parentheses.}
+
+\item{addDF}{Logical. If TRUE, detected sample size N in caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom.}
 }
 \value{
-A text vector.
+A text vector with the parsed matrix content.
 }
 \description{
-Function to parse content from a character matrix into a text vector. This is the basic funtion of tableParser, that is implementent in matrix2text() and table2text()
+parses content from a character matrix into a text vector. This is the basic function of tableParser, that is implemented in matrix2text() and table2text()
 }

@@ -13,5 +13,5 @@ legendCodings(x)
 A list with detected p-value codings, abbreviations and sample size/s.
 }
 \description{
-Extracts the coding of p-values, brackets, abbreviations, superscripts and reported sample size/s with N=number from tables caprion and footer notes/text.
+Extracts the coding of p-values, brackets, abbreviations, superscripts and reported sample size/s with N=number from tables caption and footer notes/text.
 }

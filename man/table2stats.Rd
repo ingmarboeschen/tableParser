@@ -7,7 +7,9 @@
 table2stats(
   x,
   standardPcoding = FALSE,
+  correctComma = FALSE,
   expandAbbreviations = TRUE,
+  superscript2bracket = TRUE,
   stats.mode = "all",
   checkP = FALSE,
   alpha = 0.05,
@@ -20,11 +22,15 @@ table2stats(
 )
 }
 \arguments{
-\item{x}{Input. Either a filepath to an XML, HTML, HML, DOCX or PDF file or matrix object or vector of plain HTML coded tables.}
+\item{x}{Input. Either a file path to an XML, HTML, HML, DOCX or PDF file or matrix object or vector of plain HTML coded tables.}
 
 \item{standardPcoding}{Logical. If TRUE, and no other detection of coding is detected, then standard coding of p-values is assumed to be * p<.05, ** p<.01 and ***p<.001.}
 
+\item{correctComma}{Logical. If TRUE, decimal sign commas are converted to dots.}
+
 \item{expandAbbreviations}{Logical. If TRUE, detected abbreviations are expanded to label from table caption/footer.}
+
+\item{superscript2bracket}{Logical. If TRUE, detected superscript codings are inserted inside parentheses.}
 
 \item{stats.mode}{Select a subset of test results by p-value checkability for output. One of: c("all", "checkable", "computable", "uncomputable").}
 

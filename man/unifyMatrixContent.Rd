@@ -3,25 +3,28 @@
 \name{unifyMatrixContent}
 \alias{unifyMatrixContent}
 \title{unifyMatrixContent
-Unifies content of character matrices. E.g.: comas in big numbers and HTML tags are removed. Performs space corrections and unifies hyphens and spaces.}
+Unifies content of character matrices. Unifies hyphens, spaces, greek letters and performs space and comma corrections. Unnecessary HTML tags may be removed.}
 \usage{
 unifyMatrixContent(
   x,
   letter.convert = TRUE,
   greek2text = TRUE,
-  text2num = TRUE
+  text2num = TRUE,
+  correctComma = FALSE
 )
 }
 \arguments{
 \item{x}{a character matrix.}
 
-\item{letter.convert}{Logical. If TRUE hex codes will be unified and converted to unicode with JATSdecoder::letter.convert().}
+\item{letter.convert}{Logical. If TRUE hexadecimal coded letters will be unified and converted to Unicode with JATSdecoder::letter.convert().}
 
 \item{greek2text}{Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text based form (e.g. 'alpha', 'beta').}
 
 \item{text2num}{Logical. If TRUE, textual representations of numbers (words, exponents, fractions) are converted to digit numbers.}
+
+\item{correctComma}{Logical. If TRUE, commas used as separator are converted to dots.}
 }
 \description{
 unifyMatrixContent
-Unifies content of character matrices. E.g.: comas in big numbers and HTML tags are removed. Performs space corrections and unifies hyphens and spaces.
+Unifies content of character matrices. Unifies hyphens, spaces, greek letters and performs space and comma corrections. Unnecessary HTML tags may be removed.
 }

@@ -14,7 +14,7 @@ get.caption(x, rm.html = TRUE, sentences = FALSE, letter.convert = TRUE)
 
 \item{sentences}{logical. If TRUE, a sentence vector is returned.}
 
-\item{letter.convert}{logical. If TRUE, hexadecimal letters are converted to unicode und unified with JATSdecoder::letter.convert.}
+\item{letter.convert}{logical. If TRUE, hexadecimal letters are converted to Unicode und unified with JATSdecoder::letter.convert.}
 }
 \value{
 A character vector with the extracted caption text and NULL for no caption text

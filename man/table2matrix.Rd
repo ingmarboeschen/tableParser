@@ -22,7 +22,7 @@ table2matrix(
 
 \item{unifyMatrix}{Logical. If TRUE, matrix cells are unified for better post processing (see: unifyMatrixContent()).}
 
-\item{letter.convert}{Logical. If TRUE hex codes will be unified and converted to unicode with JATSdecoder::letter.convert().}
+\item{letter.convert}{Logical. If TRUE hex codes will be unified and converted to Unicode with JATSdecoder::letter.convert().}
 
 \item{greek2text}{Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text based form (e.g. 'alpha', 'beta').}
 
@@ -46,5 +46,5 @@ Extracts tables from HTML, HML, XML, CERMXML, DOCX, PDF files or plain HTML code
 }
 \examples{
 x<-readLines("https://en.wikipedia.org/wiki/R_(programming_language)",warn=FALSE)
-tabs<-table2matrix(x)
+table2matrix(x,rm.html=T)
 }

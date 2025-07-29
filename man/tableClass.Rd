@@ -3,7 +3,7 @@
 \name{tableClass}
 \alias{tableClass}
 \title{tableClass
-Classifies matrix content to either 'tabled content', 'correlation', or 'text'}
+Classifies matrix content to either 'tabled results', 'correlation', 'matrix', 'text', 'vector', 'model with model statistics', 'multi model with model statistics'.}
 \usage{
 tableClass(x, legend = NULL)
 }
@@ -13,9 +13,9 @@ tableClass(x, legend = NULL)
 \item{legend}{A text string from tables caption and/or footer}
 }
 \value{
-A character object with the tables class.
+A character object of length=1 with the tables class.
 }
 \description{
 tableClass
-Classifies matrix content to either 'tabled content', 'correlation', or 'text'
+Classifies matrix content to either 'tabled results', 'correlation', 'matrix', 'text', 'vector', 'model with model statistics', 'multi model with model statistics'.
 }

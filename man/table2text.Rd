@@ -9,25 +9,37 @@ table2text(
   unifyMatrix = TRUE,
   unifyStats = FALSE,
   expandAbbreviations = TRUE,
+  superscript2bracket = TRUE,
   standardPcoding = FALSE,
+  addDF = TRUE,
+  correctComma = FALSE,
+  addDescription = TRUE,
   addTableName = TRUE
 )
 }
 \arguments{
 \item{x}{A vector with HTML tables or a single file path to an HTML, XML, CERMXML, HML, PDF or DOCX file..}
 
-\item{unifyMatrix}{Logical. If TRUE, matrix cells are unifiedfor better post processing.}
+\item{unifyMatrix}{Logical. If TRUE, matrix cells are unified for better post processing.}
 
 \item{unifyStats}{Logical. If TRUE, output is unified for better post processing (e.g.: "p-value"->"p").}
 
 \item{expandAbbreviations}{Logical. If TRUE, detected abbreviations are expanded to label from table caption/footer.}
 
-\item{standardPcoding}{Logical. If TRUE, and no other detection of coding is detected, then standard coding of p-values is assumed to be * p<.05, ** p<.01 and ***p<.001.}
+\item{superscript2bracket}{Logical. If TRUE, detected superscript codings are inserted inside parentheses.}
+
+\item{standardPcoding}{Logical. If TRUE, and no other detection of coding is detected, standard coding of p-values is assumed to be * p<.05, ** p<.01 and ***p<.001.}
+
+\item{addDF}{Logical. If TRUE, detected sample size N in caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom.}
+
+\item{correctComma}{Logical. If TRUE and unifyMatrix=TRUE, decimal sign commas are converted to dots.}
+
+\item{addDescription}{Logical. If TRUE, table caption and footer are added before the extracted table content for better readability.}
 
 \item{addTableName}{Logical. If TRUE, table number is added before the parsed text lines.}
 }
 \value{
-A List with parsed table content per HTML table. The result vector in each list element can be further processed with standardStats() to extract and structure the statistical standard test results only.
+A List with parsed table content per HTML table. The result vector in each list element can be further processed with JATSdecoder::standardStats() to extract and structure the statistical standard test results only.
 }
 \description{
 Parses tabled content from HTML coded content or HTML, DOCX or PDF file to text.
