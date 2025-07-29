@@ -22,7 +22,7 @@ docx2matrix<-function(x,replicate=TRUE){
   tbls<-xml2::xml_find_all(doc,".//w:tbl",ns=ns)
   # as character
   y<-as.character(tbls)
-
+#y<-y[[3]]
   # function to convert single table
   tempFun<-function(y){
   if(length(grep("<w:tr>",y))==0) return(NULL)
@@ -33,19 +33,19 @@ docx2matrix<-function(x,replicate=TRUE){
 
   nRow<-length(y)
   y<-unlist(y)
-
+  
   # repeat cells by rowspan
   ind<-grep("<w:gridSpan",y)
   Nadded<-0
-
+  
   for(i in ind){
   reps<-as.numeric(gsub(".*<w:gridSpan w:val=.([1-9][1-9]*).*","\\1",y[i+Nadded]))-1
   if(replicate==TRUE){
-    if((i+Nadded)<length(y)&reps>0) y<-c(y[1:(i+Nadded)],rep(y[i+Nadded],reps),y[(i+reps+Nadded):length(y)])
+    if((i+Nadded)<length(y)&reps>0) y<-c(y[1:(i+Nadded)],rep(y[i+Nadded],reps),y[(i+1+Nadded):length(y)])
     if((i+Nadded)==length(y)&reps>0) y<-c(y[1:(i+Nadded)],rep(y[i+Nadded],reps))
   }
   if(replicate==FALSE){
-    if((i+Nadded)<length(y)&reps>0) y<-c(y[1:(i+Nadded)],rep("",reps),y[(i+reps+Nadded):length(y)])
+    if((i+Nadded)<length(y)&reps>0) y<-c(y[1:(i+Nadded)],rep("",reps),y[(i+1+Nadded):length(y)])
     if((i+Nadded)==length(y)&reps>0) y<-c(y[1:(i+Nadded)],rep("",reps))
   }
   Nadded<-Nadded+reps
