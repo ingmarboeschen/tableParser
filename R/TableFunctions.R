@@ -94,7 +94,7 @@ multiTable<-function(x){
 
 
 # split matrix at rows that have only the same value
-multiHeaderSplit<-function(x,split=FALSE){
+multiHeaderSplit<-function(x,split=FALSE,class=NULL){
  if(!is.matrix(x)) return(x)
   at<-NULL
  if(length(nrow(x))>0){
@@ -139,8 +139,13 @@ multiHeaderSplit<-function(x,split=FALSE){
   # detect lines with only an entry in first cell 
   for(i in 1:nrow(x)) at[i]<-sum(x[i,-1]=="")==(ncol(x)-1)
   at
+  # set first cell in second row to FALSE if cell and following cell start with a number
+  if(class=="correlation") if(length(at)>2) if(length(grep("^.*[123]",x[2:4,1]))>1) at[2]<-FALSE
+  at
   # remove cases where the label also exists in col names
-  at<-at[!is.element(x[at,1],x[1,-1])]
+  at[is.element(
+    gsub("^([0-9][0-9]*)\\.*.*","\\1",x[,1]),
+    gsub("^([0-9][0-9]*)\\.*.*","\\1",x[1,-1]))]<-FALSE
   # set first and last row to FALSE
   at[1]<-FALSE
   at[length(at)]<-FALSE
@@ -150,6 +155,7 @@ multiHeaderSplit<-function(x,split=FALSE){
       at[k+1]<-ifelse(isTRUE(at[k])&isTRUE(at[k+1]),FALSE,at[k+1])
   }
   at
+  
   
   
   # paste first cell to lines below
@@ -253,7 +259,7 @@ headerHandling<-function(m){
   }
   if(nrow(m)==2) loop<-FALSE
   }
-  #collapse first two lines if second cells in first column is empty 
+  #collapse first two lines if second cell in first column is empty 
   loop<-TRUE
   while(loop==TRUE & m[1,1]!=""&m[2,1]==""){
     if(nrow(m)>2) if(m[1,1]!=""&m[2,1]==""){
@@ -266,14 +272,31 @@ headerHandling<-function(m){
   
   #collapse first two lines if first two rows have character and last row numeric  
   while(nrow(m)>2 & 
-        length(grep("[A-z]",m[1,]))==ncol(m) &
-        length(grep("[A-z]",m[2,]))==ncol(m) &
+        length(grep("[A-z]|^$",m[1,]))==ncol(m) &
+        length(grep("[A-z]|^$",m[2,]))==ncol(m) &
         length(grep("[0-9]",m[nrow(m),-1])>0) ){
       m[1,]<-gsub("  "," ",paste0(m[1,]," ",m[2,]))
       m<-m[-2,]
     }
 
+  # if second row has enumeration only parse to first row
+  if(nrow(m)>2 & 
+        length(grep("[A-z]|^$",m[1,]))==ncol(m) &
+        length(grep("^1\\.*$",m[2,]))==1 & length(grep("^2\\.*$",m[2,]))==1 &
+        length(grep("[0-9]",m[nrow(m),-1])>0) ){
+    if((grep("^1\\.*$",m[2,])[1]+1)==grep("^2\\.*$",m[2,])[1]){
+      m[1,]<-gsub("  "," ",paste0(m[1,]," ",m[2,]))
+      m<-m[-2,]
+    }
+  }
   
+  #collapse first two lines if second row has %-CI
+  while(nrow(m)>2 & 
+        length(grep("[A-z]|^$",m[1,]))==ncol(m) &
+        length(grep("[89][059]\\.*9*%[- ]CI|[89][059]\\.*9*%[- ]confidence",m[2,]))>=1){
+    m[1,]<-gsub("  "," ",paste0(m[1,]," ",m[2,]))
+    m<-m[-2,]
+  }
   
   return(m)
   }
@@ -399,7 +422,7 @@ coding2variable<-function(m){
     
     colname<-m[1,]
     
-    if(sum(is.element(c(1,2,3),gsub("^0","",coding)))==3&
+    if((sum(is.element(c(1,2,3),gsub("^0","",coding)))==3|sum(is.element(c(2,3,4),gsub("^0","",coding)))==3) &
        sum(nchar(coding))!=0){
       for(i in 1:length(coding)){
         colname<-gsub(paste0("^",coding[i],"[^0-9]*$"),codes[i],colname)
@@ -432,8 +455,17 @@ extractCorrelations<-function(x,
   m<-x
   # unify letters
   m<-letter.convert(m,greek2text=TRUE)
-  
   if(ncol(m)<=2|nrow(m)<=2) return(m)
+  # remove grouping text and store for later
+  preText<-rep("",length(m[,1]))
+  i<-grep("(.*: )",m[,1])
+  preText[i]<-gsub("(.*: ).*","\\1",m[i,1])
+  m[,1]<-gsub(".*: ","",m[,1])
+  
+  # remove brackets around numbers from first row and col
+  m[1,]<-gsub("^ *\\(([1-9][0-9]*\\.*)\\)","\\1",m[1,])
+  m[,1]<-gsub("^ *\\(([1-9][0-9]*\\.*)\\)","\\1",m[,1])
+  
   # paste first and second column, if first column has enumeration only
   col1<-m[,1]
   if(length(col1)>1&sum(gsub("[0-9\\[:punct:]]","",col1[-1])=="",na.rm=TRUE)==(length(col1[-1]))){
@@ -443,6 +475,8 @@ extractCorrelations<-function(x,
   }
   
   if(ncol(m)<2|nrow(m)<2) return(m)
+  
+  
   nCol<-ncol(m)     
   # convert signs to p-values
   m[-1,-1]<-sign2p(m[-1,-1],sign=psign,val=pval)
@@ -460,11 +494,12 @@ extractCorrelations<-function(x,
   
   rem<-matrix(rem,ncol=nCol)
   
+
   # if first row has increasing numbers but first column has not add detected numbers to text in first column
   if(sum(is.element(c("1","2","3"),gsub("[\\.\\(\\) ]*","",m[1,-1])))==3 & 
      sum(is.element(c("1","2","3"),gsub("^([1-9]).*","\\1",m[-1,1])))==0){
     i<-grep("^[0-9][0-9]*$",gsub("[\\.\\(\\) ]*","",m[1,-1]))
-    if(length(i)==max(i)&max(i)<=nrow(m)){
+    if(length(i)==max(i)&max(i)<=(nrow(m)-1)){
       m[1,i+1]<-m[2:(max(i)+1),1]
     }
   }
@@ -481,15 +516,18 @@ extractCorrelations<-function(x,
   rem[,cols]<-FALSE
   }
   
-  # set rows/cols with mean/sd to FALSE
-  cors[grep("^[Mm]ean$|^M$|[Ss]tandard [Dd]eviation|^SDS*$|^alpha$| alpha$|^AVE$|^MSV$|^ASV$|Skewnes|[KC]urtosis",m[,1]),-1]<-FALSE
-  cors[-1,grep("^[Mm]ean$|^M$|[Ss]tandard [Dd]eviation|^SDS*$|^alpha$| alpha$|^AVE$|^MSV|^ASV$$|Skewnes|[KC]urtosis",m[1,])]<-FALSE
+  # set rows/cols with mean/sd/etc to FALSE
+  cors[grep("Cronbach|^[Mm]ean$|^M$|[Ss]tandard [Dd]eviation|^SDS*$|^alpha$| alpha$|^AVE$|^MSV$|^ASV$|Skewnes|[KC]urtosis|[Rr]eliabilit|^[Vv]ariance| [Vv]ariance|[sS]quared",m[,1]),-1]<-FALSE
+  cors[-1,grep("Cronbach|^[Mm]ean$|^M$|[Ss]tandard [Dd]eviation|^SDS*$|^alpha$| alpha$|^AVE$|^MSV|^ASV$$|Skewnes|[KC]urtosis|[Rr]eliabilit|^[Vv]ariance| [Vv]ariance|[sS]quared",m[1,])]<-FALSE
   
   #i<-which(rowSums(cors[-1,-1]==FALSE,na.rm=T)==0)+1
   #j<-which(colSums(cors[-1,-1]==FALSE,na.rm=T)==0)+1
   
   # convert numbered variable name to full name label 
   m<-coding2variable(m)  
+  
+  # add pretext again
+  m[,1]<-paste0(preText,m[,1])
   
   # select correlation matrix and replicate var names
   corTab<-m
@@ -530,14 +568,19 @@ extractCorrelations<-function(x,
   # set extracted correlations to "" in matrix
   m[-1,-1][corTab[-1,-1]!=""]<-""
   #m<-gsub("^-$","",m)
-  # remove empty lines/columns
+  
+  ### remove empty lines/columns
   nonempty<-m!=""
+  # lines
   m<-m[c(1,which(rowSums(matrix(nonempty[-1,-1],ncol=nCol-1))!=0)+1),]
   if(is.vector(m)) m<-matrix(m,ncol=1)
+  # columns
   m<-m[,c(1,which(colSums(matrix(nonempty[-1,-1],ncol=nCol-1))!=0)+1)]
-  #if(is.vector(m)) m<-matrix(m,ncol=1)
-  if(is.vector(m)) m<-NULL
+  if(is.vector(m)) m<-matrix(m,ncol=length(m))
 
+  # empty matrix if only one row or column is left
+  if(nrow(m)==1|ncol(m)==1) m<-NULL
+  
   # add (Nmax-2) to r=
   if(length(N)>0){
     Nmax<-suppressWarnings(max(as.numeric(N),na.rm=T))
@@ -545,7 +588,9 @@ extractCorrelations<-function(x,
   }
   # output
   if(remove==FALSE) return(correlations)
-  if(remove==TRUE) return(m)
+  if(remove==TRUE){
+    return(m)
+  }
 } # end extractCorrelations
 
 
@@ -686,12 +731,12 @@ sup2text<-function(x,sup=NULL,sup_label=NULL){
   i<-order(sup,decreasing=TRUE)
   sup<-sup[i]
   sup_label<-sup_label[i]
-  sup<-gsub("^\\^","\\\\^",sup)
   sup<-gsub("\\*","\\\\*",sup)
   sup<-gsub("\\+","\\\\+",sup)
   sup<-gsub("\\$","\\\\$",sup)
   sup<-gsub("\\.","\\\\.",sup)
   sup<-gsub("\\?","\\\\?",sup)
+  sup<-gsub("^\\^","\\\\^",sup)
   for(i in 1:length(sup))
     x<- gsub(sup[i],paste0(" (",sup_label[i],")"),
              gsub("([^\\^])\\*","\\1^*",x))
@@ -978,7 +1023,7 @@ R2handler<-function(x){
   return(x)   
 }
 
-
+##################################################################
 anovaHandler<-function(x){
   if(length(x)==0) return(x)
   # take a copy
@@ -1017,4 +1062,113 @@ anovaHandler<-function(x){
   x<-gsub(",[^,]*[Dd][Ff][=: ]*([0-9][0-9\\.]*)[,;] *([0-9][0-9\\.]*)",", df1=\\1, df2=\\2",x)
   
   return(x)
+}
+
+
+
+#####################################
+
+# split stats at first duplicated row name
+dupSplit<-function(x){
+ 
+  out<-list()
+  temp<-x
+  where<-which(duplicated(gsub("^[^:]*:* *([^,]*), .*","\\1",temp)))[1]
+  if(length(where)==0|is.na(where)){
+    out[[1]]<-x
+    return(out)}
+  while(length(where)>0&!is.na(where)){
+    out[[length(out)+1]]<-temp[1:(where-1)]
+    temp<-temp[-1:-(where-1)]
+    where<-which(duplicated(gsub("^[^:]*:* *([^,]*), .*","\\1",temp)))[1]
+  }
+  # add remaining lines
+  out[[length(out)+1]]<-temp
+  return(out)
+  }
+  
+
+
+# handling of model statistics. Use with: unlist(lapply(dupSplit(stats),modelhandler))
+modelHandler<-function(x){
+  fun<-function(x){
+    i<-grep("R\\^2|R[- ][Ss]q|[Rr]esidual|AIC|BIC|[Ii]nformation [Cr]iter|chi\\^2|degrees* of freedom|^df$|^DF$|^F$",x)
+  stats<-x
+  if(length(i)>0){
+    i<-min(i):length(stats)
+    # switch position
+    preValue<-gsub("^[^:]*:* *([^,][^,]*), ([^=]*)=.*","\\1",stats[i])
+    postValue<-gsub("(.*): .*","\\1",gsub("^[^:]*:* *([^,][^,]*), ([^=]*)=.*","\\2",stats[i]))
+    
+    preValue<-gsub("\\*","\\\\*",gsub("\\^","\\\\^",preValue))
+    preValue<-gsub("\\(","\\\\(",gsub("\\)","\\\\)",preValue))
+    preValue<-gsub("\\[","\\\\[",gsub("\\]","\\\\]",preValue))
+    preValue<-gsub("\\.","\\\\.",preValue)
+    
+    postValue<-gsub("\\*","\\\\*",gsub("\\^","\\\\^",postValue))
+    postValue<-gsub("\\(","\\\\(",gsub("\\)","\\\\)",postValue))
+    postValue<-gsub("\\[","\\\\[",gsub("\\]","\\\\]",postValue))
+    postValue<-gsub("\\.","\\\\.",postValue)
+    
+    for(j in 1:length(postValue)){
+      stats[i][j]<-gsub(postValue[j],"TEMPTEXT",stats[i][j])
+      stats[i][j]<-gsub(preValue[j],postValue[j],stats[i][j])
+      stats[i][j]<-gsub("TEMPTEXT",preValue[j],stats[i][j])
+    }
+    
+    # remove standard model stats
+    stats[i]<-gsub(" *standardized beta[,:] | *beta[,:] | *SE[,:] | [tTzZFpPORb][R]*[,:] |^[tTzZFpPORb][R]*[,:] | *[8-9][0-9]\\%[ -]CI[,:]* *"," ",stats[i])
+    stats[i]<-gsub("^  *","",gsub("  "," ",stats[i]))
+    # add model stats:
+    out<-c("- Extracted model table:", stats[1:(i[1]-1)],"- Extracted and processed model statistics:",
+           stats[i])
+    return(out)
+  }else
+    return(x)
+}
+return(unlist(lapply(dupSplit(x),fun)))
+}
+
+#################################################
+# model stats handler within matrix
+collapseModelMatrix<-function(m){
+  # escapes
+  if(!is.matrix(m)) return(m)
+  i<-grep("R\\^2|R[- ][Ss]q|[Rr]esidual|AIC|BIC|[Ii]nformation [Cr]iter|[cC]hi\\^2|degrees* of freedom|^df$|^DF$|^F$",m[,1])
+  if(length(i)==0) return(m)
+  # remove empty rows
+  if(ncol(m)>2) m<-m[!rowSums(m[,-1]=="")==ncol(m[,-1]),]
+  if(!is.matrix(m)) return(m)
+  i<-grep("R\\^2|R[- ][Ss]q|[Rr]esidual|AIC|BIC|[Ii]nformation [Cr]iter|[cC]hi\\^2|degrees* of freedom|^df$|^DF$|^F$",m[,1])
+  if(length(i)==0) return(m)
+  # index for model stats
+  ModRow<-min(i):nrow(m)
+  if(length(ModRow)>0)
+    for(k in ModRow){
+      # to numeric cells in non numeric rows
+      w<-grep("^[^-0-9\\.].",m[k,-1])
+      m[k,-1][w]<-
+        paste0(m[k,1],": ",m[k,-1][w])
+      # to numeric cells in row
+      w<-grep("^-*[0-9\\.]",m[k,-1])
+      m[k,-1][w]<-
+        paste0(m[k,1],"=",m[k,-1][w])
+      # remove pasted entries
+      m[k,1]<-""
+    }
+  
+  # collapse colum-wise
+  if(length(ModRow)>1){
+    for(k in 2:ncol(m))
+      for(n in 1:(length(ModRow)-1))
+        m[ModRow[1],k]<-paste0(m[ModRow[1],k],
+                               ifelse(m[ModRow[n],k]=="","",", "),
+                               m[ModRow[n+1],k]
+        )
+    # remove parsed lines
+    m<-m[-ModRow[-1],]
+    # rename first cell
+    m[ModRow[1],1]<-"collapsed model statistics"
+  }
+  return(m)
 }

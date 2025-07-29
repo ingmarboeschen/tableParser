@@ -1,10 +1,11 @@
 #' table2stats
 #' 
 #' Extracts tabulated statistical results from scientific articles in XML, HTML, HML, DOCX or PDF format.
-#' @param x Input. Either a filepath to an XML, HTML, HML, DOCX or PDF file or matrix object or vector of plain HTML coded tables.
+#' @param x Input. Either a file path to an XML, HTML, HML, DOCX or PDF file or matrix object or vector of plain HTML coded tables.
 #' @param standardPcoding Logical. If TRUE, and no other detection of coding is detected, then standard coding of p-values is assumed to be * p<.05, ** p<.01 and ***p<.001.
+#' @param correctComma Logical. If TRUE, decimal sign commas are converted to dots. 
 #' @param expandAbbreviations Logical. If TRUE, detected abbreviations are expanded to label from table caption/footer.
-#' @param superscript2bracket Logical. If TRUE, detected superscript codings are inserted inside parantheses.
+#' @param superscript2bracket Logical. If TRUE, detected superscript codings are inserted inside parentheses.
 #' @param stats.mode Select a subset of test results by p-value checkability for output. One of: c("all", "checkable", "computable", "uncomputable").
 #' @param checkP Logical. If TRUE, detected p-values and recalculated p-values will be checked for consistency
 #' @param alpha Numeric. Defines the alpha level to be used for error assignment.
@@ -23,6 +24,7 @@
 
 table2stats<-function(x,
                       standardPcoding=FALSE,
+                      correctComma=FALSE,
                       expandAbbreviations=TRUE,
                       superscript2bracket=TRUE,
                       stats.mode="all",
@@ -35,6 +37,12 @@ table2stats<-function(x,
                       addTableName=TRUE,
                       rm.na.col=TRUE
                       ){
+  
+  # prechecks
+  if(!is.element(stats.mode,c("all", "checkable", "computable", "uncomputable"))) stop('Argument "stats.mode" must be either "all", "checkable", "computable", or "uncomputable".')
+  if(!is.element(alternative,c("undirected", "directed"))) stop('Argument "alternative" must be either "undirected", or "directed".')
+  
+  
   raw<-NULL;stats<-NULL;type<-NULL;legend<-list()
   if(length(x)==0) return(NULL)
   # if x is one file
@@ -53,9 +61,9 @@ table2stats<-function(x,
       tabs<-get.tables(x)
       
       text<-table2text(tabs,unifyMatrix=TRUE,
-                       expandAbbreviations=expandAbbreviations,
+                       expandAbbreviations=expandAbbreviations,correctComma=correctComma,
                        superscript2bracket=superscript2bracket,
-                       standardPcoding=standardPcoding)
+                       standardPcoding=standardPcoding,addDescription=FALSE)
     }
 
     # PDF 
@@ -64,7 +72,7 @@ table2stats<-function(x,
         tabs<-lapply(tabs,as.matrix)
         text<-lapply(tabs,matrix2text,
                      unifyMatrix=TRUE,
-                     expandAbbreviations=expandAbbreviations,
+                     expandAbbreviations=expandAbbreviations,correctComma=correctComma,,
                      superscript2bracket=superscript2bracket,
                      standardPcoding=standardPcoding)
       }
@@ -76,7 +84,7 @@ table2stats<-function(x,
         tabs<-docx2matrix(x,replicate=TRUE)
         text<-lapply(tabs,matrix2text,
                      unifyMatrix=TRUE,
-                     expandAbbreviations=expandAbbreviations,
+                     expandAbbreviations=expandAbbreviations,correctComma=correctComma,
                      superscript2bracket=superscript2bracket,
                      standardPcoding=standardPcoding)
       }
@@ -88,7 +96,7 @@ table2stats<-function(x,
     # for lists
     if(is.list(x)){
        if(is.matrix(x[[1]])) text<-lapply(x,matrix2text, 
-                                          unifyMatrix=TRUE,
+                                          unifyMatrix=TRUE,correctComma=correctComma,
                                           expandAbbreviations=expandAbbreviations,
                                           superscript2bracket=superscript2bracket,
                                           standardPcoding=standardPcoding)
@@ -96,15 +104,15 @@ table2stats<-function(x,
          tabs<-get.tables(unlist(x))
          text<-table2text(tabs,
                           unifyMatrix=TRUE,
-                          expandAbbreviations=expandAbbreviations,
+                          expandAbbreviations=expandAbbreviations,correctComma=correctComma,
                           superscript2bracket=superscript2bracket,
-                          standardPcoding=standardPcoding)
+                          standardPcoding=standardPcoding,addDescription=FALSE)
        }
     } 
     # for matrices
     if(is.matrix(x)) text<-matrix2text(x,
                                        unifyMatrix=TRUE,
-                                       expandAbbreviations=expandAbbreviations,
+                                       expandAbbreviations=expandAbbreviations,correctComma=correctComma,
                                        superscript2bracket=superscript2bracket,
                                        standardPcoding=standardPcoding)
     # vector with HTML tables
@@ -112,9 +120,9 @@ table2stats<-function(x,
       tabs<-get.tables(x)
       text<-table2text(tabs,
                        unifyMatrix=TRUE,
-                       expandAbbreviations=expandAbbreviations,
+                       expandAbbreviations=expandAbbreviations,correctComma=correctComma,
                        superscript2bracket=superscript2bracket,
-                       standardPcoding=standardPcoding)
+                       standardPcoding=standardPcoding,addDescription=FALSE)
     }
   } # end if is no file
 
@@ -123,7 +131,7 @@ table2stats<-function(x,
   # add table name
   if(isTRUE(addTableName)){
   name<-names(text)
-  if(length(name)>0) for(i in 1:length(name)) text[[i]]<-paste0("Stats in ",name[i],": ",text[[i]])
+  if(length(name)>0) for(i in 1:length(name)) text[[i]]<-paste0("unified standard stats in ",name[i],": ",text[[i]])
   }
   
   # get copy with results for output
@@ -134,7 +142,7 @@ table2stats<-function(x,
   text<-unname(unlist(lapply(text,unifyStats)))
   
   # handle df1 and df2 in ANOVAs
-  raw<-unlist(lapply(raw,anovaHandler))
+  text<-unlist(lapply(text,anovaHandler))
   
   # split text
   

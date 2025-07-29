@@ -7,11 +7,11 @@
 unifyStats<-function(x){
   stats<-letter.convert(x,greek2text=TRUE)
   # unify minus/hyphen sign
-  x<-gsub("\u2212|\u02D7|\u002D|\u2013","-",x)
+  stats<-gsub("\u2212|\u02D7|\u002D|\u2013","-",stats)
   # unify beta 
-  x<-gsub("\u00DF|\u03b2","b",x)
-  
-  x<-text2num(x,percentage=FALSE,words=FALSE)
+  stats<-gsub("\u00DF|\u03b2","b",stats)
+  # text to number
+  stats<-text2num(stats,percentage=FALSE,words=FALSE)
   
   # clean up white space
   stats<-gsub(" *([<=>]) *","\\1",stats)        
@@ -38,7 +38,7 @@ unifyStats<-function(x){
   # unify p-value
   #stats<-gsub("[Ss]ignificance|p[[:punct:]]*[a-zA-Z][[:punct:]])","p",stats)
   stats<-gsub("[Vv]alues* of [Pp]([^a-z])","p\\1",stats)
-  stats<-gsub(" [pP][- ][Vv]alues* *([0-9\\.])| [pP] *([0-9\\.])"," p=\\1\\2",stats)
+  stats<-gsub(" [pP][- ][Vv]alues* *([0-9\\.])| [pP] ([0-9\\.])"," p=\\1\\2",stats)
   stats<-gsub("([^a-zA-Z]*)[pP][- ][Vv]alue([<>= ])","\\1p\\2",stats)
   stats<-gsub("[,:;] [Ss]ig[nifckazet \\.\\:]*([<=>])",", p\\1",stats)
   stats<-gsub(" P*([<=>])"," p\\1",stats)
@@ -50,6 +50,7 @@ unifyStats<-function(x){
   stats<-gsub("[- ][Vv]alues*([<=>])","\\1",stats)
   # degrees of freedom
   stats<-gsub("[dD]eg[res\\.]* *o*f* [fF]reed[a-z]*","df",stats)
+  stats<-gsub(" [dD]\\. *[fF]\\. *([<=>])"," df\\1",stats)
   # chi2/R2
   stats<-gsub("[Cc]hi[- ][Ss]quared*","chi2",stats)
   stats<-gsub(" R[- ][Ss]quared*","R^2",stats)
@@ -57,6 +58,9 @@ unifyStats<-function(x){
   # unify df1 and df2
   stats<-gsub("F *([<=>][<=>]* *[0-9\\.][0-9\\.]*),.* df [\\(\\[]*([0-9\\.][0-9\\.,]*)[,;] ([0-9\\.][0-9\\.]*)[\\)]*","F(\\2, \\3)\\1",stats)
   #stats<-gsub(" df [\\(\\[]*([0-9\\.][0-9\\.,]*)[,;] ([0-9\\.][0-9\\.,]*)[\\)]*"," df1=\\1, df2=\\2",stats)
+  # eta^2/d
+  stats<-gsub("eta\\^2[ _][^<=>]*([<=>])","eta^2\\1",stats)
+  stats<-gsub(" d[ _][^<=>]*([<=>])"," d\\1",stats)
   
   # unify parameter/coefficient/Estimate
   stats<-gsub("[pP]aram[\\.etrs] *([<=>])|[Cc]oef[\\.ficents]* *([<=>])| [Ee]st[\\.imates]* *([<=>])|^[Ee]st[\\.imates]* *([<=>])"," beta\\1\\2\\3\\4",stats)

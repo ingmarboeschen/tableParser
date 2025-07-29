@@ -1,15 +1,15 @@
-
 #' unifyMatrixContent
-#' Unifies content of character matrices. E.g.: comas in big numbers and HTML tags are removed. Performs space corrections and unifies hyphens and spaces. 
+#' Unifies content of character matrices. Unifies hyphens, spaces, greek letters and performs space and comma corrections. Unnecessary HTML tags may be removed. 
 #' @param x a character matrix.
-#' @param letter.convert Logical. If TRUE hex codes will be unified and converted to unicode with JATSdecoder::letter.convert().
+#' @param letter.convert Logical. If TRUE hexadecimal coded letters will be unified and converted to Unicode with JATSdecoder::letter.convert().
 #' @param greek2text Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text based form (e.g. 'alpha', 'beta'). 
 #' @param text2num Logical. If TRUE, textual representations of numbers (words, exponents, fractions) are converted to digit numbers. 
+#' @param correctComma Logical. If TRUE, commas used as separator are converted to dots. 
 #' @importFrom JATSdecoder letter.convert
 #' @importFrom JATSdecoder text2num
 #' @export
-unifyMatrixContent<-function(x,letter.convert=TRUE,greek2text=TRUE,text2num=TRUE){
-  fun<-function(x,letter.convert=TRUE,greek2text=TRUE,text2num=TRUE){
+unifyMatrixContent<-function(x,letter.convert=TRUE,greek2text=TRUE,text2num=TRUE,correctComma=FALSE){
+  fun<-function(x,letter.convert=TRUE,greek2text=TRUE,text2num=TRUE,correctComma=FALSE){
     if(!is.matrix(x)) return(x)
     # number of columns
     nCol<-ncol(x)
@@ -18,8 +18,36 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,greek2text=TRUE,text2num=TRUE
   #  hasDF<-colSums(matrix(grepl("^[dD][Ff]|[dD][Ff]$|[dD]eg[res\\.]* [ of]*[Ff]re",x),ncol=nCol))
   #  if(sum(hasDF)>1) hasDF[hasDF>0]<-0
   #  i<-which(hasDF==0)
-    i<-1:nCol
-    while(length(grep("([0-9]),([0-9]{3})",x[,i]))) x[,i]<-gsub("([0-9]),([0-9]{3})","\\1\\2",x[,i])
+
+    # has coma as decimal (obviously cases: 1,2,4 or more decimals, 0,number)
+    patComa<-"[0-9],[0-9][^0-9]|[0-9],[0-9]$|[0-9],[0-9]{2}[^0-9]|[0-9],[0-9]{2}$|[0-9],[0-9][0-9][0-9][0-9][^0-9][0-9]*|[0-9],[0-9][0-9][0-9][0-9][0-9]*$|^[^0-9]*0*,[0-9]{3}|[^0-9]0*,[0-9]{3}$"
+    # has dat as decimal (obviously cases: 1,2,4 or more decimals, 0,number)
+    patDot<-"[0-9]\\.[0-9][^0-9]|[0-9]\\.[0-9]$|[0-9]\\.[0-9]{2}[^0-9]|[0-9]\\.[0-9]{2}$|[0-9]\\.[0-9][0-9][0-9][0-9][^0-9][0-9]*|[0-9]\\.[0-9][0-9][0-9][0-9]|^[^0-9]*0*\\.[0-9]{3}|[^0-9]0*\\.[0-9]{3}$"
+    patF<-"F *\\([1-9][0-9]*,[1-9][0-9]*\\)"
+    # warning
+    if(length(grep(patComa,grep(patF,x,invert=TRUE,value=TRUE)))>0&length(grep(patDot,x))>0){
+      warning(paste0(paste0("There is an inconsistent use of decimal signs. Found for numeric value/s: ",
+                     paste(grep(patComa,grep(patF,x,invert=TRUE,value=TRUE),value=TRUE),collapse=", ")),
+      ifelse(!isTRUE(correctComma), "\nYou may consider to set the argument correctComma=TRUE to unify the decimal sign to dots.","")),call.=FALSE)
+    }
+    
+    # correction
+    if(length(grep(patComa,grep(patF,x,invert=TRUE,value=TRUE)))>0 & correctComma) {
+      warning("Detected decimal commas were converted to dots. This may infere with numeric values above 999, that have comma as big mark (e.g.: 1,000).",call.=FALSE)
+      x[grep(patF,x,invert=TRUE)]<-gsub(",([0-9])",".\\1",x[grep(patF,x,invert=TRUE)])
+    }
+    
+    # if has potential big mark coma remove it
+    patBM<-"[0-9],[0-9]{3}"
+    if(length(grep(patBM,x))>0){
+      # except df in F-values
+      patDF<-"F *\\([0-9][0-9]*,[0-9][0-9]*\\)"
+      i<-grep(patDF,x,invert=TRUE)
+      if(length(i)>0){
+        warnings("One or more detected big mark comma signs were removed from numeric content.",call.=FALSE)
+        x[i]<-gsub("([0-9]),([0-9]{3})","\\1\\2",x[i])
+      }
+     }
     
     # x as vector
     x<-as.vector(x)
@@ -38,6 +66,9 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,greek2text=TRUE,text2num=TRUE
     x<-gsub("\\*\\^\\*","**",gsub("\\*\\^\\*","**",x))
     # unify minus/hyphen sign
     x<-gsub("\u2212|\u02D7|\u002D|\u2013","-",x)
+
+    # remove NA
+    x<-gsub("^[Nn]/*[Aa]$","",x)
     
     # clean up and unify
     x<-gsub("^- ([0-9\\.])","-\\1",x)
@@ -81,6 +112,6 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,greek2text=TRUE,text2num=TRUE
   }
   
   # apply function
-  if(!is.list(x)) return(fun(x,letter.convert=letter.convert,greek2text=greek2text,text2num=text2num))
-  if(is.list(x)) return(lapply(x,fun,letter.convert=letter.convert,greek2text=greek2text,text2num=text2num))
+  if(!is.list(x)) return(fun(x,letter.convert=letter.convert,greek2text=greek2text,text2num=text2num,correctComma=correctComma))
+  if(is.list(x)) return(lapply(x,fun,letter.convert=letter.convert,greek2text=greek2text,text2num=text2num,correctComma=correctComma))
 }

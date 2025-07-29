@@ -3,7 +3,7 @@
 #' @param x A vector with HTML coded tables.
 #' @param rm.html logical. If TRUE, all HTML tags are removed, <sub> converts to '_', <sup> to '^'.
 #' @param sentences logical. If TRUE, a sentence vector is returned.
-#' @param letter.convert logical. If TRUE, hexadecimal letters are converted to unicode und unified with JATSdecoder::letter.convert.
+#' @param letter.convert logical. If TRUE, hexadecimal letters are converted to Unicode und unified with JATSdecoder::letter.convert.
 #' @returns A character vector with the extracted footer text and NULL for no footer text 
 #' @importFrom JATSdecoder strsplit2
 #' @importFrom JATSdecoder text2sentences

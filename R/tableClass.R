@@ -1,16 +1,22 @@
 #' tableClass
-#' Classifies matrix content to either 'tabled results', 'correlation', matrix, 'text', 'vector'
+#' Classifies matrix content to either 'tabled results', 'correlation', 'matrix', 'text', 'vector', 'model with model statistics', 'multi model with model statistics'. 
 #' @param x A character matrix
 #' @param legend A text string from tables caption and/or footer
 #' @returns A character object of length=1 with the tables class.
 #' @export
+#' 
 tableClass<-function(x,legend=NULL){
+  # remove inserted p-values
+  x<-gsub(";; p[<=>].*","",x)
+  
   m<-x
   nCol<-ncol(m)
   if(is.null(nCol)|nCol==1|nrow(m)==1) return("vector")
   
   ## standard output:
   class<-"tabled results"
+  
+
   
   ## check if matrix is text matrix
   # is cell with character?
@@ -31,8 +37,9 @@ tableClass<-function(x,legend=NULL){
   ###################################
   ## check if is correlation matrix?
   
-  # remove p-values behind numbers
+  # remove p-values/stars behind numbers
   m<-gsub("([0-9])[,;]* p[<=>][<=>]*[\\.0-9][\\.0-9]*","\\1",m)
+  m<-gsub("([0-9])\\^[[:punct:]]*","\\1",m)
   # remove numbers in brackets behind numbers
   m<-gsub("([0-9])[,;]* \\([-\\.0-9][\\.0-9]*\\)","\\1",m)
   
@@ -40,11 +47,11 @@ tableClass<-function(x,legend=NULL){
   cors<-matrix(suppressWarnings(as.numeric(gsub("[^0-9\\.-]","",m[-1,-1]))),ncol=ncol(m)-1)
   empty<-matrix(gsub("[[:punct:]]","",m[-1,-1])=="",ncol=ncol(m)-1)
   
-  # set rows/cols with mean/sd to NA
-  cors[grep("^[Mm]ed*i*an$|^AVE$|^M$|[Ss]tandard [Dd]eviation|^SD$",m[-1,1]),]<-NA
-  cors[,grep("^[Mm]ed*i*an$|^AVE$|^M$|[Ss]tandard [Dd]eviation|^SD$",m[1,-1])]<-NA
-  empty[grep("^[Mm]ed*i*an$|^AVE$|^M$|[Ss]tandard [Dd]eviation|^SD$",m[-1,1]),]<-TRUE
-  empty[,grep("^[Mm]ed*i*an$|^AVE$|^M$|[Ss]tandard [Dd]eviation|^SD$",m[1,-1])]<-TRUE
+  # set rows/cols with mean/sd/alpha to NA
+  cors[grep("^[Mm]ed*i*an$|^AVE$|^M$|Cronbach|\u03b1|[aA]lpha|[Ss]tandard [Dd]eviation|^SD$",m[-1,1]),]<-NA
+  cors[,grep("^[Mm]ed*i*an$|^AVE$|^M$|Cronbach|\u03b1|[aA]lpha|[Ss]tandard [Dd]eviation|^SD$",m[1,-1])]<-NA
+  empty[grep("^[Mm]ed*i*an$|^AVE$|^M$|Cronbach|\u03b1|[aA]lpha|[Ss]tandard [Dd]eviation|^SD$",m[-1,1]),]<-TRUE
+  empty[,grep("^[Mm]ed*i*an$|^AVE$|^M$|Cronbach|\u03b1|[aA]lpha|[Ss]tandard [Dd]eviation|^SD$",m[1,-1])]<-TRUE
   
   # prepare removal matrix of correlations
   cors <- cors<=1&cors>=-1
@@ -62,11 +69,18 @@ tableClass<-function(x,legend=NULL){
     return(class)
   }
   
+  
   ###################################
   # check 2 for correlation: Sequence of increasing number of NA
-  empty<-gsub("\\([0-9\\.-][0-9\\.\\[:punct::]]*\\)","",m)==""
+  if(ncol(m)>3&nrow(m)>3){
+    # in lines that are correlations
+  r<-rowSums(cors)>0
+  cols<-colSums(cors)>0
+  empty<-gsub("\\([0-9\\.-][0-9\\.\\[:punct::]]*\\)","",m[r,cols])==""
+  
   # number of empty cells per row
-  s<-rowSums(empty)[-1]
+  if(is.matrix(empty)){  
+    s<-rowSums(empty)[-1]
   # only go on if there is empty cells
   if(sum(s,na.rm=TRUE)>0){   #&(sum(s>1)>length(s)*.5)){
     i<-which(s==min(s,na.rm=TRUE))[1]:which(s==max(s,na.rm=TRUE))[1]
@@ -78,13 +92,15 @@ tableClass<-function(x,legend=NULL){
     #block<-empty%*%t(empty)
     ## must be better done!!!
     block<-((empty)%*%t(empty))%*%(empty)
-    nums<-suppressWarnings(as.numeric(gsub("[^0-9\\.-]","",m[block>0])))
+    nums<-suppressWarnings(as.numeric(gsub("[^0-9\\.-]","",m[r,cols][block>0])))
     nums<-nums[!is.na(nums)]
     hasCor<-sum(nums>=-1&nums<=1)>.9*length(nums)
     if(hasSeq&hasCor) class<-"correlation"
   }
+  }
+  }
   
-  # matrix content
+  # detect matrix content
   # if 1st row and col contain more than 2 cells with the same name
   if(class!="correlation"&
      sum(is.element(unique(m[1,]),unique(m[,1])))>2){
@@ -93,20 +109,23 @@ tableClass<-function(x,legend=NULL){
   
   # model and multi model
   if(nrow(m)>2 &
-     # has R^2
-     length(grep("^R\\^*2|[^A-z]R\\^*2",m[-1:-2,1]))>0 & 
+     # has R^2|F|etc
+     length(grep("^R\\^*2|[^A-z]R\\^*2|R[- ][Ss]q|^F$|^AIC|^BIC|Aikaike|[Ii]nformation [Cr]iter",m[-1:-2,1]))>0 & 
     # has Regression/Model in legend or header?
     (length(grep("[Rr]egression|[Mm]odel",legend))>0|length(grep("[Rr]egression|[Mm]odel",m))>0)
   ){
-    class<-"model"
+    class<-"model with model statistics"
   }
   
-  if(class=="model" & 
+  if(class=="model with model statistics"){
+    ind<-grep("^R\\^*2|[^A-z]R\\^*2|R[- ][Ss]q|^F$|^AIC|^BIC|Aikaike|[Ii]nformation [Cr]iter",m[,1])
+    if( 
      # has more than 1 R^2
-     length(grep("[\\.0]*[0-9]",m[grep("^R\\^*2|[^A-z]R\\^*2",m[,1])[1],]))>1
+     length(grep("[\\.0]*[0-9]",m[ind[1],]))>1|
+     length(grep("[\\.0]*[0-9]",m[ind[2],]))>1
      ){
-    class<-"multiModel"
-  }
+    class<-"multi model with model statistics"
+  }}
   
   return(class)
 }

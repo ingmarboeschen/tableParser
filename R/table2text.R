@@ -2,15 +2,17 @@
 #'
 #' Parses tabled content from HTML coded content or HTML, DOCX or PDF file to text.
 #' @param x A vector with HTML tables or a single file path to an HTML, XML, CERMXML, HML, PDF or DOCX file..
-#' @param unifyMatrix Logical. If TRUE, matrix cells are unifiedfor better post processing.
+#' @param unifyMatrix Logical. If TRUE, matrix cells are unified for better post processing.
 #' @param unifyStats Logical. If TRUE, output is unified for better post processing (e.g.: "p-value"->"p").
 #' @param expandAbbreviations Logical. If TRUE, detected abbreviations are expanded to label from table caption/footer.
-#' @param superscript2bracket Logical. If TRUE, detected superscript codings are inserted inside parantheses.
+#' @param superscript2bracket Logical. If TRUE, detected superscript codings are inserted inside parentheses.
 #' @param addDF Logical. If TRUE, detected sample size N in caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom. 
 #' @param standardPcoding Logical. If TRUE, and no other detection of coding is detected, standard coding of p-values is assumed to be * p<.05, ** p<.01 and ***p<.001.
+#' @param correctComma Logical. If TRUE and unifyMatrix=TRUE, decimal sign commas are converted to dots. 
+#' @param addDescription Logical. If TRUE, table caption and footer are added before the extracted table content for better readability.
 #' @param addTableName Logical. If TRUE, table number is added before the parsed text lines.
 #' @importFrom JATSdecoder letter.convert
-#' @return A List with parsed table content per HTML table. The result vector in each list element can be further processed with standardStats() to extract and structure the statistical standard test results only.
+#' @return A List with parsed table content per HTML table. The result vector in each list element can be further processed with JATSdecoder::standardStats() to extract and structure the statistical standard test results only.
 #' @export
 
 table2text<-function(x,
@@ -20,6 +22,8 @@ table2text<-function(x,
                      superscript2bracket=TRUE,
                      standardPcoding=FALSE,
                      addDF=TRUE,
+                     correctComma=FALSE,
+                     addDescription=TRUE,
                      addTableName=TRUE
 ){
   # preparation/escapes
@@ -88,10 +92,11 @@ table2text<-function(x,
                 expandAbbreviations=TRUE,
                 superscript2bracket=superscript2bracket,
                 standardPcoding=FALSE,addDF=addDF,
+                correctComma=FALSE,
                 legend=NULL){
     
     if(length(x)==0)  return(NULL)
-    if(unifyMatrix==TRUE) x<-unifyMatrixContent(x)
+    if(unifyMatrix==TRUE) x<-unifyMatrixContent(x,correctComma=correctComma)
 
   # convert matrix to text
   out<-matrix2text(x,legend=legend,
@@ -121,10 +126,19 @@ if(length(m)==0) return(NULL)
                       expandAbbreviations=expandAbbreviations,
                      superscript2bracket=superscript2bracket,
                       standardPcoding=standardPcoding,addDF=addDF,
+                     correctComma=correctComma,
                       legend=legend[[i]])
   
-  
   if(length(output)==0) return(NULL)
+  
+  if(isTRUE(addDescription))
+  for(i in 1:length(m)) 
+    output[[i]]<-grep("caption: $|footer: $",c(
+      paste0("caption: ",caption[[i]]),
+      paste0("footer: ",footer[[i]]),
+                   output[[i]]),invert=TRUE,value=TRUE)
+      
+    
   # name the output
   if(addTableName==TRUE)  names(output)<-paste("table",1:length(output))
   #output<-mapply(c,output)

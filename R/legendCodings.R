@@ -1,6 +1,6 @@
 #' legendCodings
 #' 
-#' Extracts the coding of p-values, brackets, abbreviations, superscripts and reported sample size/s with N=number from tables caprion and footer notes/text. 
+#' Extracts the coding of p-values, brackets, abbreviations, superscripts and reported sample size/s with N=number from tables caption and footer notes/text. 
 #' @param x An HTML coded table or plain textual input.
 #' @returns A list with detected p-value codings, abbreviations and sample size/s.
 #' @importFrom JATSdecoder grep2
@@ -141,6 +141,11 @@ get.pCodes<-function(x){
   x<-gsub("\\.$","",x)
   # n.s./vs. -> ns/vs
   x<-gsub("([nNv])\\.*([sS])\\.*","\\1\\2",x)
+  
+  # add percent behind listed percent
+  x<-gsub("([0-9]),* and( [0-9][.0-9]*%)","\\1%,\\2",x)
+  x<-gsub("([0-9])(, [0-9][.0-9]*%)","\\1%\\2",x)
+  x<-gsub("([0-9])(, [0-9][.0-9]*%)","\\1%\\2",x)
   # unify numbers
   x<-text2num(x)
   # remove space between operators

@@ -3,7 +3,7 @@
 #' Extracts tables from HTML, HML, XML, CERMXML, DOCX, PDF files or plain HTML code to a list of character matrices.
 #' @param x File path to a DOCX, PDF or HTML-encoded file, or text with HTML code.
 #' @param unifyMatrix Logical. If TRUE, matrix cells are unified for better post processing (see: unifyMatrixContent()).
-#' @param letter.convert Logical. If TRUE hex codes will be unified and converted to unicode with JATSdecoder::letter.convert().
+#' @param letter.convert Logical. If TRUE hex codes will be unified and converted to Unicode with JATSdecoder::letter.convert().
 #' @param greek2text Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text based form (e.g. 'alpha', 'beta'). 
 #' @param replicate Logical. If TRUE the content of cells with row/col span > 1 are replicated in all connected cells, if FALSE, the value will only be placed to the first of the connected cell.
 #' @param repNums Logical. If TRUE cells with numbers, that have row/col span > 1 are replicated in every connected cell.
@@ -13,7 +13,7 @@
 #' @param header2colnames Logical. If TRUE and 'collapseHeader=TRUE' first table row is used for column names and removed from table.
 #' @examples 
 #' x<-readLines("https://en.wikipedia.org/wiki/R_(programming_language)",warn=FALSE)
-#' tabs<-table2matrix(x)
+#' table2matrix(x,rm.html=T)
 #' @return List with detected HTML tables as matrices.
 #' @export
 
@@ -32,7 +32,7 @@ table2matrix<-function(x,unifyMatrix=FALSE,
 ){
   # escapes
   if(length(x)==0) return(NULL)
-  if(is.list(x)|is.matrix(x)) stop("x must be file path or plain HTML code.")
+  if(is.list(x)|is.matrix(x)) stop("Input must be a file path or plain HTML code.")
   
   # escapes for bad file formats
   if(length(grep("^<table",x))==0 & length(x)==1)
@@ -41,7 +41,9 @@ table2matrix<-function(x,unifyMatrix=FALSE,
   
   # get file type
   type<-tolower(gsub(".*\\.([A-z][A-z]*)$","\\1",x[1]))
-  
+  if(nchar(type)>2&nchar(type)<8) 
+    if(!file.exists(x)) stop("Input file does not exist.")
+       
   # get matrix from DOCX or PDF
   if(is.element(type,c("docx","pdf"))){
   # docx 
@@ -130,6 +132,7 @@ table2matrix<-function(x,unifyMatrix=FALSE,
   
   # apply function singleTable2matrix
   out<-list() 
+
   if(length(x)==1) out[[1]]<-singleTable2matrix(x,letter.convert=letter.convert,
                                                 greek2text=greek2text,
                                                 replicate=replicate,
@@ -165,7 +168,7 @@ table2matrix<-function(x,unifyMatrix=FALSE,
   # apply options
   if(unifyMatrix==TRUE) out<-lapply(out,unifyMatrixContent,letter.convert=letter.convert,greek2text=greek2text,text2num=TRUE)
   # remove emty rows/cols
-  if(rm.empty.rows==TRUE) out<-lapply(out,rm.empty)
+  #if(rm.empty.rows==TRUE) out<-lapply(out,rm.empty)
   
   # name list elements  
   if(is.list(out))
@@ -188,6 +191,7 @@ singleTable2matrix<-function(x,letter.convert=TRUE,# Logical. If TRUE hex codes 
                              header2colnames=FALSE, # Logical. If TRUE and collapse header==TRUE first table row is used for column names and removed from table
                              repNums=FALSE
 ){
+  
   # escape if x is empty
   if(length(x)==0) return(NULL)
   # table rows
@@ -212,9 +216,9 @@ singleTable2matrix<-function(x,letter.convert=TRUE,# Logical. If TRUE hex codes 
   cells<-lapply(cells,function(x) gsub(' *rowspan="1"| *colspan="1"',"",x))
   rows<-lapply(rows,function(x) gsub(' *rowspan="1"| *colspan="1"',"",x))
   
-  # is numeric cell
-  is.num<-lapply(cells,function(x) gsub("<[^>]*>","",JATSdecoder::letter.convert(x)))
-  is.num<-lapply(is.num,function(x) gsub("\\^.|[[:punct:] 0-9]","",x)=="")
+  # is numeric cell or cell with result
+  text<-lapply(cells,function(x) gsub("<[^>]*>","",JATSdecoder::letter.convert(x)))
+  is.num<-lapply(text,function(x) gsub("\\^.|[[:punct:] 0-9]","",x)==""|length(grep("[<=>] -*[\\.0-9]",x))>0)
   is.num
   
   ##############

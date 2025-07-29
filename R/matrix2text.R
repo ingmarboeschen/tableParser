@@ -4,12 +4,13 @@
 #' @param x A character matrix or list of character matrices.
 #' @param legend A list with table legend codes extracted from table caption and/or footer with tableParser::legendCodings(). 
 #' @param unifyMatrix Logical. If TRUE, matrix cells are unified for better post processing.
+#' @param correctComma Logical. If TRUE and unifyMatrix=TRUE, decimal sign commas are converted to dots. 
 #' @param expandAbbreviations Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footer with tableParser::legendCodings().
-#' @param superscript2bracket Logical. If TRUE, detected superscript codings are inserted inside parantheses.
+#' @param superscript2bracket Logical. If TRUE, detected superscript codings are inserted inside parentheses.
 #' @param addDF Logical. If TRUE, detected sample size N in caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom. 
 #' @param standardPcoding Logical. If TRUE, and no other detection of p-value coding is detected, standard coding of p-values is assumed to be: * p<.05, ** p<.01 and *** p<.001.
 #' @param rotate Logical. If TRUE, matrix/matrices is rotated before parsing.
-#' @param split Logical. If TRUE, matrix/matrices are split for multi model tables.
+#' @param split Logical. If TRUE, matrix/matrices are split for multi-model tables.
 #' @return Character vector with a parsed and straight forward readable form of the input table. The result vector can be further processed with standardStats() to extract and structure the statistical standard test results only.
 #' @examples 
 #' # some random data
@@ -29,7 +30,7 @@
 
 matrix2text<-function(x,
                       legend=NULL,
-                      unifyMatrix=TRUE,
+                      unifyMatrix=TRUE,correctComma=FALSE,
                       expandAbbreviations=TRUE,
                       superscript2bracket=TRUE,
                       standardPcoding=FALSE,
@@ -49,7 +50,7 @@ matrix2text<-function(x,
   if(!is.list(x) | !is.matrix(x[[1]])) stop("x must be a character matrix or a list of character matrices.")
   
   
-  fun<-function(x,rotate=FALSE,unifyMatrix=TRUE){
+  fun<-function(x,rotate=FALSE,unifyMatrix=TRUE,correctComma=FALSE){
   # escapes
   if(length(x)==0) return(NULL)
   # pre handling
@@ -57,7 +58,7 @@ matrix2text<-function(x,
   # set NA to ""
   x[is.na(x)]<-""
   # unify matrix content
-  if(unifyMatrix==TRUE) x<-unifyMatrixContent(x)
+  if(unifyMatrix==TRUE) x<-unifyMatrixContent(x,correctComma=correctComma)
   
   if(is.matrix(x)){
   # insert col and row names to inner matrix
@@ -72,7 +73,7 @@ matrix2text<-function(x,
   return(x)
   }
   
-  x<-lapply(x,fun,rotate=rotate,unifyMatrix=unifyMatrix)
+  x<-lapply(x,fun,rotate=rotate,unifyMatrix=unifyMatrix,correctComma=correctComma)
   
   # split matrices
   if(split==TRUE){
