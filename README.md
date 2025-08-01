@@ -7,12 +7,6 @@ The textual representation of characters in matrix content can be unified with *
 
 Important note: Due to the great variability in table structures and complexity, parsing accuracy may vary. For best results, it is recommended to work with simple, accessible, and barrier-free table structures to minimize parsing errors. 
 
-<table>
-    <tr>
-        <td>Foo</td>
-    </tr>
-</table>
-
 
 ## Installation with the devtools package
 ```R
