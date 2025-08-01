@@ -11,8 +11,8 @@ Important note: Due to the great variability in table structures and complexity,
 	<colgroup><col width="104">
 	<col width="93">
 	<col width="112">
-	</colgroup><tbody><tr valign="top">
-		<td width="104" height="28" style="border: none; padding: 0cm"><p class="western" align="left">
+	</colgroup>
+	  <td width="104" height="28" style="border: none; padding: 0cm"><p class="western" align="left">
 			<b>Demographics</b></p>
 		</td>
 		<td width="93" style="border: none; padding: 0cm"><p class="western" align="center">
@@ -96,7 +96,6 @@ Important note: Due to the great variability in table structures and complexity,
 			99 (50.51)</p>
 		</td>
 	</tr>
-</tbody>
 </table>
 
 
