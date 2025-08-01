@@ -35,7 +35,7 @@ table2stats("test.docx",check=TRUE,estimateZ=T)
 table2stats("test.html",check=TRUE,estimateZ=T)
 table2stats("test.pdf",check=TRUE,estimateZ=T)
 
-# activate next line to remove file
+# activate next line to remove downloaded files
 # file.remove("test.docx"); file.remove("test.html") file.remove("test.pdf")
  
 ```
