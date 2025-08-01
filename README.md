@@ -96,7 +96,8 @@ Important note: Due to the great variability in table structures and complexity,
 			99 (50.51)</p>
 		</td>
 	</tr>
-</tbody></table>
+</tbody>
+</table>
 
 
 ## Installation with the devtools package
