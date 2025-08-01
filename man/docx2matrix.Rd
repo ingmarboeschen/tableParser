@@ -7,13 +7,13 @@
 docx2matrix(x, replicate = TRUE)
 }
 \arguments{
-\item{x}{File path of a DOCX input file.}
+\item{x}{File path to a DOCX input file with tables.}
 
 \item{replicate}{Logical. If TRUE, replicates content when splitting connected cells.}
 }
 \value{
-List with extracted matrices.
+List with extracted tables as character matrices.
 }
 \description{
-Extracts tables from DOCX documents and return list of character matrices.
+Extracts tables from DOCX documents and returns list of character matrices.
 }

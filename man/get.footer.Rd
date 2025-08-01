@@ -2,8 +2,7 @@
 % Please edit documentation in R/get.footer.R
 \name{get.footer}
 \alias{get.footer}
-\title{get.footer
-Extracts the content of <table-wrap-footer>-tag.}
+\title{get.footer}
 \usage{
 get.footer(x, rm.html = TRUE, sentences = FALSE, letter.convert = TRUE)
 }
@@ -20,6 +19,5 @@ get.footer(x, rm.html = TRUE, sentences = FALSE, letter.convert = TRUE)
 A character vector with the extracted footer text and NULL for no footer text
 }
 \description{
-get.footer
-Extracts the content of <table-wrap-footer>-tag.
+Extracts the content of <table-wrap-foot>-tag/s.
 }

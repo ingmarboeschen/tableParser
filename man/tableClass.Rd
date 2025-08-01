@@ -2,20 +2,18 @@
 % Please edit documentation in R/tableClass.R
 \name{tableClass}
 \alias{tableClass}
-\title{tableClass
-Classifies matrix content to either 'tabled results', 'correlation', 'matrix', 'text', 'vector', 'model with model statistics', 'multi model with model statistics'.}
+\title{tableClass}
 \usage{
 tableClass(x, legend = NULL)
 }
 \arguments{
 \item{x}{A character matrix}
 
-\item{legend}{A text string from tables caption and/or footer}
+\item{legend}{A text vector with tables caption and/or footer.}
 }
 \value{
 A character object of length=1 with the tables class.
 }
 \description{
-tableClass
 Classifies matrix content to either 'tabled results', 'correlation', 'matrix', 'text', 'vector', 'model with model statistics', 'multi model with model statistics'.
 }

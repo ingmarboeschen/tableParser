@@ -39,10 +39,10 @@ matrix2text(
 \item{split}{Logical. If TRUE, matrix/matrices are split for multi-model tables.}
 }
 \value{
-Character vector with a parsed and straight forward readable form of the input table. The result vector can be further processed with standardStats() to extract and structure the statistical standard test results only.
+Character vector with a parsed and human readable form of the input table. The result vector can be further processed with standardStats() to extract and structure the statistical standard test results only.
 }
 \description{
-Convert character matrices to text.
+Converts character matrices to text.
 }
 \examples{
 # some random data
@@ -54,8 +54,17 @@ rnames<-c("",rownames(mod))
 cnames<-colnames(mod)
 mod<-rbind(cnames,mod)
 mod<-cbind(rnames,mod)
-x<-unname(mod)
 # ...as character result matrix
-# parse matrix to text
+x<-unname(mod);x
+## parse matrix to text vector
+# -as is
+matrix2text(x,unifyMatrix=FALSE)
+# -with unified content
+matrix2text(x,unifyMatrix=TRUE)
+## processing of a matrix with two header lines
+x<-rbind(c("","A","A","B","B"),x);x
+matrix2text(x,unifyMatrix=FALSE)
+## processing of a matrix with two header lines and naming columns 
+x<-cbind(c("","","C","D"),x);x
 matrix2text(x,unifyMatrix=FALSE)
 }

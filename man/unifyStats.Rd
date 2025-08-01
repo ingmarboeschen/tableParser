@@ -2,18 +2,16 @@
 % Please edit documentation in R/unifyStats.R
 \name{unifyStats}
 \alias{unifyStats}
-\title{unifyStats
-Unifies textual representations of statististical results.}
+\title{unifyStats}
 \usage{
 unifyStats(x)
 }
 \arguments{
-\item{x}{A text string as vector.}
+\item{x}{A text string with parsed tabled results.}
 }
 \value{
 A unified text string.
 }
 \description{
-unifyStats
-Unifies textual representations of statististical results.
+Unifies many textual representations of statistical results in text vectors created with table2text(). This uniformisation is needed for a more precise extraction of standard results with JATSdecoder::standardStats().
 }

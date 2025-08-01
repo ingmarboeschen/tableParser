@@ -2,8 +2,7 @@
 % Please edit documentation in R/get.caption.R
 \name{get.caption}
 \alias{get.caption}
-\title{get.caption
-Extracts the content of a <caption>-tag.}
+\title{get.caption}
 \usage{
 get.caption(x, rm.html = TRUE, sentences = FALSE, letter.convert = TRUE)
 }
@@ -20,6 +19,5 @@ get.caption(x, rm.html = TRUE, sentences = FALSE, letter.convert = TRUE)
 A character vector with the extracted caption text and NULL for no caption text
 }
 \description{
-get.caption
-Extracts the content of a <caption>-tag.
+Extracts the content of <caption>-tag/s.
 }

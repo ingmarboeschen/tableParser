@@ -2,8 +2,7 @@
 % Please edit documentation in R/unifyMatrixContent.R
 \name{unifyMatrixContent}
 \alias{unifyMatrixContent}
-\title{unifyMatrixContent
-Unifies content of character matrices. Unifies hyphens, spaces, greek letters and performs space and comma corrections. Unnecessary HTML tags may be removed.}
+\title{unifyMatrixContent}
 \usage{
 unifyMatrixContent(
   x,
@@ -22,9 +21,8 @@ unifyMatrixContent(
 
 \item{text2num}{Logical. If TRUE, textual representations of numbers (words, exponents, fractions) are converted to digit numbers.}
 
-\item{correctComma}{Logical. If TRUE, commas used as separator are converted to dots.}
+\item{correctComma}{Logical. If TRUE, commas used as numeric separator are converted to dots.}
 }
 \description{
-unifyMatrixContent
-Unifies content of character matrices. Unifies hyphens, spaces, greek letters and performs space and comma corrections. Unnecessary HTML tags may be removed.
+Unifies textual and numerical content of character matrices. Unifies hyphens, spaces, hexadecimal and greek letters and performs space and comma corrections. Big marks in numbers are removed. HTML tags <sup> and <sub> are converted to '^' and '_' respectively. All other HTML tags are removed.
 }

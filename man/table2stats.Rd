@@ -34,7 +34,7 @@ table2stats(
 
 \item{stats.mode}{Select a subset of test results by p-value checkability for output. One of: c("all", "checkable", "computable", "uncomputable").}
 
-\item{checkP}{Logical. If TRUE, detected p-values and recalculated p-values will be checked for consistency}
+\item{checkP}{Logical. If TRUE, detected p-values and recalculated p-values will be checked for consistency.}
 
 \item{alpha}{Numeric. Defines the alpha level to be used for error assignment.}
 
@@ -51,8 +51,8 @@ table2stats(
 \item{rm.na.col}{Logical. If TRUE, removes all columns with only NA.}
 }
 \value{
-A data.frame object with the extracted statistical standard results and recalculated p-values and a rudimentary, optional consistency check for reported p-values (if 'checkP=TRUE').
+A data.frame object with the extracted statistical standard results, recalculated p-values and a rudimentary, optional consistency check for reported p-values (if 'checkP=TRUE').
 }
 \description{
-Extracts tabulated statistical results from scientific articles in XML, HTML, HML, DOCX or PDF format.
+Extracts tabulated statistical results from documents in XML, HTML, HML, DOCX or PDF format.
 }

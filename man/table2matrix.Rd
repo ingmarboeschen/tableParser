@@ -12,7 +12,7 @@ table2matrix(
   replicate = FALSE,
   repNums = FALSE,
   rm.html = FALSE,
-  rm.empty.rows = FALSE,
+  rm.empty.row.col = FALSE,
   collapseHeader = TRUE,
   header2colnames = FALSE
 )
@@ -32,19 +32,19 @@ table2matrix(
 
 \item{rm.html}{Logical. If TRUE all HTML tags are removed, except <sub> and <sup> , </break> is converted to space.}
 
-\item{rm.empty.rows}{Logical. If TRUE empty rows/columns are removed from output.}
+\item{rm.empty.row.col}{Logical. If TRUE empty rows/columns are removed from output.}
 
 \item{collapseHeader}{Logical. If TRUE header cells are collapsed for each column if header has 2 or more lines.}
 
 \item{header2colnames}{Logical. If TRUE and 'collapseHeader=TRUE' first table row is used for column names and removed from table.}
 }
 \value{
-List with detected HTML tables as matrices.
+List with detected tables as character matrices.
 }
 \description{
 Extracts tables from HTML, HML, XML, CERMXML, DOCX, PDF files or plain HTML code to a list of character matrices.
 }
 \examples{
 x<-readLines("https://en.wikipedia.org/wiki/R_(programming_language)",warn=FALSE)
-table2matrix(x,rm.html=T)
+table2matrix(x,rm.html=TRUE)
 }

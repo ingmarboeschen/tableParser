@@ -18,7 +18,7 @@ table2text(
 )
 }
 \arguments{
-\item{x}{A vector with HTML tables or a single file path to an HTML, XML, CERMXML, HML, PDF or DOCX file..}
+\item{x}{A vector with HTML tables or a single file path to an HTML, XML, CERMXML, HML, PDF or DOCX file.}
 
 \item{unifyMatrix}{Logical. If TRUE, matrix cells are unified for better post processing.}
 
@@ -39,8 +39,8 @@ table2text(
 \item{addTableName}{Logical. If TRUE, table number is added before the parsed text lines.}
 }
 \value{
-A List with parsed table content per HTML table. The result vector in each list element can be further processed with JATSdecoder::standardStats() to extract and structure the statistical standard test results only.
+List with parsed tabled content as elements. The text vector in each list element can be further processed with JATSdecoder::standardStats() to extract and structure the statistical standard test results.
 }
 \description{
-Parses tabled content from HTML coded content or HTML, DOCX or PDF file to text.
+Parses tabled content from HTML coded content or HTML, DOCX or PDF file to human readable text vector. Before parsing, header lines are collapsed and connected cells are broken up.
 }
