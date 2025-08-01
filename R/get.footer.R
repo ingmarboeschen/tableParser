@@ -1,5 +1,6 @@
 #' get.footer
-#' Extracts the content of <table-wrap-footer>-tag.
+#' 
+#' Extracts the content of <table-wrap-foot>-tag/s.
 #' @param x A vector with HTML coded tables.
 #' @param rm.html logical. If TRUE, all HTML tags are removed, <sub> converts to '_', <sup> to '^'.
 #' @param sentences logical. If TRUE, a sentence vector is returned.

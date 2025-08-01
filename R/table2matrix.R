@@ -7,14 +7,14 @@
 #' @param greek2text Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text based form (e.g. 'alpha', 'beta'). 
 #' @param replicate Logical. If TRUE the content of cells with row/col span > 1 are replicated in all connected cells, if FALSE, the value will only be placed to the first of the connected cell.
 #' @param repNums Logical. If TRUE cells with numbers, that have row/col span > 1 are replicated in every connected cell.
-#' @param rm.empty.rows Logical. If TRUE empty rows/columns are removed from output.
+#' @param rm.empty.row.col Logical. If TRUE empty rows/columns are removed from output.
 #' @param rm.html Logical. If TRUE all HTML tags are removed, except <sub> and <sup> , </break> is converted to space.
 #' @param collapseHeader Logical. If TRUE header cells are collapsed for each column if header has 2 or more lines.
 #' @param header2colnames Logical. If TRUE and 'collapseHeader=TRUE' first table row is used for column names and removed from table.
 #' @examples 
 #' x<-readLines("https://en.wikipedia.org/wiki/R_(programming_language)",warn=FALSE)
-#' table2matrix(x,rm.html=T)
-#' @return List with detected HTML tables as matrices.
+#' table2matrix(x,rm.html=TRUE)
+#' @return List with detected tables as character matrices.
 #' @export
 
 # @param rm.duplicated Logical. If TRUE duplicated rows are removed from output.
@@ -24,9 +24,8 @@ table2matrix<-function(x,unifyMatrix=FALSE,
                        greek2text=FALSE,
                        replicate=FALSE, 
                        repNums=FALSE,
- #                      rm.duplicated=TRUE,
-                       rm.html=FALSE,
-                       rm.empty.rows=FALSE,
+                       rm.html=FALSE, 
+                       rm.empty.row.col=FALSE,
                        collapseHeader=TRUE,
                        header2colnames=FALSE
 ){
@@ -123,7 +122,7 @@ table2matrix<-function(x,unifyMatrix=FALSE,
     
     # extract HTML tables if is not already a vector with <tables>
   if(length(grep("<table",substr(x[1],1,7)))==0) 
-    x<-get.tables(x)
+    x<-get.HTML.tables(x)
   # remove newline sign
   x<-gsub("\\n"," ",x)
  
@@ -137,18 +136,16 @@ table2matrix<-function(x,unifyMatrix=FALSE,
                                                 greek2text=greek2text,
                                                 replicate=replicate,
                                                 repNums=repNums,
-  #                                              rm.empty.rows=rm.empty.rows,
+                                                rm.empty.row.col=rm.empty.row.col,
                                                 rm.html=rm.html,
- #                                               rm.duplicated=rm.duplicated,
                                                 collapseHeader=collapseHeader,
                                                 header2colnames=header2colnames)
   if(length(x)>1) out<-lapply(x,singleTable2matrix,letter.convert=letter.convert,
                               replicate=replicate,
                               repNums=repNums,
                               greek2text=greek2text,
-   #                           rm.empty.rows=rm.empty.rows,
+                              rm.empty.row.col=rm.empty.row.col,
                               rm.html=rm.html,
-  #                            rm.duplicated=rm.duplicated,
                               collapseHeader=collapseHeader,
                               header2colnames=header2colnames)
   if(length(out)==0) return(NULL)
@@ -167,9 +164,7 @@ table2matrix<-function(x,unifyMatrix=FALSE,
   
   # apply options
   if(unifyMatrix==TRUE) out<-lapply(out,unifyMatrixContent,letter.convert=letter.convert,greek2text=greek2text,text2num=TRUE)
-  # remove emty rows/cols
-  #if(rm.empty.rows==TRUE) out<-lapply(out,rm.empty)
-  
+
   # name list elements  
   if(is.list(out))
    if(length(out)>0)
@@ -184,8 +179,7 @@ table2matrix<-function(x,unifyMatrix=FALSE,
 singleTable2matrix<-function(x,letter.convert=TRUE,# Logical. If TRUE hex codes will be unified and converted to utf-8
                              greek2text=FALSE,
                              replicate=TRUE, # Logical. If TRUE the content of cells with row/col span is replicated in all connected cells, if FALSE disconnected cells will be empty,
- #                            rm.duplicated=FALSE, # Logical. If TRUE duplicated rows are deleted
- #                            rm.empty.rows=TRUE,
+                             rm.empty.row.col=TRUE,
                              rm.html=FALSE,
                              collapseHeader=TRUE, # Logical. If TRUE header cells are collapsed for each column if header has 2 or more lines
                              header2colnames=FALSE, # Logical. If TRUE and collapse header==TRUE first table row is used for column names and removed from table
@@ -356,11 +350,6 @@ singleTable2matrix<-function(x,letter.convert=TRUE,# Logical. If TRUE hex codes 
     cells<-lapply(cells,function(x) gsub("</*[a-z][^>]*/*>|</*[a-z]/*>","",x))
     cells<-lapply(cells,function(x) gsub("</*inline[^>]*/*>|</*inline[^>]*/*>","",x))
     }
-  # remove empty rows
-#  if(rm.empty.rows==TRUE){
-#    ind<-unlist(lapply(cells,function(x) sum(nchar(x))>0))
-#    cells<-cells[ind]
-#  }
   if(length(cells)==0) return(NULL)
   # convert special characters
   if(letter.convert==TRUE) cells<-lapply(cells,JATSdecoder::letter.convert,greek2text=greek2text)
@@ -370,12 +359,15 @@ singleTable2matrix<-function(x,letter.convert=TRUE,# Logical. If TRUE hex codes 
 #    cells<-cells[!duplicated(rowText)]
 #  }
   # convert to matrix
-  m<-suppressWarnings(matrix(unlist(cells),nrow=length(cells),byrow=T))
+  m<-suppressWarnings(matrix(unlist(cells),nrow=length(cells),byrow=TRUE))
+  
   # convert header text to column names
   if(header2colnames==TRUE&collapseHeader==TRUE) {
     colnames(m)<-m[1,]
     m<-m[-1,]
   }
+  # remove empty cols/rows
+  if(rm.empty.row.col==TRUE) m<-rm.empty(m)
   
   # get caption and footer for classification
   leg<-c(get.footer(x),get.caption(x))

@@ -1,7 +1,7 @@
 #' table2text
 #'
-#' Parses tabled content from HTML coded content or HTML, DOCX or PDF file to text.
-#' @param x A vector with HTML tables or a single file path to an HTML, XML, CERMXML, HML, PDF or DOCX file..
+#' Parses tabled content from HTML coded content or HTML, DOCX or PDF file to human readable text vector. Before parsing, header lines are collapsed and connected cells are broken up.
+#' @param x A vector with HTML tables or a single file path to an HTML, XML, CERMXML, HML, PDF or DOCX file.
 #' @param unifyMatrix Logical. If TRUE, matrix cells are unified for better post processing.
 #' @param unifyStats Logical. If TRUE, output is unified for better post processing (e.g.: "p-value"->"p").
 #' @param expandAbbreviations Logical. If TRUE, detected abbreviations are expanded to label from table caption/footer.
@@ -12,7 +12,7 @@
 #' @param addDescription Logical. If TRUE, table caption and footer are added before the extracted table content for better readability.
 #' @param addTableName Logical. If TRUE, table number is added before the parsed text lines.
 #' @importFrom JATSdecoder letter.convert
-#' @return A List with parsed table content per HTML table. The result vector in each list element can be further processed with JATSdecoder::standardStats() to extract and structure the statistical standard test results only.
+#' @return List with parsed tabled content as elements. The text vector in each list element can be further processed with JATSdecoder::standardStats() to extract and structure the statistical standard test results.
 #' @export
 
 table2text<-function(x,
@@ -52,7 +52,7 @@ table2text<-function(x,
     }
     # HTML 
     if(is.element(type,c("cermxml","xml","html","hml"))){
-      x<-get.tables(x)
+      x<-get.HTML.tables(x)
     }
     
     }# end if is file

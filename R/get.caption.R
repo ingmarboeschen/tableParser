@@ -1,5 +1,6 @@
 #' get.caption
-#' Extracts the content of a <caption>-tag.
+#' 
+#' Extracts the content of <caption>-tag/s.
 #' @param x A vector with HTML coded tables.
 #' @param rm.html logical. If TRUE, all HTML tags are removed, <sub> converts to '_', <sup> to '^'.
 #' @param sentences logical. If TRUE, a sentence vector is returned.

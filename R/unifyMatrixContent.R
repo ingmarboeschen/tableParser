@@ -1,10 +1,11 @@
 #' unifyMatrixContent
-#' Unifies content of character matrices. Unifies hyphens, spaces, greek letters and performs space and comma corrections. Unnecessary HTML tags may be removed. 
+#' 
+#' Unifies textual and numerical content of character matrices. Unifies hyphens, spaces, hexadecimal and greek letters and performs space and comma corrections. Big marks in numbers are removed. HTML tags <sup> and <sub> are converted to '^' and '_' respectively. All other HTML tags are removed. 
 #' @param x a character matrix.
 #' @param letter.convert Logical. If TRUE hexadecimal coded letters will be unified and converted to Unicode with JATSdecoder::letter.convert().
 #' @param greek2text Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text based form (e.g. 'alpha', 'beta'). 
 #' @param text2num Logical. If TRUE, textual representations of numbers (words, exponents, fractions) are converted to digit numbers. 
-#' @param correctComma Logical. If TRUE, commas used as separator are converted to dots. 
+#' @param correctComma Logical. If TRUE, commas used as numeric separator are converted to dots. 
 #' @importFrom JATSdecoder letter.convert
 #' @importFrom JATSdecoder text2num
 #' @export

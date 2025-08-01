@@ -1,13 +1,19 @@
 #' legendCodings
 #' 
-#' Extracts the coding of p-values, brackets, abbreviations, superscripts and reported sample size/s with N=number from tables caption and footer notes/text. 
-#' @param x An HTML coded table or plain textual input.
-#' @returns A list with detected p-value codings, abbreviations and sample size/s.
+#' Extracts the coding of p-values, brackets, abbreviations, superscripts and the reported sample size/s with 'N=number' from tables caption and footer notes/text. 
+#' @param x An HTML coded table or plain textual input of table caption and/or footer text.
+#' @returns A list with detected p-value and superscript codings, abbreviations and reported sample size/s.
 #' @importFrom JATSdecoder grep2
 #' @importFrom JATSdecoder strsplit2
 #' @importFrom JATSdecoder text2num
 #' @importFrom JATSdecoder text2sentences
 #' @importFrom JATSdecoder letter.convert
+#' @examples 
+#' x<-"+ p>.05, ^**p<.01, SSq, Sum of Squares, ^a t-test, n=120. 
+#' POS: perceived organizational support, JP; job performance.
+#' Numbers in parenthesis are standard errors. 
+#' Bold values indicate significance at p<.05."
+#' legendCodings(x)
 #' @export
 
 legendCodings<-function(x){
@@ -634,11 +640,14 @@ get.abbr<-function(text=NULL,footer=NULL){
   
   # correct [.;][A-z]
   x<-gsub("[\\.;]([A-z])",". \\1",x)
+  # unify seperators around abbreviation
+  x<-gsub(",( [A-Z][[:punct:]A-Z0-9]*), ",";\\1, ",x)
+  x<-gsub(",( [A-Z][[:punct:]A-Z0-9]*)[;:] ",";\\1, ",x)
+  x<-gsub("^([A-Z][[:punct:]A-Z0-9]*)[;:] ","\\1, ",x)
+
   # split at sentences
-  x<-unlist(strsplit(x,"\\. "))
+  x<-unlist(strsplit(x,"\\. |\\n"))
   x<-gsub("^[,;] and ","",unlist(strsplit2(x,"[,;] and ",type="before")))
-  # space for new line
-  x<-gsub("\\n"," ",x)
   # remove space around -
   x<-gsub(" *- *","-",x)
   # ", and " to
@@ -663,7 +672,7 @@ get.abbr<-function(text=NULL,footer=NULL){
   x<-letter.convert(x)
   # remove dot at end
   x<-gsub("\\.$","",x)
-  
+  x
   # TYPE A: if has "ABB[,:] full;"
   pattern<-"^[A-Z][0-9]*[,:] |[A-Z][-0-9a-z_]*[A-Z][,:] [A-z][a-z][^;]|[A-Z][-0-9A-Z_][-0-9A-Z_]*[,:] [A-z][a-z][^;]*;|[A-Z][-0-9A-Z_][-0-9A-Z_]*[,:] [A-z][a-z][^;]*$"
   typeA<-length(grep(pattern,x))>0
@@ -681,7 +690,9 @@ get.abbr<-function(text=NULL,footer=NULL){
     }
     
     y<-grep(pattern,y,value=TRUE)
-    y<-gsub(".* ([A-Z][-0-9A-Z_][-0-9A-Z_]*[,:] )|.* ([A-Z][-0-9a-z_]*[A-Z0-9]*[,:] )","\\1\\2",y)
+    y<-gsub(".* ([A-Z][-0-9A-Z_][-0-9A-Z_]*[,:] )","\\1",y)
+    y<-gsub(".* ([A-Z][-0-9a-z_]*[A-Z0-9][,:] )","\\1",y)
+    
     #abb<-c(abb,gsub("[^-0-9A-Z_]*([A-Z][-0-9A-Z_]*)[^-0-9A-Z_]*.*","\\1",y))
     # extract abbreviation
     abb<-c(abb,gsub("([^,:]*)[,:] .*","\\1",y))
@@ -695,10 +706,11 @@ get.abbr<-function(text=NULL,footer=NULL){
     if(length(abb)>0) for(i in 1:length(abb)) full<-c(full,gsub(paste0(".*[,:]* *",abb[i],"[,:] ([^,;]*).*"),"\\1",y[i]))
     if(length(abb)==0) full<-NULL
     if(length(full)==0) abb<-NULL
-    # remove abb from x
+    # remove abb and full from x
     for(i in abb) x<-gsub(paste0(i,"[,:] "),"",x)
+    for(i in full) x<-gsub(i,"",x)
   }
-  
+  x
   
   # TYPE B: if has "ABB = full;"
   typeB<-length(grep("^[A-Z][0-9]* *[=] *|[A-Z][-0-9A-z_]* *[=] *[A-z]",x))>0

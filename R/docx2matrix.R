@@ -1,12 +1,12 @@
 #' docx2matrix
 #'
-#' Extracts tables from DOCX documents and return list of character matrices.
-#' @param x File path of a DOCX input file.
+#' Extracts tables from DOCX documents and returns list of character matrices.
+#' @param x File path to a DOCX input file with tables.
 #' @param replicate Logical. If TRUE, replicates content when splitting connected cells.
 #' @importFrom xml2 read_xml
 #' @importFrom xml2 xml_ns
 #' @importFrom xml2 xml_find_all
-#' @return List with extracted matrices.
+#' @return List with extracted tables as character matrices.
 #' @export
 
 docx2matrix<-function(x,replicate=TRUE){

@@ -1172,3 +1172,30 @@ collapseModelMatrix<-function(m){
   }
   return(m)
 }
+
+
+## flatten two level list to one level list
+flattenList<-function(x){
+  if(length(x)<=0) return(x)
+  if(!is.list(x)) return(x)
+  j<-unlist(lapply(x,is.list))
+  if(sum(j)>0){
+    n<-names(x)
+    n<-rep(n,times=ifelse(j==TRUE,lapply(x[j],length),1))
+    for(i in 1:length(j)){
+      if(i==1){ 
+        if(j[i]==FALSE) y<-x[[i]]
+        if(j[i]==TRUE) y<-unlist(x[[i]],recursive=FALSE)
+      }
+      if(i>1){ 
+        if(j[i]==FALSE) y<-c(y,list(x[[i]]))
+        if(j[i]==TRUE) y<-c(y,x[[i]])
+      }
+    }
+    x<-y
+    #    names(x)<-n
+  }
+  return(x)
+}
+
+

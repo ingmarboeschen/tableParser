@@ -1,14 +1,15 @@
 #' tableClass
+#' 
 #' Classifies matrix content to either 'tabled results', 'correlation', 'matrix', 'text', 'vector', 'model with model statistics', 'multi model with model statistics'. 
 #' @param x A character matrix
-#' @param legend A text string from tables caption and/or footer
+#' @param legend A text vector with tables caption and/or footer.
 #' @returns A character object of length=1 with the tables class.
 #' @export
 #' 
 tableClass<-function(x,legend=NULL){
   # remove inserted p-values
   x<-gsub(";; p[<=>].*","",x)
-  
+  # take a copy
   m<-x
   nCol<-ncol(m)
   if(is.null(nCol)|nCol==1|nrow(m)==1) return("vector")
@@ -28,7 +29,7 @@ tableClass<-function(x,legend=NULL){
   # cells with chinese/cyrillic characters to TRUE
   characterCell[grep("[\u4E00-\u9FFF]|[\u0400-\u04FF]",m)]<-TRUE
   
-  #??  # escape if more than 90% are character cells
+  # escape if more than 90% are character cells
   if(sum(characterCell,na.rm=TRUE)/length(characterCell)>.9){
     class<-"text"
     return(class)

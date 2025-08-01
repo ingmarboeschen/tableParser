@@ -1,6 +1,6 @@
 #' matrix2text
 #'
-#' Convert character matrices to text.
+#' Converts character matrices to text.
 #' @param x A character matrix or list of character matrices.
 #' @param legend A list with table legend codes extracted from table caption and/or footer with tableParser::legendCodings(). 
 #' @param unifyMatrix Logical. If TRUE, matrix cells are unified for better post processing.
@@ -11,7 +11,7 @@
 #' @param standardPcoding Logical. If TRUE, and no other detection of p-value coding is detected, standard coding of p-values is assumed to be: * p<.05, ** p<.01 and *** p<.001.
 #' @param rotate Logical. If TRUE, matrix/matrices is rotated before parsing.
 #' @param split Logical. If TRUE, matrix/matrices are split for multi-model tables.
-#' @return Character vector with a parsed and straight forward readable form of the input table. The result vector can be further processed with standardStats() to extract and structure the statistical standard test results only.
+#' @return Character vector with a parsed and human readable form of the input table. The result vector can be further processed with standardStats() to extract and structure the statistical standard test results only.
 #' @examples 
 #' # some random data
 #' x<-rnorm(100)
@@ -22,10 +22,20 @@
 #' cnames<-colnames(mod)
 #' mod<-rbind(cnames,mod)
 #' mod<-cbind(rnames,mod)
-#' x<-unname(mod)
 #' # ...as character result matrix
-#' # parse matrix to text
+#' x<-unname(mod);x
+#' ## parse matrix to text vector
+#' # -as is
 #' matrix2text(x,unifyMatrix=FALSE)
+#' # -with unified content
+#' matrix2text(x,unifyMatrix=TRUE)
+#' ## processing of a matrix with two header lines
+#' x<-rbind(c("","A","A","B","B"),x);x
+#' matrix2text(x,unifyMatrix=FALSE)
+#' ## processing of a matrix with two header lines and naming columns 
+#' x<-cbind(c("","","C","D"),x);x
+#' matrix2text(x,unifyMatrix=FALSE)
+
 #' @export
 
 matrix2text<-function(x,

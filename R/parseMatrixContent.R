@@ -1,6 +1,6 @@
 #' parseMatrixContent
 #' 
-#' parses content from a character matrix into a text vector. This is the basic function of tableParser, that is implemented in matrix2text() and table2text() 
+#' Parses character matrix content into a text vector. This is the basic function of tableParser, which is implemented in matrix2text(), table2text() and table2stats(). Row and column names are parsed to cell content with operators, that depend on the cell content. Numeric cells are parsed with "=", text cells with ":". Cells that start with an operator ('<', '=' or '>') are parsed without a seperator. Detected codings for (e.g. p-values, abbreviations) from tables legend text can be used to extend the tabled content to a fully written out form.
 #' @param x A character matrix or list with a character matrix as first and only element.
 #' @param legend The tables caption/footer notes as character vector.
 #' @param standardPcoding Logical. If TRUE, and no other detection of p-value coding is detected, standard coding of p-values is assumed to be: * p<.05, ** p<.01 and *** p<.001.

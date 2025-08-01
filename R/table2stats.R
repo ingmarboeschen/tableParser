@@ -1,13 +1,13 @@
 #' table2stats
 #' 
-#' Extracts tabulated statistical results from scientific articles in XML, HTML, HML, DOCX or PDF format.
+#' Extracts tabulated statistical results from documents in XML, HTML, HML, DOCX or PDF format.
 #' @param x Input. Either a file path to an XML, HTML, HML, DOCX or PDF file or matrix object or vector of plain HTML coded tables.
 #' @param standardPcoding Logical. If TRUE, and no other detection of coding is detected, then standard coding of p-values is assumed to be * p<.05, ** p<.01 and ***p<.001.
 #' @param correctComma Logical. If TRUE, decimal sign commas are converted to dots. 
 #' @param expandAbbreviations Logical. If TRUE, detected abbreviations are expanded to label from table caption/footer.
 #' @param superscript2bracket Logical. If TRUE, detected superscript codings are inserted inside parentheses.
 #' @param stats.mode Select a subset of test results by p-value checkability for output. One of: c("all", "checkable", "computable", "uncomputable").
-#' @param checkP Logical. If TRUE, detected p-values and recalculated p-values will be checked for consistency
+#' @param checkP Logical. If TRUE, detected p-values and recalculated p-values will be checked for consistency.
 #' @param alpha Numeric. Defines the alpha level to be used for error assignment.
 #' @param criticalDif Numeric. Sets the absolute maximum difference in reported and recalculated p-values for error detection.
 #' @param alternative Character. Select test sidedness for recomputation of p-values from t-, r- and beta-values. One of c("undirected", "directed"). If "directed" is specified, p-values for directed null-hypothesis are added to the table but still require a manual inspection on consistency of the direction.
@@ -19,7 +19,7 @@
 #' @importFrom JATSdecoder letter.convert
 #' @importFrom JATSdecoder standardStats
 #' @importFrom JATSdecoder pCheck
-#' @return A data.frame object with the extracted statistical standard results and recalculated p-values and a rudimentary, optional consistency check for reported p-values (if 'checkP=TRUE'). 
+#' @return A data.frame object with the extracted statistical standard results, recalculated p-values and a rudimentary, optional consistency check for reported p-values (if 'checkP=TRUE'). 
 #' @export
 
 table2stats<-function(x,
@@ -58,7 +58,7 @@ table2stats<-function(x,
   
   # HTML 
     if(is.element(type,c("cermxml","xml","html","hml"))){
-      tabs<-get.tables(x)
+      tabs<-get.HTML.tables(x)
       
       text<-table2text(tabs,unifyMatrix=TRUE,
                        expandAbbreviations=expandAbbreviations,correctComma=correctComma,
@@ -101,7 +101,7 @@ table2stats<-function(x,
                                           superscript2bracket=superscript2bracket,
                                           standardPcoding=standardPcoding)
        if(is.vector(x[[1]])){
-         tabs<-get.tables(unlist(x))
+         tabs<-get.HTML.tables(unlist(x))
          text<-table2text(tabs,
                           unifyMatrix=TRUE,
                           expandAbbreviations=expandAbbreviations,correctComma=correctComma,
@@ -117,7 +117,7 @@ table2stats<-function(x,
                                        standardPcoding=standardPcoding)
     # vector with HTML tables
     if(is.vector(x)&!is.matrix(x)&!is.list(x)){
-      tabs<-get.tables(x)
+      tabs<-get.HTML.tables(x)
       text<-table2text(tabs,
                        unifyMatrix=TRUE,
                        expandAbbreviations=expandAbbreviations,correctComma=correctComma,
