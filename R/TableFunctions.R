@@ -1,6 +1,16 @@
 ## Matrix processing functions
 #############################
 
+# split at lines that are text between numeric lines
+multiTextRowSplit<-function(x){
+  temp<-matrix(grepl("^[0-9][0-9]*$",gsub("\\^.*|[[:punct:]]| ","",x[,-1])),ncol=ncol(x)-1)
+  i<-which(rowSums(temp)==0)
+  i<-i[i>2]
+  i<-i[i<nrow(x)]
+  if(length(i)>0) x<-rowSplit(x,i-1)
+  return(x)
+}
+
 # split matrix by row
 rowSplit<-function(x,split=NULL,headerRows=1){
   if(length(split)==0) return(x)
@@ -297,7 +307,8 @@ headerHandling<-function(m){
     m[1,]<-gsub("  "," ",paste0(m[1,]," ",m[2,]))
     m<-m[-2,]
   }
-  
+  # remove tailoring white spaces
+  m<-gsub("^  *|  *$","",m)
   return(m)
   }
 
@@ -781,17 +792,19 @@ splitCIs<-function(x){
       return(x)
     }
     
-    
 splitLastStat<-function(x){
       # define functions
       # split at last detected stat
       fun1<-function(x){
-      lastStat<-gsub(".*[,] ([A-z][-A-z 0-9\\^]*)[<=>][<=>]*-*[0-9\\.]*$","\\1",x)
+      lastStat<-gsub(".*, [^<=>]* (.[-A-z0-9\\^_]*)[<=>][<=>]*-*[0-9\\.]*$","\\1",x)
       # remove till standard stat
       lastStat<-gsub(".* ([StTzZpPQIHdbBF][DFE]*)$","\\1",lastStat)
       lastStat<-gsub(".* ([Cce][ht][ai]\\^*2*)$","\\1",lastStat)
       lastStat<-gsub(".* (omega\\^*2*)$","\\1",lastStat)
       lastStat<-gsub(".* (R\\^*2*)$","\\1",lastStat)
+      lastStat<-gsub("\\^","\\\\^",lastStat)
+      lastStat<-gsub(".*([^A-z])\\\\\\^","\\\\\\1\\\\^",lastStat)
+      
       if(lastStat!=x){
       x<-gsub(paste0("(",lastStat,"[<=>][<=>]*-*[0-9\\.]*)[,;]* "),"\\1SPLITHERE",x)
       x<-unlist(strsplit(x,"SPLITHERE"))
@@ -808,14 +821,14 @@ splitLastStat<-function(x){
       # split at last detected imputed p-value
       fun2<-function(x){
         lastPcode<-gsub(".*(;; p)[<=>][<=>]*[0-9\\.]*$","\\1",x)
-      if(lastPcode!=x){
+      if(sum(lastPcode!=x)>0){
         x<-gsub(paste0("(;; p[<=>][<=>]*[0-9\\.]*)[,;] "),"\\1SPLITHERE",x)
         x<-unlist(strsplit(x,"SPLITHERE"))
-        if(length(x)>1)
-          # add first cell content to front of new lines
+        # add first cell content to front of new lines
+#        if(length(x)>1)
           #  x[-1]<-paste0(gsub("^([^,]*), .*","\\1, ",x[1]),x[-1])
           # add stats in table num:
-          x[-1]<-paste0(gsub("^([^:]*): .*","\\1: ",x[1]),x[-1])
+#          x[-1]<-paste0(gsub("^([^,:]*)[:,] .*","\\1: ",x[1]),x[-1])
       }
     return(x)
       }
@@ -989,23 +1002,24 @@ newColumnCI<-function(x){
 # flatten list of lists to simple list
 flatten<-function(x){
   j<-unlist(lapply(x,is.list))
-  if(sum(j)>0){
-    n<-names(x)
-    n<-rep(n,times=ifelse(j==TRUE,lapply(x[j],length),1))
-    for(i in 1:length(j)){
-      if(i==1){ 
-        if(j[i]==FALSE) y<-list(x[[i]])
-        if(j[i]==TRUE) y<-unlist(x[[i]],recursive=FALSE)
-      }
-      if(i>1){ 
-        if(j[i]==FALSE) y<-c(y,list(x[[i]]))
-        if(j[i]==TRUE) y<-c(y,x[[i]])
-      }
-    }
-    x<-y
-    names(x)<-n
-  }
-  return(x)
+  j
+  out<-list()
+  n<-names(x)
+  names<-NULL
+  
+  for(i in 1:length(x)){
+   if(j[i]){
+     for(k in 1:length(x[[i]])) out<-c(out,x[[i]][k])  
+     names<-c(names,rep(n[i],length(x[[i]])))
+   }
+   if(!j[i]){
+     out[[length(out)+1]]<-x[[i]]  
+     names<-c(names,n[i])
+   }
+   }
+  out
+  names(out)<-names
+  return(out)
 }
 
 

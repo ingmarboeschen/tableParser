@@ -168,7 +168,7 @@ table2matrix<-function(x,unifyMatrix=FALSE,
   # name list elements  
   if(is.list(out))
    if(length(out)>0)
-     names(out)<-paste("table",1:length(out))
+     names(out)<-paste("Table",1:length(out))
   # output
     return(out)
 }

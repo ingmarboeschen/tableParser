@@ -44,6 +44,12 @@ parseMatrixContent<-function(x,legend=NULL,
   }
   
   ##############################################
+  # remove duplicated 2nd column
+  if(ncol(x)>1){
+    if(sum(x[,1]==x[,2])==nrow(x)) x<-x[,-2]
+    if(!is.matrix(x)) x<-as.matrix(x)
+  }
+  
   if(ncol(x)==1|nrow(x)==1){
     x<-parseContent(x)
     # add degrees of freedom
@@ -61,29 +67,7 @@ parseMatrixContent<-function(x,legend=NULL,
     }
     return(x)
   } 
-
-  # remove duplicated 2nd column
-  if(ncol(x)>1){
-    if(sum(x[,1]==x[,2])==nrow(x)) x<-x[,-2]
-  }
   
-  if(!is.matrix(x)){
-    x<-parseContent(x)
-    # add degrees of freedom
-    if(isTRUE(addDF)){
-      # add df=max(n)-2 for t and r values if has N= in legend
-      if(!is.null(N)){
-        # get highest N
-        maxN<-suppressWarnings(max(suppressWarnings(as.numeric(gsub(".*[<=>]","",N))),na.rm=T))
-        # add maxN-2 to r= and t= if no df is found
-        i<-(grep(" df[12]*=|degrees* of freed",x,invert=TRUE))
-        if(maxN!=-Inf) x[i]<-gsub(" r=",paste0(" r(",maxN-2,")="),x[i])
-        if(maxN!=-Inf) x[i]<-gsub(" t=",paste0(" t(",maxN-2,")="),x[i])
-        if(maxN!=-Inf) x[i]<-gsub(" T=",paste0(" T(",maxN-2,")="),x[i])
-      }
-    }
-    return(x)
-}  
   # take a copy
   m<-x
   
@@ -154,33 +138,16 @@ parseMatrixContent<-function(x,legend=NULL,
   }
   
   
-  if(class!="correlation"&class!="text"&class!="vector"){
+  if(class!="text"&class!="vector"){
     # create new columns for brackets and percent
     m<-newColumnBracket(m)
     m<-newColumnCI(m)
     m<-percentHandler(m)
     
     # Re-classify table
-    class<-tableClass(m,legend=legend)
+    #class<-tableClass(m,legend=legend)
   }
   
-  if(class=="vector") {
-    x<-parseContent(x)
-    # add degrees of freedom
-    if(isTRUE(addDF)){
-      # add df=max(n)-2 for t and r values if has N= in legend
-      if(!is.null(N)){
-        # get highest N
-        maxN<-suppressWarnings(max(suppressWarnings(as.numeric(gsub(".*[<=>]","",N))),na.rm=T))
-        # add maxN-2 to r= and t= if no df is found
-        i<-(grep(" df[12]*=|degrees* of freed",x,invert=TRUE))
-        if(maxN!=-Inf) x[i]<-gsub(" r=",paste0(" r(",maxN-2,")="),x[i])
-        if(maxN!=-Inf) x[i]<-gsub(" t=",paste0(" t(",maxN-2,")="),x[i])
-        if(maxN!=-Inf) x[i]<-gsub(" T=",paste0(" T(",maxN-2,")="),x[i])
-      }
-    }
-    return(x)
-  }
 
   if(class=="correlation"){
     # parse first and second column, if first col has no letters and second column starts with letter in every cell
@@ -313,7 +280,7 @@ parseMatrixContent<-function(x,legend=NULL,
   if(length(m)>0&is.matrix(m)){
   # add non significant p-values in columns that have cells with coded p-values,
   # but exclude lines from model statistics/residuals
-  i<-grep("R\\^2|R[- ][Ss]q|[Rr]esidual|AIC|BIC|[Ii]nformation [Cr]iter|chi\\^2|degrees* of freedom|^df$|^DF$",m[,1])
+  i<-grep("^R2$| R2|R\\^2|R[- ][Ss]q|[Rr]esidual|AIC|BIC|[Ii]nformation [Cr]iter|chi\\^2|degrees* of freedom|^df$|^DF$|[Ll]ikelihood",m[,1])
   if(length(i)>0) if(i[1]>1) i<-1:(min(i)-1)
   if(length(i)==0) i<-1:nrow(m)
   

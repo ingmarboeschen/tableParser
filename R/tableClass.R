@@ -111,7 +111,11 @@ tableClass<-function(x,legend=NULL){
   # model and multi model
   if(nrow(m)>2 &
      # has R^2|F|etc
-     length(grep("^R\\^*2|[^A-z]R\\^*2|R[- ][Ss]q|^F$|^AIC|^BIC|Aikaike|[Ii]nformation [Cr]iter",m[-1:-2,1]))>0 & 
+     (length(grep("^R\\^*2|[^A-z]R\\^*2|R[- ][Ss]q|^F$|^AIC|^BIC|Aikaike|[Ii]nformation [Cr]iter",m[-1:-2,1]))>0 
+      | 
+      length(grep("^R\\^*2|[^A-z]R\\^*2|R[- ][Ss]q|^F$|^AIC|^BIC|Aikaike|[Ii]nformation [Cr]iter",m[1,-1:-2]))>0 
+      )
+     & 
     # has Regression/Model in legend or header?
     (length(grep("[Rr]egression|[Mm]odel",legend))>0|length(grep("[Rr]egression|[Mm]odel",m))>0)
   ){

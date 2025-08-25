@@ -8,9 +8,11 @@
 #' @param superscript2bracket Logical. If TRUE, detected superscript codings are inserted inside parentheses.
 #' @param addDF Logical. If TRUE, detected sample size N in caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom. 
 #' @param standardPcoding Logical. If TRUE, and no other detection of coding is detected, standard coding of p-values is assumed to be * p<.05, ** p<.01 and ***p<.001.
+#' @param rotate Logical. If TRUE, matrix content is parsed by column.
 #' @param correctComma Logical. If TRUE and unifyMatrix=TRUE, decimal sign commas are converted to dots. 
 #' @param addDescription Logical. If TRUE, table caption and footer are added before the extracted table content for better readability.
-#' @param addTableName Logical. If TRUE, table number is added before the parsed text lines.
+#' @param unlist Logical. If TRUE, output is returned as vector.
+#' @param addTableName Logical. If TRUE and unlist=TRUE, table number is added in front of unlisted text lines.
 #' @importFrom JATSdecoder letter.convert
 #' @return List with parsed tabled content as elements. The text vector in each list element can be further processed with JATSdecoder::standardStats() to extract and structure the statistical standard test results.
 #' @export
@@ -22,12 +24,13 @@ table2text<-function(x,
                      superscript2bracket=TRUE,
                      standardPcoding=FALSE,
                      addDF=TRUE,
+                     rotate=FALSE,
                      correctComma=FALSE,
                      addDescription=TRUE,
-                     addTableName=TRUE
+                     unlist=FALSE,addTableName=TRUE
 ){
   # preparation/escapes
-  if(is.list(x))
+  if(is.list(x)|is.matrix(x))
     stop("x must be a vector of HTML tables or a single file path to an HTML, XML, CERMXML, HML, PDF or DOCX file.")
   if(length(x)==0)  return(NULL)
   
@@ -58,7 +61,7 @@ table2text<-function(x,
     }# end if is file
   
   # for HTML tables with legend text
-  if(!is.list(x)&!is.matrix(x))
+  if(!is.list(x)&!is.matrix(x)){
   if(length(grep("<table",x[1]))>0){
     # split multiple tables inside of one <table-wrap>-tag
     x<-multiTable(x)
@@ -77,8 +80,11 @@ table2text<-function(x,
     m<-table2matrix(x,letter.convert=TRUE,rm.html=TRUE,replicate=TRUE,
                     collapseHeader=TRUE)
   
+  }else{
+    if(!file.exists(x[1])) 
+      stop("x must be a vector of HTML tables or a single file path to an HTML, XML, CERMXML, HML, PDF or DOCX file.")
   }
-  
+  }
   # prepare and escape if no matrix extracted
   if(is.matrix(m)) m<-list(m)
   if(!is.list(m)) return(NULL)
@@ -86,14 +92,13 @@ table2text<-function(x,
   # set legend to empty, if non is existant
   if(length(legend)==0) legend[1:length(m)]<-""
   
+  # function to convert matrix with matrix2stats
   fun<-function(x,
-                unifyMatrix=TRUE,
-                unifyStats=FALSE,
-                expandAbbreviations=TRUE,
-                superscript2bracket=superscript2bracket,
-                standardPcoding=FALSE,addDF=addDF,
-                correctComma=FALSE,
-                legend=NULL){
+                unifyMatrix=TRUE,unifyStats=FALSE,
+                expandAbbreviations=TRUE,superscript2bracket=TRUE,
+                standardPcoding=FALSE,addDF=TRUE,
+                rotate=FALSE,correctComma=FALSE,
+                legend=NULL,unlist=FALSE){
     
     if(length(x)==0)  return(NULL)
     if(unifyMatrix==TRUE) x<-unifyMatrixContent(x,correctComma=correctComma)
@@ -102,7 +107,8 @@ table2text<-function(x,
   out<-matrix2text(x,legend=legend,
                    expandAbbreviations=expandAbbreviations,
                    superscript2bracket=superscript2bracket,
-                   unifyMatrix=FALSE,standardPcoding=standardPcoding,addDF=addDF
+                   unifyMatrix=FALSE,standardPcoding=standardPcoding,
+                   addDF=addDF,rotate=rotate,unlist=unlist
                    )
   if(unifyStats==TRUE) out<-unifyStats(out)
   # output
@@ -121,13 +127,13 @@ if(length(m)==0) return(NULL)
   
   output<-list()
   for(i in 1:length(m)) 
-    output[[i]]<-fun(m[[i]],unifyMatrix=unifyMatrix,
+    output[[i]]<-unname(unlist(fun(m[[i]],unifyMatrix=unifyMatrix,
                       unifyStats=unifyStats,
                       expandAbbreviations=expandAbbreviations,
                      superscript2bracket=superscript2bracket,
                       standardPcoding=standardPcoding,addDF=addDF,
-                     correctComma=correctComma,
-                      legend=legend[[i]])
+                     correctComma=correctComma,rotate=rotate,
+                      legend=legend[[i]],unlist=FALSE)))
   
   if(length(output)==0) return(NULL)
   
@@ -139,10 +145,15 @@ if(length(m)==0) return(NULL)
                    output[[i]]),invert=TRUE,value=TRUE)
       
     
-  # name the output
-  if(addTableName==TRUE)  names(output)<-paste("table",1:length(output))
-  #output<-mapply(c,output)
-  
+  # name the listed output
+    names(output)<-paste("Table",1:length(output))
+      
+  # unlist with table names
+  if(isTRUE(unlist)){
+    n<-rep(names(output),times=unlist(lapply(output,length)))
+    if(isTRUE(addTableName)) output<-paste0(n,":: ",unname(unlist(output)))
+    if(!isTRUE(addTableName)) output<-unname(unlist(output))
+  }  
   return(output)
   }
 

@@ -89,6 +89,8 @@ unifyStats<-function(x){
   # OR/RR-anything to anything-OR/RR
   stats<-gsub("(R\\^2)[- ]([-a-zA-z \\.]*)([<=>])"," \\2 \\1\\3",stats)
   
+  
+  
   # clean up
   stats<-gsub(" SE SE="," SE=",stats)
   stats<-gsub(" p p="," p=",stats)

@@ -466,7 +466,7 @@ get.HTMLcodes<-function(x){
   # Pr to p
   x<-gsub("(.)[pP]r( *[<=>][<=>]* *0*\\.[0-9])","\\1p\\2",x)
   # remove -value
-  x<-gsub("-value","",x)
+  x<-gsub("-values*","",x)
   # remove brackets
   x<-gsub("\\(\\)","",x)
   
@@ -490,8 +490,13 @@ if(length(grep("[Cc]ronbach'*s* alpha|[Ii]ntern.*consist",x))>0){
     # and escape if has alpha
     if(length(grep("[Bb]old",x))>0) boldP<-"CrAlpha"
     if(length(grep("[Ii]talic",x))>0)  italicP<-"CrAlpha"
-  } 
+    } 
   
+  # insert p<.05 if only significant, but no number is detected
+  i<-grep("p[<=>][<=>]*|[0-9]",x,value=TRUE)
+  if(length(i)==0)
+    x<-gsub("[Ss]ignificant[a-z]*","p<.05",x)
+    
   # select lines
   x<-grep("[0-9]",x,value=TRUE)
   x<-grep("p[<=>][<=>]*",x,value=TRUE)

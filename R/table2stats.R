@@ -4,6 +4,7 @@
 #' @param x Input. Either a file path to an XML, HTML, HML, DOCX or PDF file or matrix object or vector of plain HTML coded tables.
 #' @param standardPcoding Logical. If TRUE, and no other detection of coding is detected, then standard coding of p-values is assumed to be * p<.05, ** p<.01 and ***p<.001.
 #' @param correctComma Logical. If TRUE, decimal sign commas are converted to dots. 
+#' @param rotate Logical. If TRUE, matrix content is parsed by column.
 #' @param expandAbbreviations Logical. If TRUE, detected abbreviations are expanded to label from table caption/footer.
 #' @param superscript2bracket Logical. If TRUE, detected superscript codings are inserted inside parentheses.
 #' @param stats.mode Select a subset of test results by p-value checkability for output. One of: c("all", "checkable", "computable", "uncomputable").
@@ -25,6 +26,7 @@
 table2stats<-function(x,
                       standardPcoding=FALSE,
                       correctComma=FALSE,
+                      rotate=FALSE,
                       expandAbbreviations=TRUE,
                       superscript2bracket=TRUE,
                       stats.mode="all",
@@ -62,7 +64,7 @@ table2stats<-function(x,
       
       text<-table2text(tabs,unifyMatrix=TRUE,
                        expandAbbreviations=expandAbbreviations,correctComma=correctComma,
-                       superscript2bracket=superscript2bracket,
+                       superscript2bracket=superscript2bracket,rotate=rotate,
                        standardPcoding=standardPcoding,addDescription=FALSE)
     }
 
@@ -72,9 +74,9 @@ table2stats<-function(x,
         tabs<-lapply(tabs,as.matrix)
         text<-lapply(tabs,matrix2text,
                      unifyMatrix=TRUE,
-                     expandAbbreviations=expandAbbreviations,correctComma=correctComma,,
+                     expandAbbreviations=expandAbbreviations,correctComma=correctComma,
                      superscript2bracket=superscript2bracket,
-                     standardPcoding=standardPcoding)
+                     standardPcoding=standardPcoding,rotate=rotate,unlist=TRUE,addTableName=FALSE)
       }
   # DOCX 
       if(type=="docx"){
@@ -86,7 +88,8 @@ table2stats<-function(x,
                      unifyMatrix=TRUE,
                      expandAbbreviations=expandAbbreviations,correctComma=correctComma,
                      superscript2bracket=superscript2bracket,
-                     standardPcoding=standardPcoding)
+                     standardPcoding=standardPcoding,rotate=rotate,
+                     unlist=TRUE,addTableName=FALSE)
       }
   }# end if(file.exist)
   
@@ -99,13 +102,14 @@ table2stats<-function(x,
                                           unifyMatrix=TRUE,correctComma=correctComma,
                                           expandAbbreviations=expandAbbreviations,
                                           superscript2bracket=superscript2bracket,
-                                          standardPcoding=standardPcoding)
+                                          standardPcoding=standardPcoding,rotate=rotate,
+                                          unlist=TRUE,addTableName=FALSE)
        if(is.vector(x[[1]])){
          tabs<-get.HTML.tables(unlist(x))
          text<-table2text(tabs,
                           unifyMatrix=TRUE,
                           expandAbbreviations=expandAbbreviations,correctComma=correctComma,
-                          superscript2bracket=superscript2bracket,
+                          superscript2bracket=superscript2bracket,rotate=rotate,
                           standardPcoding=standardPcoding,addDescription=FALSE)
        }
     } 
@@ -113,7 +117,7 @@ table2stats<-function(x,
     if(is.matrix(x)) text<-matrix2text(x,
                                        unifyMatrix=TRUE,
                                        expandAbbreviations=expandAbbreviations,correctComma=correctComma,
-                                       superscript2bracket=superscript2bracket,
+                                       superscript2bracket=superscript2bracket,rotate=rotate,
                                        standardPcoding=standardPcoding)
     # vector with HTML tables
     if(is.vector(x)&!is.matrix(x)&!is.list(x)){
@@ -121,17 +125,17 @@ table2stats<-function(x,
       text<-table2text(tabs,
                        unifyMatrix=TRUE,
                        expandAbbreviations=expandAbbreviations,correctComma=correctComma,
-                       superscript2bracket=superscript2bracket,
+                       superscript2bracket=superscript2bracket,rotate=rotate,
                        standardPcoding=standardPcoding,addDescription=FALSE)
     }
   } # end if is no file
 
   # name the output
-  if(length(text)>0&is.list(text)) names(text)<-paste("table",1:length(text))
+  if(length(text)>0&is.list(text)) names(text)<-paste("Table",1:length(text))
   # add table name
   if(isTRUE(addTableName)){
   name<-names(text)
-  if(length(name)>0) for(i in 1:length(name)) text[[i]]<-paste0("unified standard stats in ",name[i],": ",text[[i]])
+  if(length(name)>0) for(i in 1:length(name)) text[[i]]<-paste0("Unified standard stats in ",name[i],": ",text[[i]])
   }
   
   # get copy with results for output
@@ -151,6 +155,11 @@ table2stats<-function(x,
   text<-letter.convert(text,greek2text=TRUE)
   text<-splitLastStat(text)
   text<-splitCIs(text)
+  
+  # set df1 and df2 in lines with F-values
+  i<-grep(" F(<=>)[0-9\\.]",text)
+  text[i]<-gsub("df[^=]*(=[0-9][\\.0-9]*)(, .*)df[^=]*(=[0-9][\\.0-9]*)","df1\\1\\2df2\\3",text[i])
+  
   #text<-splitTFZB(text)
 
   # extract standard results
