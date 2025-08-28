@@ -33,11 +33,12 @@ table2text<-function(x,
   if(is.list(x)|is.matrix(x))
     stop("x must be a vector of HTML tables or a single file path to an HTML, XML, CERMXML, HML, PDF or DOCX file.")
   if(length(x)==0)  return(NULL)
+
+  caption<-NULL;footer<-NULL;legend<-list();m<-NULL;file<-FALSE
   
-  caption<-NULL;footer<-NULL;legend<-list();m<-NULL
-  
-  # get tables as matrix if is file
+  # get tables as matrix if x is file
   if(length(x)==1 & file.exists(x[1])){ 
+    file<-TRUE
     # get file type
     type<-tolower(gsub(".*\\.([A-z][A-z]*)$","\\1",x))
     # escape
@@ -56,7 +57,9 @@ table2text<-function(x,
     # HTML 
     if(is.element(type,c("cermxml","xml","html","hml"))){
       x<-get.HTML.tables(x)
+      
     }
+    if(length(x)==0)  return(NULL)
     
     }# end if is file
   
@@ -108,7 +111,8 @@ table2text<-function(x,
                    expandAbbreviations=expandAbbreviations,
                    superscript2bracket=superscript2bracket,
                    unifyMatrix=FALSE,standardPcoding=standardPcoding,
-                   addDF=addDF,rotate=rotate,unlist=unlist
+                   addDF=addDF,
+                   rotate=rotate,unlist=unlist
                    )
   if(unifyStats==TRUE) out<-unifyStats(out)
   # output

@@ -63,11 +63,20 @@ table2matrix<-function(x,unifyMatrix=FALSE,
   # apply options
   # html
     if(rm.html==TRUE){
-      # convert </break> to space, <sub> to _, <sup> to ^ and remove all other html-tags
+      # convert </break> to space, <sub> to _, <sup> to ^ 
       m<-lapply(m,function(x) gsub("</*break/*>"," ",x))
       m<-lapply(m,function(x) gsub(" *<sub> *","_",x))
       m<-lapply(m,function(x) gsub(" *<sup> *","^",x))
       m<-lapply(m,function(x) gsub("</*sub/*>|</*sup/*>"," ",x))
+      # convert bold and italic numbers to number^bold/number^italic
+      m<-lapply(m,function(x) gsub("<(/*)b(/*)>","<\\1\\2bold>",x))
+      m<-lapply(m,function(x) gsub("<(/*)i(/*)>","<\\1\\2italic>",x))
+      m<-lapply(m,function(x) gsub("<(/*)strong(/*)>","<\\1\\2bold>",x))
+      m<-lapply(m,function(x) gsub("</bold>([\\.,; ]*)<bold>","\\1",x))
+      m<-lapply(m,function(x) gsub("</it*a*l*i*c*>([\\.,; ]*)<it*a*l*i*c*>","\\1",x))
+      m<-lapply(m,function(x) gsub("([0-9])</bold>","\\1^bold",gsub("[0-9]</italic>","\\1^italic",x)))
+      m<-lapply(m,function(x) gsub("([0-9])</b>","\\1^bold",gsub("[0-9]</i>","\\1^italic",x)))
+      # remove all other html-tags
       m<-lapply(m,function(x) gsub("</*[a-z][^>]*/*>|</*[a-z]/*>","",x))
       m<-lapply(m,function(x) gsub("</*inline[^>]*/*>|</*inline[^>]*/*>","",x))
       # space reduction
@@ -347,6 +356,12 @@ singleTable2matrix<-function(x,letter.convert=TRUE,# Logical. If TRUE hex codes 
     cells<-lapply(cells,function(x) gsub("</*break/*>"," ",x))
     cells<-lapply(cells,function(x) gsub(" *<sub> *","_",x))
     cells<-lapply(cells,function(x) gsub(" *<sup> *","^",x))
+    # convert bold and italic numbers to number^bold/number^italic
+    cells<-lapply(cells,function(x) gsub("</bo*l*d*>([\\.,; ]*)<bo*l*d*>","\\1",x))
+    cells<-lapply(cells,function(x) gsub("</it*a*l*i*c*>([\\.,; ]*)<it*a*l*i*c*>","\\1",x))
+    cells<-lapply(cells,function(x) gsub("([0-9])</bold>","\\1^bold",gsub("[0-9]</italic>","\\1^italic",x)))
+    cells<-lapply(cells,function(x) gsub("([0-9])</b>","\\1^bold",gsub("[0-9]</i>","\\1^italic",x)))
+    
     cells<-lapply(cells,function(x) gsub("</*[a-z][^>]*/*>|</*[a-z]/*>","",x))
     cells<-lapply(cells,function(x) gsub("</*inline[^>]*/*>|</*inline[^>]*/*>","",x))
     }
@@ -360,6 +375,9 @@ singleTable2matrix<-function(x,letter.convert=TRUE,# Logical. If TRUE hex codes 
 #  }
   # convert to matrix
   m<-suppressWarnings(matrix(unlist(cells),nrow=length(cells),byrow=TRUE))
+  
+  
+  if(isTRUE(collapseHeader)) m<-headerHandling(m)
   
   # convert header text to column names
   if(header2colnames==TRUE&collapseHeader==TRUE) {

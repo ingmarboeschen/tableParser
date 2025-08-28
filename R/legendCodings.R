@@ -495,7 +495,7 @@ if(length(grep("[Cc]ronbach'*s* alpha|[Ii]ntern.*consist",x))>0){
   # insert p<.05 if only significant, but no number is detected
   i<-grep("p[<=>][<=>]*|[0-9]",x,value=TRUE)
   if(length(i)==0)
-    x<-gsub("[Ss]ignificant[a-z]*","p<.05",x)
+    x<-gsub("[Ss]ignific[a-z]*","p<.05",x)
     
   # select lines
   x<-grep("[0-9]",x,value=TRUE)

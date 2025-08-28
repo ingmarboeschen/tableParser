@@ -43,6 +43,20 @@ parseMatrixContent<-function(x,legend=NULL,
     sup_label<-codesFromLegend$sup_label
   }
   
+  # add coding for significant p in bold to pval
+  if(length(bold)==1) 
+    if(grep("p[<=>]",bold))
+      if(!is.element(bold,pval)){
+        pval<-c(pval,bold)
+        psign<-c(psign,"^bold")
+     }
+  if(length(italic)==1) 
+    if(grep("p[<=>]",italic))
+      if(!is.element(italic,pval)){
+        pval<-c(pval,italic)
+        psign<-c(psign,"^italic")
+      }
+  
   ##############################################
   # remove duplicated 2nd column
   if(ncol(x)>1){
@@ -166,7 +180,7 @@ parseMatrixContent<-function(x,legend=NULL,
   if(length(parentheses)>0) m<-bracket2value(m,parentheses,"parentheses",sep=";;")
   if(length(brackets)>0) m<-bracket2value(m,brackets,"brackets",sep=";;")
 
-    # add standard p-coding
+  # add standard p-coding
   if(standardPcoding==TRUE&length(pval)==0){
     psign<-c("***","**","*")
     pval<-c("p<.001","p<.01","p<.05")
@@ -175,6 +189,16 @@ parseMatrixContent<-function(x,legend=NULL,
   # convert p signs
   if(length(pval)>0) 
     m[-1,-1]<-sign2p(m[-1,-1],psign,pval,sep=";;")
+  # bold p
+  if(length(grep("p[<=>]",bold))>0){
+    m[-1,-1]<-gsub("(-*[\\.0-9][\\.0-9]*)\\^bold",paste("\\1;;",bold),m[-1,-1])
+  }
+  # italic p
+  if(length(grep("p[<=>]",italic))>0){
+      m[-1,-1]<-gsub("(-*[\\.0-9][\\.0-9]*)\\^italic",paste("\\1;;",italic),m[-1,-1])
+    }
+  m<-gsub("\\^italic","",m)
+  m<-gsub("\\^bold","",m)
   
   # convert abbreviations in first row and col
   if(expandAbbreviations=="TRUE"){

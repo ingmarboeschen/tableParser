@@ -61,10 +61,12 @@ matrix2text<-function(x,
   # escape
   if(!is.list(x) | !is.matrix(x[[1]])) stop("x must be a character matrix or a list of character matrices.")
   
-  
-  
-  # remove html but convert sub and sup
+  # remove html but convert sub and sup, bold and italic numbers
   x<-lapply(x,function(x) gsub("<sub>","_",gsub("<sup>","^",x)))
+  
+  x<-lapply(x,function(x) gsub("([0-9])</bold>","\\1^bold",gsub("[0-9]</italic>","\\1^italic",x)))
+  x<-lapply(x,function(x) gsub("([0-9])</b>","\\1^bold",gsub("[0-9]</i>","\\1^italic",x)))
+  
   x<-lapply(x,function(x) gsub("</*[A-z][^>]*>","",x))
   
   

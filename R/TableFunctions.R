@@ -269,6 +269,7 @@ headerHandling<-function(m){
   }
   if(nrow(m)==2) loop<-FALSE
   }
+  
   #collapse first two lines if second cell in first column is empty 
   loop<-TRUE
   while(loop==TRUE & m[1,1]!=""&m[2,1]==""){
@@ -282,8 +283,8 @@ headerHandling<-function(m){
   
   #collapse first two lines if first two rows have character and last row numeric  
   while(nrow(m)>2 & 
-        length(grep("[A-z]|^$",m[1,]))==ncol(m) &
-        length(grep("[A-z]|^$",m[2,]))==ncol(m) &
+        length(grep("[A-z]|^$",gsub("\\^[A-z]*","",m[1,])))==ncol(m) &
+        length(grep("[A-z]|^$",gsub("\\^[A-z]*","",m[2,])))==ncol(m) &
         length(grep("[0-9]",m[nrow(m),-1])>0) ){
       m[1,]<-gsub("  "," ",paste0(m[1,]," ",m[2,]))
       m<-m[-2,]
