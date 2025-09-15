@@ -9,14 +9,21 @@
 tableClass<-function(x,legend=NULL){
   # remove inserted p-values
   x<-gsub(";; p[<=>].*","",x)
+  
+  # remove html tags
+  x<-gsub("<su[bp]>[^<]*</su[bp]>","",x)
+  x<-gsub("<[^>]*>[^<]*</[^>]*>","",x)
+  x<-gsub("<[^>]*>[^<]*<[^>]*/>","",x)
+  
   # take a copy
   m<-x
+
   nCol<-ncol(m)
   if(is.null(nCol)|nCol==1|nrow(m)==1) return("vector")
-  
+  if(nrow(m)==1&ncol(m)==1) return("vector")
+
   ## standard output:
   class<-"tabled results"
-  
 
   
   ## check if matrix is text matrix
@@ -37,7 +44,7 @@ tableClass<-function(x,legend=NULL){
   
   ###################################
   ## check if is correlation matrix?
-  
+  if(ncol(m)>2&nrow(m)>2){
   # remove p-values/stars behind numbers
   m<-gsub("([0-9])[,;]* p[<=>][<=>]*[\\.0-9][\\.0-9]*","\\1",m)
   m<-gsub("([0-9])\\^[[:punct:]]*","\\1",m)
@@ -69,7 +76,7 @@ tableClass<-function(x,legend=NULL){
     class<-"correlation"
     return(class)
   }
-  
+  }
   
   ###################################
   # check 2 for correlation: Sequence of increasing number of NA

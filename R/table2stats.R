@@ -145,13 +145,22 @@ table2stats<-function(x,
   # unlist and unify stats
   text<-unname(unlist(lapply(text,unifyStats)))
   
-  # handle df1 and df2 in ANOVAs
-  text<-unlist(lapply(text,anovaHandler))
+  # convert ns to p>.05
+  if(standardPcoding==TRUE) text<-gsub("[,:;] *[Nn]\\.*[Ss]\\.*$",";; p>.05",text)
+  if(standardPcoding==TRUE) text<-gsub("[,:;] *[Nn]\\.*[Ss]\\.*([,:; ])",";; p>.05\\1",text)
   
-  # split text
+  # remove num=text
+  text<-gsub("[0-9][0-9]*[<=>][<=>]*[A-z][A-z]*","",text)
+  
+  #remove brackets if is followed by letter-anything except results
+  text<-gsub(" \\(([A-z][^\\)]*)\\)([^<=>])"," \\1\\2",text)
+  text<-gsub(" \\[([A-z][^]]*)\\]([^<=>])"," \\1\\2",text)
+  
+  # handle df1 and df2 in ANOVAs
+  text<-unname(unlist(lapply(text,anovaHandler)))
   
   ###########################
-  ### apply split functions to lines of parsed text
+  ### splitting of lines with parsed text
   text<-letter.convert(text,greek2text=TRUE)
   text<-splitLastStat(text)
   text<-splitCIs(text)

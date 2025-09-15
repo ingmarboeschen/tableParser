@@ -20,6 +20,7 @@ parseMatrixContent<-function(x,legend=NULL,
   if(is.list(x)&length(x)==1) x<-x[[1]]
   if(!is.matrix(x)) stop("Input must be a character matrix or list with a character matrix as first and only element. You may consider lapply(x,parseMatrixContent) to parse more than one matrix strored in a list.")
   
+   
   # prepare codesFromLegend
   if(is.list(legend)) codesFromLegend<-legend
   if(!is.null(legend)&!is.list(legend)) codesFromLegend<-legendCodings(legend)
@@ -27,7 +28,7 @@ parseMatrixContent<-function(x,legend=NULL,
   
   # prepare legend codings
   parentheses<-NULL;brackets<-NULL;psign<-NULL;pval<-NULL;abbr<-NULL;label<-NULL
-  sup<-NULL;sup_label<-NULL;italic<-NULL;bold<-NULL;N<-NULL
+  sup<-NULL;sup_label<-NULL;italic<-NULL;bold<-NULL;N<-NULL;alpha<-NULL
   # get legend codings
   if(is.list(codesFromLegend)){
     parentheses<-codesFromLegend$parentheses
@@ -36,8 +37,9 @@ parseMatrixContent<-function(x,legend=NULL,
     pval<-codesFromLegend$pval
     abbr<-codesFromLegend$abbreviation
     label<-codesFromLegend$label
-    italic<-codesFromLegend$italic
-    bold<-codesFromLegend$bold
+    italic<-codesFromLegend$italicP
+    bold<-codesFromLegend$boldP
+    alpha<-codesFromLegend$alpha
     N<-codesFromLegend$N
     sup<-codesFromLegend$superscript
     sup_label<-codesFromLegend$sup_label
@@ -45,13 +47,13 @@ parseMatrixContent<-function(x,legend=NULL,
   
   # add coding for significant p in bold to pval
   if(length(bold)==1) 
-    if(grep("p[<=>]",bold))
+    if(length(grep("p[<=>]",bold))==1)
       if(!is.element(bold,pval)){
         pval<-c(pval,bold)
         psign<-c(psign,"^bold")
      }
   if(length(italic)==1) 
-    if(grep("p[<=>]",italic))
+    if(length(grep("p[<=>]",italic))==1)
       if(!is.element(italic,pval)){
         pval<-c(pval,italic)
         psign<-c(psign,"^italic")
@@ -63,6 +65,9 @@ parseMatrixContent<-function(x,legend=NULL,
     if(sum(x[,1]==x[,2])==nrow(x)) x<-x[,-2]
     if(!is.matrix(x)) x<-as.matrix(x)
   }
+  
+  # extract first cell for later correction
+  firstCell<-x[1,1]
   
   if(ncol(x)==1|nrow(x)==1){
     x<-parseContent(x)
@@ -98,6 +103,12 @@ parseMatrixContent<-function(x,legend=NULL,
       m<-m[,-i]
     }
   }
+  
+  
+  # convert Cronbachs alpha values
+  if(length(alpha)>0)
+    m<-enter.CrAlpha(m,alpha)
+  
   
   # remove empty lines/cols
   #row.rm<-which(rowSums(m=="",na.rm=TRUE)==ncol(m))
@@ -136,11 +147,21 @@ parseMatrixContent<-function(x,legend=NULL,
   ########################################
   # remove lines with no values in cor matrices
 #  if(class=="correlation"){
-#    i<-which(rowSums(m[,]=="")!=(ncol(m)-1))
+#    i<-(rowSums(m[,]=="")!=(ncol(m)-1)&!grepl("^[1-9]",m[,1]))
 #    m<-m[i,]
 #  }
   
+  # remove categorizing lines in correlation table
+  if(class=="correlation"){ 
+    if(nrow(m)>2&ncol(m)>2){
+      i<-which(rowSums(m[-1,-1]=="")==(ncol(m)-1)&!grepl("^[1-9]",m[-1,1]))
+      if(length(i)>0) m<-m[-(i+1),]
+    }
+  }
+  
+  
   if(class!="text"&class!="vector"){
+    if(nrow(m)>1&ncol(m)>1){
     # paste text from lines with only the same value to first cells
     m<-multiHeaderSplit(m,split=FALSE,class=class)
     # handle empty cells by row
@@ -149,8 +170,8 @@ parseMatrixContent<-function(x,legend=NULL,
     m<-headerHandling(m)
     # paste first text columns to one column
     #m<-textColHandling(m)
+   }
   }
-  
   
   if(class!="text"&class!="vector"){
     # create new columns for brackets and percent
@@ -176,9 +197,11 @@ parseMatrixContent<-function(x,legend=NULL,
     }
   }
   
-  # convert numbers in brackets
-  if(length(parentheses)>0) m<-bracket2value(m,parentheses,"parentheses",sep=";;")
-  if(length(brackets)>0) m<-bracket2value(m,brackets,"brackets",sep=";;")
+  if(!is.matrix(m)) m<-as.matrix(m)
+  
+  # convert numbers in brackets in inner matrix
+  if(length(parentheses)>0) m[-1,-1]<-bracket2value(m[-1,-1],parentheses,"parentheses",sep=";;")
+  if(length(brackets)>0) m[-1,-1]<-bracket2value(m[-1,-1],brackets,"brackets",sep=";;")
 
   # add standard p-coding
   if(standardPcoding==TRUE&length(pval)==0){
@@ -186,9 +209,19 @@ parseMatrixContent<-function(x,legend=NULL,
     pval<-c("p<.001","p<.01","p<.05")
   }
   
-  # convert p signs
+  # convert p signs in inner matrix
   if(length(pval)>0) 
     m[-1,-1]<-sign2p(m[-1,-1],psign,pval,sep=";;")
+  
+  # convert p stars in outer matrix with result^**
+  if(length(pval)>0) {
+    # first column
+    i<-grep("[A-z][<=>][<=>]-*[\\.0-9]*[0-9]\\^*\\*",m[,1])
+    if(length(i)>0) m[i,1]<-sign2p(m[i,1],psign,pval,sep=";;")
+    # first row
+    i<-grep("[A-z][<=>][<=>]-*[\\.0-9]*[0-9]\\^*\\*",m[1,])
+    if(length(i)>0) m[1,i]<-sign2p(m[1,i],psign,pval,sep=";;")
+    }
   # bold p
   if(length(grep("p[<=>]",bold))>0){
     m[-1,-1]<-gsub("(-*[\\.0-9][\\.0-9]*)\\^bold",paste("\\1;;",bold),m[-1,-1])
@@ -197,6 +230,8 @@ parseMatrixContent<-function(x,legend=NULL,
   if(length(grep("p[<=>]",italic))>0){
       m[-1,-1]<-gsub("(-*[\\.0-9][\\.0-9]*)\\^italic",paste("\\1;;",italic),m[-1,-1])
     }
+  
+  # remove superscripted bold and italic text
   m<-gsub("\\^italic","",m)
   m<-gsub("\\^bold","",m)
   
@@ -217,7 +252,7 @@ parseMatrixContent<-function(x,legend=NULL,
   
   # reclassify table  
   class<-tableClass(m,legend=legend)
-  print(class)
+#  print(class)
 
   # expand detected abbreviations
   if(expandAbbreviations=="TRUE"){
@@ -225,11 +260,17 @@ parseMatrixContent<-function(x,legend=NULL,
       m<-abb2text(m,abbr=abbr,label=label)
     }
   }
+  # expand detected superscripts
+  if(superscript2bracket=="TRUE"){
+    if(is.matrix(m)){
+      m<-sup2text(m,sup=sup,sup_label=sup_label)
+    }
+  }
   
   ####################################################################
   ## return parsed content if is text matrix
   if(class=="text"|class=="vector"){
-    x<-parseContent(x)
+    m<-parseContent(m)
     # add degrees of freedom
     if(isTRUE(addDF)){
       # add df=max(n)-2 for t and r values if has N= in legend
@@ -237,20 +278,15 @@ parseMatrixContent<-function(x,legend=NULL,
         # get highest N
         maxN<-suppressWarnings(max(suppressWarnings(as.numeric(gsub(".*[<=>]","",N))),na.rm=T))
         # add maxN-2 to r= and t= if no df is found
-        i<-(grep(" df[12]*=|degrees* of freed",x,invert=TRUE))
-        if(maxN!=-Inf) x[i]<-gsub(" r=",paste0(" r(",maxN-2,")="),x[i])
-        if(maxN!=-Inf) x[i]<-gsub(" t=",paste0(" t(",maxN-2,")="),x[i])
-        if(maxN!=-Inf) x[i]<-gsub(" T=",paste0(" T(",maxN-2,")="),x[i])
+        i<-(grep(" df[12]*=|degrees* of freed",m,invert=TRUE))
+        if(maxN!=-Inf) m[i]<-gsub(" r=",paste0(" r(",maxN-2,")="),m[i])
+        if(maxN!=-Inf) m[i]<-gsub(" t=",paste0(" t(",maxN-2,")="),m[i])
+        if(maxN!=-Inf) m[i]<-gsub(" T=",paste0(" T(",maxN-2,")="),m[i])
       }
     }
-    # expand detected superscripts
-    if(superscript2bracket=="TRUE"){
-      if(is.matrix(x)){
-        x<-sup2text(x,sup=sup,sup_label=sup_label)
-      }
-    }
+  
     
-    return(x)
+    return(m)
     } 
   
   ## else go on:
@@ -268,9 +304,9 @@ parseMatrixContent<-function(x,legend=NULL,
     m[1,]<-gsub("^  *|  *$","",paste(m[1,],m[2,]))
     m<-m[-2,]
   }
-  
+
   ###################################################################
-  ## specific correlation table pre-handling
+  ## specific correlation table handling
   correlations<-NULL
   if(class=="correlation"){
     
@@ -300,16 +336,31 @@ parseMatrixContent<-function(x,legend=NULL,
     
   } # results are in updated "m" and object "correlations"
 
+  
+  # if first cell contains result create new line and move result to first cell in new line
+  if(is.matrix(m)) {
+    if(nrow(m)>2){
+      if(length(grep("[<=>]-*[\\.0-9]",m[1,1]))==1){
+        m<-rbind(m[1,],rep("",ncol(m)),m[2:nrow(m),])
+        m[2,1]<-m[1,1]
+        m[1,1]<-""
+      }}
+  }
+  
+  
   i<-NULL;j<-NULL
   if(length(m)>0&is.matrix(m)){
+  # convert ns -> p>.05
+  if(standardPcoding==TRUE) m<-gsub(" [Nn]\\.*[Ss]\\.*$",";; p>.05",m)
+  if(standardPcoding==TRUE) m<-gsub("^[Nn]\\.*[Ss]\\.*$",";; p>.05",m)
   # add non significant p-values in columns that have cells with coded p-values,
   # but exclude lines from model statistics/residuals
   i<-grep("^R2$| R2|R\\^2|R[- ][Ss]q|[Rr]esidual|AIC|BIC|[Ii]nformation [Cr]iter|chi\\^2|degrees* of freedom|^df$|^DF$|[Ll]ikelihood",m[,1])
-  if(length(i)>0) if(i[1]>1) i<-1:(min(i)-1)
+  if(length(i)>0) i<-1:(min(i[1])-1)
   if(length(i)==0) i<-1:nrow(m)
   
   # which of these lines have imputed p-values
-  j<-max(i)+which(rowSums(matrix(grepl(";; p[<=]",m[-i,]),ncol=ncol(m)))>0)
+  j<-max(i)+which(rowSums(matrix(grepl(";; p[<=>]",m[-i,]),ncol=ncol(m)))>0)
   # impute colwise p>max(p) 
   m[i,]<-noSign2p(m[i,],pval=pval)
   # row wise in model stats
@@ -331,29 +382,20 @@ parseMatrixContent<-function(x,legend=NULL,
     }
   }
   
-  ## create vector with parsed results
-  modelStats<-NULL;parsed<-NULL
-  if(length(i)==0|!is.matrix(m)) parsed<-parseContent(m)
+  # paste model and standard statistics in first col to numeric field behind
+  m<-modelStatsHandler(m)
   
-  if(is.matrix(m)){
-  # currently deactivated: model specific extraction (do in unifyStats()??) 
-  i<-1:nrow(m)
-  if(is.matrix(m)) if(length(i)==nrow(m)) parsed<-parseContent(m)
-  if(is.matrix(m)) if(length(i)>0&length(i)<nrow(m)) parsed<-parseContent(m[i,])
-  if(is.matrix(m)) if(length(i)>0&length(i)<nrow(m)){
-    i<-i[i>1]
-    # prepare matrix
-    temp<-m[c(-i),]
-    # remove statistical values from header
-    # to be done!!
-    # gsub("","",temp[1,])
-    
-    # parse transposed matrix
-    modelStats<-parseContent(t(temp))
-  }
-}
+  ## create vector with parsed results
+  parsed<-NULL
+  parsed<-parseContent(m)
+  
   # combine parsed results and correlations 
-  output<-c(parsed,modelStats,correlations)
+  output<-c(parsed,correlations)
+  
+  # remove dummy text
+  output<-gsub("TEMP_TEXT, ","",output)
+  firstCell<-"Variable"
+  output<-gsub(paste0("^(",specialChars(firstCell),": [^:]*: )",specialChars(firstCell),": "),"\\1",output)
   
   # convert abbreviations in first row and col
   #output<-abb2text(output,abbr=abbr,label=label)
@@ -394,7 +436,7 @@ parseContent<-function(x){
   if(is.vector(x)) return(paste(x,collapse="; "))
   if(!is.matrix(x)) return(x)
   
-  class<-tableClass(x)
+    class<-tableClass(x)
   # take a copy
   m<-x
   out<-NULL

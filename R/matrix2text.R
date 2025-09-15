@@ -57,7 +57,6 @@ matrix2text<-function(x,
 
   # single matrix to list
   if(is.matrix(x)) x<-list(x)
-
   # escape
   if(!is.list(x) | !is.matrix(x[[1]])) stop("x must be a character matrix or a list of character matrices.")
   
@@ -69,17 +68,18 @@ matrix2text<-function(x,
   
   x<-lapply(x,function(x) gsub("</*[A-z][^>]*>","",x))
   
-  
   # collapse header rows
   x<-lapply(x,headerHandling)
   
-  
   # split at lines that are text between numeric lines
-  x<-lapply(x,multiTextRowSplit)
-  x<-flatten(x)
+  if(isTRUE(split)){
+    x<-lapply(x,multiTextRowSplit)
+   x<-flatten(x)
+  }
   
   if(is.matrix(x)) x<-list(x)
   
+
   x<-lapply(x,prepareMatrix)
   
   fun<-function(x,rotate=FALSE,unifyMatrix=TRUE,correctComma=FALSE){

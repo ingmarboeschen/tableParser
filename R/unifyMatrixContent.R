@@ -20,25 +20,50 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,greek2text=TRUE,text2num=TRUE
   #  if(sum(hasDF)>1) hasDF[hasDF>0]<-0
   #  i<-which(hasDF==0)
 
-    # has coma as decimal (obviously cases: 1,2,4 or more decimals, 0,number)
-    patComa<-"[0-9],[0-9][^0-9]|[0-9],[0-9]$|[0-9],[0-9]{2}[^0-9]|[0-9],[0-9]{2}$|[0-9],[0-9][0-9][0-9][0-9][^0-9][0-9]*|[0-9],[0-9][0-9][0-9][0-9][0-9]*$|^[^0-9]*0*,[0-9]{3}|[^0-9]0*,[0-9]{3}$"
-    # has dat as decimal (obviously cases: 1,2,4 or more decimals, 0,number)
-    patDot<-"[0-9]\\.[0-9][^0-9]|[0-9]\\.[0-9]$|[0-9]\\.[0-9]{2}[^0-9]|[0-9]\\.[0-9]{2}$|[0-9]\\.[0-9][0-9][0-9][0-9][^0-9][0-9]*|[0-9]\\.[0-9][0-9][0-9][0-9]|^[^0-9]*0*\\.[0-9]{3}|[^0-9]0*\\.[0-9]{3}$"
-    patF<-"F *\\([1-9][0-9]*,[1-9][0-9]*\\)"
-    # warning
-    if(length(grep(patComa,grep(patF,x,invert=TRUE,value=TRUE)))>0&length(grep(patDot,x))>0){
-      warning(paste0(paste0("There is an inconsistent use of decimal signs. Found for numeric value/s: ",
-                     paste(grep(patComa,grep(patF,x,invert=TRUE,value=TRUE),value=TRUE),collapse=", ")),
-      ifelse(!isTRUE(correctComma), "\nYou may consider to set the argument correctComma=TRUE to unify the decimal sign to dots.","")),call.=FALSE)
+    # add space in "num.num,num.num" -> "num.num, num.num"
+    ind<-grep("([0-9]\\.[0-9][0-9]*),(-*[0-9][0-9]*\\.[0-9])",x)
+    if(length(ind)>0) {
+      warning(paste("Spaces were added to the following listed numbers:",paste(x[ind],collapse="; ")),call.=FALSE)
+      x[ind]<-gsub("([0-9]\\.[0-9][0-9]*),(-*[0-9][0-9]*\\.[0-9])","\\1, \\2",x[ind])
     }
     
-    # correction
-    if(length(grep(patComa,grep(patF,x,invert=TRUE,value=TRUE)))>0 & correctComma) {
-      warning("Detected decimal commas were converted to dots. This may infere with numeric values above 999, that have comma as big mark (e.g.: 1,000).",call.=FALSE)
+    
+    ## comma to dot correction
+    # in "F(num, num,3num)" -> "F(num, num.3num)"
+    if(isTRUE(correctComma)){
+      i<-grep("F[ _]*\\([1-9][0-9]*, *[1-9][0-9]*,[1-9][0-9][0-9][0-9]\\)",x)
+      if(length(i)>0){
+        x<-gsub("(F[ _]*\\([1-9][0-9]*,) *([1-9][0-9]*),([1-9][0-9][0-9][0-9]\\))","\\1 \\2.\\3",x)
+        warning(paste0("Detected comma as decimal in: '",
+                       paste(x[i],collapse="; "),
+                       "' were converted to dots. This may infere with numeric values above 999, that have comma as big mark (e.g.: 1,000)."),call.=FALSE)
+        }
+      }
+    
+    # has Comma as decimal (obviously cases: 1,2,4 or more decimals, 0,number)
+    patComma<-"[0-9],[0-9][^0-9]|[0-9],[0-9]$|[0-9],[0-9]{2}[^0-9]|[0-9],[0-9]{2}$|[0-9],[0-9][0-9][0-9][0-9][^0-9][0-9]*|[0-9],[0-9][0-9][0-9][0-9][0-9]*$|^[^0-9]*0*,[0-9]{3}|[^0-9,]0*,[0-9]{3}$"
+    # has dot as decimal (obviously cases: 1,2,4 or more decimals, 0,number)
+    patDot<-"[0-9]\\.[0-9][^0-9]|[0-9]\\.[0-9]$|[0-9]\\.[0-9]{2}[^0-9]|[0-9]\\.[0-9]{2}$|[0-9]\\.[0-9][0-9][0-9][0-9][^0-9][0-9]*|[0-9]\\.[0-9][0-9][0-9][0-9]|^[^0-9]*0*\\.[0-9]{3}|[^0-9]0*\\.[0-9]{3}$"
+    # has F value with df
+    patF<-"F *\\([1-9][0-9]*,[1-9][0-9]*\\)"
+    
+    
+    
+    if(length(grep(patComma,grep(patF,x,invert=TRUE,value=TRUE)))>0 & isTRUE(correctComma)) {
+      warning(paste0("Detected comma as decimal in: '",
+                     paste(grep(patComma,grep(patF,x,invert=TRUE,value=TRUE),value=TRUE),collapse="; "),
+                     "' were converted to dots. This may infere with numeric values above 999, that have comma as big mark (e.g.: 1,000)."),call.=FALSE)
       x[grep(patF,x,invert=TRUE)]<-gsub(",([0-9])",".\\1",x[grep(patF,x,invert=TRUE)])
     }
     
-    # if has potential big mark coma remove it
+    # warning message
+    if(length(grep(patComma,grep(patF,x,invert=TRUE,value=TRUE)))>0&length(grep(patDot,x))>0){
+      warning(paste0(paste0("There is an inconsistent use of decimal signs. Found for numeric value/s: '",
+                     paste(grep(patComma,grep(patF,x,invert=TRUE,value=TRUE),value=TRUE),collapse="; ")),
+      ifelse(!isTRUE(correctComma), "'\nYou may consider to set the argument correctComma=TRUE to unify the decimal sign to dots.","")),call.=FALSE)
+    }
+
+    # if has potential big mark Comma remove it
     patBM<-"[0-9],[0-9]{3}"
     if(length(grep(patBM,x))>0){
       # except df in F-values
@@ -48,8 +73,10 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,greek2text=TRUE,text2num=TRUE
         warnings("One or more detected big mark comma signs were removed from numeric content.",call.=FALSE)
         x[i]<-gsub("([0-9]),([0-9]{3})","\\1\\2",x[i])
       }
-     }
+    }
     
+
+
     # x as vector
     x<-as.vector(x)
     
@@ -67,7 +94,7 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,greek2text=TRUE,text2num=TRUE
     x<-gsub("\\*\\^\\*","**",gsub("\\*\\^\\*","**",x))
     # unify minus/hyphen sign
     x<-gsub("\u2212|\u02D7|\u002D|\u2013","-",x)
-
+    
     # remove NA
     x<-gsub("^[Nn]/*[Aa]$","",x)
     
@@ -85,7 +112,7 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,greek2text=TRUE,text2num=TRUE
     x<-gsub("^ *[-\\.][-\\.]* *$","",x)
     # remove space between letter operator numer
     x<-gsub("([A-z]) *([<=>][<=>]*) *([0-9\\.-])","\\1\\2\\3",x)
-    # add coma between number/star-letter-operator
+    # add Comma between number/star-letter-operator
     x<-gsub("([0-9\\*])( [A-z][A-z]*[<=>][<=>]*[-0-9\\.])","\\1,\\2",x)
     if(letter.convert==TRUE) x<-letter.convert(x,greek2text=greek2text)
     # remove tailoring spaces

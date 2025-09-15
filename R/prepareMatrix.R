@@ -3,7 +3,7 @@ prepareMatrix<-function(x,split=FALSE){
   # remove duplicated 2nd column
   if(ncol(x)>1){
     if(sum(x[,1]==x[,2])==nrow(x)) x<-x[,-2]
-    if(!is.matrix(x)) x<-return(as.matrix(x))
+    if(!is.matrix(x)) x<-as.matrix(x)
   }
   
   # parse columns with only punctuation to columns in front
@@ -17,8 +17,10 @@ prepareMatrix<-function(x,split=FALSE){
     if(length(i)>0){
       for(j in i) x[-1,j-1]<-paste0(x[-1,j-1],x[-1,j])
       x<-x[,-i]
+      if(!is.matrix(x)) x<-as.matrix(x)
     }
   }
+  
   
   # remove empty lines/cols
   row.rm<-which(rowSums(x=="",na.rm=TRUE)==ncol(x))

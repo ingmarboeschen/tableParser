@@ -28,6 +28,7 @@ legendCodings<-function(x){
     x<-c(foot,cap)
   }
   if(length(x)==0) return(NULL)
+  x<-gsub("\\.([[:punct:]])",". \\1",x)
   
   out<-c(get.pCodes(x),
     get.bracketCodes(x),
@@ -59,7 +60,7 @@ get.sup<-function(x){
   # add ^ to stars without ^
   x<-gsub("^([^\\^0-9])(\\*\\**)","\\1^\\2",x)
   # has lines with supersript
-  sup<-grep("\\^[^0-9]",x,value=T)  
+  sup<-grep("\\^[^0-9]|\\^1$|\\^1[^0-9]",x,value=T)  
   if(length(sup)==0) return(list(sup=NULL,sup_label=NULL))
   x<-gsub(" *([<=>][<=>]*) *","\\1",x)
   x<-unlist(strsplit(x,"[,;:] *| and |\\. "))
@@ -70,7 +71,10 @@ get.sup<-function(x){
   # add space after first superscripted letter
   x<-gsub("\\^\\(*([A-z])\\) *([A-z])","^\\1 \\2",x)
   # get superscript and label
-  sup<-grep("\\^[^0-9]",unlist(strsplit2(x,"\\^[^0-9]","before")),value=T)
+  if(length(grep("\\^1$|\\^1[^0-9]",x))==0) 
+    sup<-grep("\\^[^0-9]",unlist(strsplit2(x,"\\^[^0-9]","before")),value=T)
+  if(length(grep("\\^1$|\\^1[^0-9]",x))>0) 
+    sup<-grep("\\^[^ ]",unlist(strsplit2(x,"\\^[^ ]","before")),value=T)
   label<-gsub("^ |\\. *$","",gsub(".*\\^[^ ]*|.*\\^[A-z][A-z]* ","",sup))
   label<-gsub("^\\**","",label)
   #remove text behind opening bracket if has no closing bracket
@@ -84,6 +88,8 @@ get.sup<-function(x){
   label[i]<-gsub("\\).*","",label[i])
   
   sup<-gsub("(\\^\\*\\**).*|.*(\\^[A-z][^ ]*) .*|.*(\\^[^0-9]).*","\\1\\2\\3",sup)
+  if(length(grep("\\^1$|\\^1[^0-9]",x))>0) 
+    sup<-gsub(".*(\\^[1-9]).*","\\1",sup)  
   # remove p values
   i<-grep("^[pP] *[<=>][<=>]* *[0\\.]|[^A-z][pP] *[<=>][<=>]* *[0\\.]|^\\*|[Pp][- ][Vv]alue|^[<=>]0*\\.[10][105][01]*",label,invert=TRUE)
   label<-label[i]
@@ -486,11 +492,11 @@ get.HTMLcodes<-function(x){
   
   boldP<-NULL;italicP<-NULL
   
-if(length(grep("[Cc]ronbach'*s* alpha|[Ii]ntern.*consist",x))>0){
-    # and escape if has alpha
-    if(length(grep("[Bb]old",x))>0) boldP<-"CrAlpha"
-    if(length(grep("[Ii]talic",x))>0)  italicP<-"CrAlpha"
-    } 
+#if(length(grep("[Cc]ronbach'*s* alpha|[Ii]ntern.*consist",x))>0){
+#    # and escape if has alpha
+#    if(length(grep("[Bb]old",x))>0) boldP<-"CrAlpha"
+#    if(length(grep("[Ii]talic",x))>0)  italicP<-"CrAlpha"
+#    } 
   
   # insert p<.05 if only significant, but no number is detected
   i<-grep("p[<=>][<=>]*|[0-9]",x,value=TRUE)
@@ -568,7 +574,7 @@ get.bracketCodes<-function(x){
   paren[i5]<-gsub(".* ([A-z])[ -].*|.* ([A-Z][A-Z]*) .*","\\1",paren[i5])
   paren[i5]<-gsub("^([A-z])[-].*|^([B-Z][A-Z]*) .*","\\1",paren[i5])
 
-  i6<-grep("[Cc]ronbach'*s* alpha|[Ii]nternal.* consist",paren)
+  i6<-grep("[Cc]ronbach'*s* alpha|[Ii]nternal.* consist|alpha[- ][cC]oef",paren)
   paren[i6]<-"CrAlpha"
   
   
@@ -596,7 +602,7 @@ get.bracketCodes<-function(x){
   i5<-grep("[Vv]alue|[Ss]tatistic",brack)
   brack[i5]<-gsub(".* ([A-z]) .*|.* ([A-Z][A-Z]*) .*","\\1",brack[i5])
   
-  i6<-grep("[Cc]ronbach'*s* alpha|[Ii]nternal.* consist",brack)
+  i6<-grep("[Cc]ronbach'*s* alpha|[Ii]nternal.* consist|alpha[ -][cC]oef",brack)
   brack[i6]<-"CrAlpha"
   
   # reduce to plausible values
@@ -677,9 +683,16 @@ get.abbr<-function(text=NULL,footer=NULL){
   x<-letter.convert(x)
   # remove dot at end
   x<-gsub("\\.$","",x)
-  x
+  # remove citations
+  x<-gsub(" \\([A-Z][A-z\\.& ]*[,;] [1-2][0-9]{3}\\)","",x)
+
+  # remove listings of abbreviations
+  x<-gsub("[A-Z][-0-9A-Z/]*[,; ]*(and|or|[,;]) [A-Z][-0-9A-Z][-0-9A-Z/]*[,; ]*(and|or|[,;]) [A-Z][-0-9A-Z][-0-9A-Z/]*","",x)
+  x<-gsub("[A-Z][-0-9A-Z/]*[,; ]*(and|or|[,;]) [A-Z][-0-9A-Z][-0-9A-Z/]*","",x)
+    
   # TYPE A: if has "ABB[,:] full;"
   pattern<-"^[A-Z][0-9]*[,:] |[A-Z][-0-9a-z_]*[A-Z][,:] [A-z][a-z][^;]|[A-Z][-0-9A-Z_][-0-9A-Z_]*[,:] [A-z][a-z][^;]*;|[A-Z][-0-9A-Z_][-0-9A-Z_]*[,:] [A-z][a-z][^;]*$"
+    
   typeA<-length(grep(pattern,x))>0
   typeA
   if(typeA){
@@ -703,7 +716,7 @@ get.abbr<-function(text=NULL,footer=NULL){
     abb<-c(abb,gsub("([^,:]*)[,:] .*","\\1",y))
     # remove lines with stars
     i<-grep("\\*",abb,invert=TRUE)
-    abb<-abb[i]
+    abb<-specialChars(abb[i])
     y<-y[i]
     
     abb<-gsub("\\(.*","",abb)
@@ -711,11 +724,16 @@ get.abbr<-function(text=NULL,footer=NULL){
     if(length(abb)>0) for(i in 1:length(abb)) full<-c(full,gsub(paste0(".*[,:]* *",abb[i],"[,:] ([^,;]*).*"),"\\1",y[i]))
     if(length(abb)==0) full<-NULL
     if(length(full)==0) abb<-NULL
+    
     # remove abb and full from x
     for(i in abb) x<-gsub(paste0(i,"[,:] "),"",x)
-    for(i in full) x<-gsub(i,"",x)
-  }
+    for(i in full){ 
+      x<-gsub(specialChars(i),"",x)
+    }
+    }
   x
+  abb
+  full
   
   # TYPE B: if has "ABB = full;"
   typeB<-length(grep("^[A-Z][0-9]* *[=] *|[A-Z][-0-9A-z_]* *[=] *[A-z]",x))>0
@@ -846,7 +864,7 @@ get.abbr<-function(text=NULL,footer=NULL){
     full<-c(full,gsub(".*[=,] *","",y))
     if(length(abb)==0) full<-NULL
     if(length(full)==0) abb<-NULL
-    # remove abb and full
+    # remove abb and full from input
     for(i in abb) x<-gsub(paste0(i," *[=,] "),"",x)
     #for(i in full) x<-gsub(paste0(i,"[,:] "),"",x)
   }
@@ -943,7 +961,11 @@ get.abbr<-function(text=NULL,footer=NULL){
 
   # clean up
   # remove text till abb
-  for(i in 1:length(full)) full[i]<-gsub(paste0(".*",abb[i],"[^A-z0-1]"),"",full[i])
+  for(i in 1:length(full)){
+    if(nchar(abb[i])>1) 
+      full[i]<-gsub(paste0(".*",abb[i],"[^A-z0-1]"),"",full[i])
+  }
+  
   # remove text
   full<-gsub("^[Ss]tands for |^means |^is the ","",full)
   full<-gsub("^,* ","",full)

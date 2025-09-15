@@ -88,14 +88,15 @@ table2text<-function(x,
       stop("x must be a vector of HTML tables or a single file path to an HTML, XML, CERMXML, HML, PDF or DOCX file.")
   }
   }
+  
   # prepare and escape if no matrix extracted
   if(is.matrix(m)) m<-list(m)
   if(!is.list(m)) return(NULL)
   
   # set legend to empty, if non is existant
   if(length(legend)==0) legend[1:length(m)]<-""
-  
-  # function to convert matrix with matrix2stats
+
+  # function to convert matrix with matrix2text
   fun<-function(x,
                 unifyMatrix=TRUE,unifyStats=FALSE,
                 expandAbbreviations=TRUE,superscript2bracket=TRUE,
@@ -105,44 +106,41 @@ table2text<-function(x,
     
     if(length(x)==0)  return(NULL)
     if(unifyMatrix==TRUE) x<-unifyMatrixContent(x,correctComma=correctComma)
-
-  # convert matrix to text
-  out<-matrix2text(x,legend=legend,
+    if(length(x)==0) return(NULL)
+    
+    # convert matrix to text
+     out<-matrix2text(x,legend=legend,
                    expandAbbreviations=expandAbbreviations,
                    superscript2bracket=superscript2bracket,
                    unifyMatrix=FALSE,standardPcoding=standardPcoding,
                    addDF=addDF,
                    rotate=rotate,unlist=unlist
                    )
-  if(unifyStats==TRUE) out<-unifyStats(out)
-  # output
+     
+  if(!is.list(out)&unifyStats==TRUE) out<-unifyStats(out)
+  if(is.list(out)&unifyStats==TRUE) out<-lapply(out,unifyStats)
+     # output
   return(out)
   }
 
-  
-  # apply function
-#  output<-lapply(m,fun,
-#                 unifyMatrix=unifyMatrix,
-#                 unifyStats=unifyStats,
-#                 expandAbbreviations=expandAbbreviations,
-#                 standardPcoding=standardPcoding,addDF=addDF)
-  
-if(length(m)==0) return(NULL)
+  # escape
+  if(length(m)==0) return(NULL)
   
   output<-list()
   for(i in 1:length(m)) 
     output[[i]]<-unname(unlist(fun(m[[i]],unifyMatrix=unifyMatrix,
                       unifyStats=unifyStats,
                       expandAbbreviations=expandAbbreviations,
-                     superscript2bracket=superscript2bracket,
+                      superscript2bracket=superscript2bracket,
                       standardPcoding=standardPcoding,addDF=addDF,
-                     correctComma=correctComma,rotate=rotate,
+                      correctComma=correctComma,rotate=rotate,
                       legend=legend[[i]],unlist=FALSE)))
   
+  # escape
   if(length(output)==0) return(NULL)
   
   if(isTRUE(addDescription))
-  for(i in 1:length(m)) 
+  for(i in 1:length(output)) 
     output[[i]]<-grep("caption: $|footer: $",c(
       paste0("caption: ",caption[[i]]),
       paste0("footer: ",footer[[i]]),
