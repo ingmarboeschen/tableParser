@@ -1,6 +1,6 @@
 #' legendCodings
 #' 
-#' Extracts the coding of p-values, brackets, abbreviations, superscripts and the reported sample size/s with 'N=number' from tables caption and footer notes/text. 
+#' Extracts the coding of p-values, brackets, abbreviations, superscripts, diagonal content and the reported sample size/s with 'N=number' from tables caption and footer notes/text. 
 #' @param x An HTML coded table or plain textual input of table caption and/or footer text.
 #' @returns A list with detected p-value and superscript codings, abbreviations and reported sample size/s.
 #' @importFrom JATSdecoder grep2
@@ -33,7 +33,8 @@ legendCodings<-function(x){
   out<-c(get.pCodes(x),
     get.bracketCodes(x),
     get.HTMLcodes(x),
-    get.CronbachAlpha(x),
+  #  get.CronbachAlpha(x),
+    get.diagonal(x),
     get.abbr(text=x,footer=foot),
     get.N(x),
     get.DV(x),
@@ -640,6 +641,42 @@ get.CronbachAlpha<-function(x){
   return(list(alpha=alpha))
 }
 
+get.diagonal<-function(x){
+  if(length(x)==0) return(list(diagonal=NULL))
+  x<-unlist(strsplit(as.character(x),"[,;\\.]"))
+  x<-grep("[Dd]iagonal",x,value=TRUE)
+  x<-paste(" ",x," ")
+  x<-grep(" [bB]elow| [aA]bove| [uU]nder| [oO]n top",x,value=TRUE,invert=TRUE)
+  # escape
+  if(length(x)==0) return(list(diagonal=NULL))
+
+  x<-letter.convert(x,greek2text=TRUE)
+  
+  alpha<-NULL;omega<-NULL;AVE<-NULL;SD<-NULL;M<-NULL;accuracy<-NULL;CI<-NULL;out<-NULL  
+  
+  if(length(grep("[^A-z][aA]lpha|internal consistenc|consistency*i*e*s*",JATSdecoder::letter.convert(x,greek2text=TRUE),value=TRUE))>0)
+    alpha<-"alpha"
+  if(length(grep("[^A-z][Oo]mega",JATSdecoder::letter.convert(x,greek2text=T)))>0)
+    omega<-"omega"
+  if(length(grep("[Cc]onfidence[- ][Ii]nter",JATSdecoder::letter.convert(x,greek2text=T)))>0)
+    CI<-"CI"
+  if(length(grep("([Aa]verage[- ][Vv]ariance[- ][Ee]xtracted|[^A-z]AVEs*[^A-z]|[^A-z]AVEs*$)",x))>0)
+    AVE<-ifelse(length(grep("\u221a|root|[sS]quare|sqrt",
+                 grep("[Aa]verage[- ][Vv]ariance[- ][Ee]xtracted|[^A-z]AVEs*[^A-z]|[^A-z]AVEs*$",x,value=TRUE)))>0,
+                "sqrt AVE","AVE")
+  
+  if(length(grep("[Aa]ccuracy",x,value=TRUE))>0)
+    accuracy<-"accuracy"
+  if(length(grep("[sS]tandard [Dd]eviation",x,value=TRUE))>0)
+    SD<-"SD"
+  temp<-grep("[sS]tandard [Dd]eviation",x,value=TRUE)
+    if(length(grep("^Means*[^a-z]| [Mm]eans[^a-z]",x,value=TRUE))>0)
+      M<-"M"
+
+  if(!is.null(c(omega,alpha,AVE,accuracy,SD)))
+    out<-paste(c(omega,alpha,AVE,accuracy,M,SD,CI),collapse=", ")
+  return(list(diagonal=out))
+}
 
 ## get abbreviations and corresponding values
 get.abbr<-function(text=NULL,footer=NULL){

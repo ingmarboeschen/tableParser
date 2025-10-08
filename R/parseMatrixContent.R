@@ -447,7 +447,7 @@ parseContent<-function(x){
       out[j]<-paste0(m[1,!empty],
                      # if starts with number and not "number-letter" or "number-dot-space -> "="
                      ifelse(grepl("^[-\\.0-9][\\.0-9]*",m[j,!empty]) &
-                              !grepl("^[0-9][\\.0-9]* *- *[A-z]|^[0-9][0-9]*[\\.] ",m[j,!empty])
+                              !grepl("^[0-9][\\.0-9]* *- *[A-z]|^[0-9][0-9]*[\\.] |^-2[- ][Ll]og[- ][LL]ike|^-2 *LL",m[j,!empty])
                             ,"=",
                             # if starts with operator-number -> "no sign"
                             ifelse(grepl("^[<>=][<>=]* *[-\\.0-9]",m[j,!empty]),"",

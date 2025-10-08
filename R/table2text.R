@@ -142,8 +142,8 @@ table2text<-function(x,
   if(isTRUE(addDescription))
   for(i in 1:length(output)) 
     output[[i]]<-grep("caption: $|footer: $",c(
-      paste0("caption: ",caption[[i]]),
-      paste0("footer: ",footer[[i]]),
+      paste0("caption: ",paste(caption[[i]],collapse = " ")),
+      paste0("footer: ",paste(footer[[i]],collapse = " ")),
                    output[[i]]),invert=TRUE,value=TRUE)
       
     

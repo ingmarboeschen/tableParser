@@ -7,6 +7,9 @@
 #' @export
 #' 
 tableClass<-function(x,legend=NULL){
+  ## standard output:
+  class<-"tabled results"
+  
   # remove inserted p-values
   x<-gsub(";; p[<=>].*","",x)
   
@@ -15,6 +18,9 @@ tableClass<-function(x,legend=NULL){
   x<-gsub("<[^>]*>[^<]*</[^>]*>","",x)
   x<-gsub("<[^>]*>[^<]*<[^>]*/>","",x)
   
+  # remove minus at beginning
+  x<-gsub("^-","",x)
+  
   # take a copy
   m<-x
 
@@ -22,10 +28,7 @@ tableClass<-function(x,legend=NULL){
   if(is.null(nCol)|nCol==1|nrow(m)==1) return("vector")
   if(nrow(m)==1&ncol(m)==1) return("vector")
 
-  ## standard output:
-  class<-"tabled results"
 
-  
   ## check if matrix is text matrix
   # is cell with character?
   characterCell<-
@@ -47,7 +50,8 @@ tableClass<-function(x,legend=NULL){
   if(ncol(m)>2&nrow(m)>2){
   # remove p-values/stars behind numbers
   m<-gsub("([0-9])[,;]* p[<=>][<=>]*[\\.0-9][\\.0-9]*","\\1",m)
-  m<-gsub("([0-9])\\^[[:punct:]]*","\\1",m)
+  m<-gsub("([0-9])\\^[A-z[:punct:]]*","\\1",m)
+  m<-gsub("([0-9])[\\*+]*","\\1",m)
   # remove numbers in brackets behind numbers
   m<-gsub("([0-9])[,;]* \\([-\\.0-9][\\.0-9]*\\)","\\1",m)
   
@@ -56,10 +60,10 @@ tableClass<-function(x,legend=NULL){
   empty<-matrix(gsub("[[:punct:]]","",m[-1,-1])=="",ncol=ncol(m)-1)
   
   # set rows/cols with mean/sd/alpha to NA
-  cors[grep("^[Mm]ed*i*an$|^AVE$|^M$|Cronbach|\u03b1|[aA]lpha|[Ss]tandard [Dd]eviation|^SD$",m[-1,1]),]<-NA
-  cors[,grep("^[Mm]ed*i*an$|^AVE$|^M$|Cronbach|\u03b1|[aA]lpha|[Ss]tandard [Dd]eviation|^SD$",m[1,-1])]<-NA
-  empty[grep("^[Mm]ed*i*an$|^AVE$|^M$|Cronbach|\u03b1|[aA]lpha|[Ss]tandard [Dd]eviation|^SD$",m[-1,1]),]<-TRUE
-  empty[,grep("^[Mm]ed*i*an$|^AVE$|^M$|Cronbach|\u03b1|[aA]lpha|[Ss]tandard [Dd]eviation|^SD$",m[1,-1])]<-TRUE
+  cors[grep("^ICC|^[Mm]ed*i*an$|^AVE$|^M$|Cronbach|\u03b1|[aA]lpha|[Ss]tandard [Dd]eviation|^SD$",m[-1,1]),]<-NA
+  cors[,grep("^ICC|^[Mm]ed*i*an$|^AVE$|^M$|Cronbach|\u03b1|[aA]lpha|[Ss]tandard [Dd]eviation|^SD$",m[1,-1])]<-NA
+  empty[grep("^ICC|^[Mm]ed*i*an$|^AVE$|^M$|Cronbach|\u03b1|[aA]lpha|[Ss]tandard [Dd]eviation|^SD$",m[-1,1]),]<-TRUE
+  empty[,grep("^ICC|^[Mm]ed*i*an$|^AVE$|^M$|Cronbach|\u03b1|[aA]lpha|[Ss]tandard [Dd]eviation|^SD$",m[1,-1])]<-TRUE
   
   # prepare removal matrix of correlations
   cors <- cors<=1&cors>=-1
@@ -70,7 +74,7 @@ tableClass<-function(x,legend=NULL){
   # has correlation in legend?
   t2<-length(grep("[Cc]orr*elation|[Aa]ssociation|[Re]elation",legend))>0
   # is there no p/d/beta/R^2 value in matrix?
-  t3<-length(grep("^[Ppd]DBb$| [PpdDBb]$[Pp]-value|[0-9]%[-]*[Cc][oIi]|R\\^2",m))==0
+  t3<-length(grep("[Ii]ntercept|^[PpdDBb]$| [PpdDBb]$[Pp]-value|[0-9]%[-]*[Cc][oIi]|R\\^2",m))==0
   
   if(t1&t2&t3){
     class<-"correlation"
@@ -103,11 +107,47 @@ tableClass<-function(x,legend=NULL){
     nums<-suppressWarnings(as.numeric(gsub("[^0-9\\.-]","",m[r,cols][block>0])))
     nums<-nums[!is.na(nums)]
     hasCor<-sum(nums>=-1&nums<=1)>.9*length(nums)
-    if(hasSeq&hasCor) class<-"correlation"
+    if(hasSeq&hasCor){
+      class<-"correlation"
+      return(class)
+      }
   }
   }
   }
   
+
+  # check 3 for correlation: has increasing numbers in first row and col
+  if(ncol(m)>3&nrow(m)>3){
+    row1<-m[1,]
+    col1<-m[,1]
+  t1<-
+  # 1, 2, 3 in frist row
+    grep("^1|^\\(1",gsub("[^:]*: ","",row1))[1]==grep("^2|^\\(2",gsub("[^:]*: ","",row1))[1]-1&
+  grep("^1|^\\(1",gsub("[^:]*: ","",row1))[1]==grep("^3|^\\(3",gsub("[^:]*: ","",row1))[1]-2 &
+  # 1, 2, 3 in frist col
+    grep("^1|^\\(1",gsub("[^:]*: ","",col1))[1]==grep("^2|^\\(2",gsub("[^:]*: ","",col1))[1]-1&
+  grep("^1|^\\(1",gsub("[^:]*: ","",col1))[1]==grep("^3|^\\(3",gsub("[^:]*: ","",col1))[1]-2|
+  # 2, 3, 4 in frist row
+    grep("^2|^\\(2",gsub("[^:]*: ","",row1))[1]==grep("^3|^\\(3",gsub("[^:]*: ","",row1))[1]-1&
+  grep("^2|^\\(2",gsub("[^:]*: ","",row1))[1]==grep("^4|^\\(4",gsub("[^:]*: ","",row1))[1]-2 &
+  # 2, 3, 4 in frist col
+    grep("^2|^\\(2",gsub("[^:]*: ","",col1))[1]==grep("^3|^\\(3",gsub("[^:]*: ","",col1))[1]-1&
+  grep("^2|^\\(2",gsub("[^:]*: ","",col1))[1]==grep("^14|^\\(14",gsub("[^:]*: ","",col1))[1]-2
+
+  if(is.na(t1)) t1<-FALSE
+  
+  # has correlation in legend?
+  t2<-length(grep("[Cc]orr*elation|[Aa]ssociation|[Re]elation",legend))>0
+  # is there no p/d/beta/R^2 value in matrix?
+  t3<-length(grep("[Ii]ntercept|^[PpdDBb]$| [PpdDBb]$[Pp]-value|[0-9]%[-]*[Cc][oIi]|R\\^2",m))==0
+  
+  if(t1&t2&t3){
+    class<-"correlation"
+    return(class)
+  }
+  }
+  
+    
   # detect matrix content
   # if 1st row and col contain more than 2 cells with the same name
   if(class!="correlation"&

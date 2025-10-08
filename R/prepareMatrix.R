@@ -1,3 +1,11 @@
+#' prepareMatrix
+#' 
+#' Prepares character matrix content for parsing.
+#' @param x character matrix
+#' @param split logical. If TRUE multi model matrices are split to a list of single model matrices.
+#' @returns character matrix
+#' @export
+
 prepareMatrix<-function(x,split=FALSE){
   
   # remove duplicated 2nd column
@@ -65,18 +73,47 @@ prepareMatrix<-function(x,split=FALSE){
   # paste first text columns to one column
   #x<-textColHandling(x)
   
+  ## if second column contains enumerated text 
+  # paste first and second col -> "col2 (col1)"
+  if(isTRUE(
+    grep("^\\(1\\)|^1\\.[A-z ]",x[-1,2])[1]==grep("^\\(2\\)|^2\\.[A-z ]",x[-1,2])[1]-1&
+    grep("^\\(1\\)|^1\\.[A-z ]",x[-1,2])[1]==grep("^\\(3\\)|^3\\.[A-z ]",x[-1,2])[1]-2)){
+    x[,2]<-paste0(x[,2],rep(" (",length(x[,1])),x[,1],rep(")",length(x[,1])))
+    # remove first column
+    x<-x[,-1]
+    # remove empty brackets and space 
+    x<-gsub(" *\\(\\)|^  *","",x)
+  }
+  # paste first and second col -> "col2 (col1)"
+  if(isTRUE(
+    grep("^1[\\.]*$",x[-1,2])[1]==grep("^2[\\.]*$",x[-1,2])[1]-1&
+    grep("^1[\\.]*$",x[-1,2])[1]==grep("31[\\.]*$",x[-1,2])[1]-2)){
+    x[,2]<-paste0(x[,2],rep(" ",length(x[,1])),x[,1])
+    # remove first column
+    x<-x[,-1]
+    # remove space 
+    x<-gsub("^  *","",x)
+  }
+  
+  class<-tableClass(x)
   
   if(class=="correlation"){
-    # parse first and second column, if first col has no letters and second column starts with letter in every cell
+    ## parse first and second column, 
+    # if first col has no letters and second column starts with letter in every cell
     if(length(grep("[A-z]",x[-1,1]))==0&length(grep("^[A-z]",x[-1,2]))==(nrow(x)-1)){
       x[,1]<-paste(x[,1],x[,2])
       x<-x[,-2]
     }
+    
+
+    
+    
     # parse first and second row, if first row has no letters and second row starts with letter in every cell
     if(length(grep("[A-z]",x[1,-1]))==0&length(grep("^[A-z]",x[2,-1]))==(ncol(x)-1)){
       x[1,]<-paste(x[1,],x[2,])
       x<-x[-2,]
     }
+    
   }
   
   

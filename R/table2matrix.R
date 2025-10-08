@@ -376,7 +376,6 @@ singleTable2matrix<-function(x,letter.convert=TRUE,# Logical. If TRUE hex codes 
   # convert to matrix
   m<-suppressWarnings(matrix(unlist(cells),nrow=length(cells),byrow=TRUE))
   
-  
   if(isTRUE(collapseHeader)) m<-headerHandling(m)
   
   # convert header text to column names
@@ -398,15 +397,17 @@ singleTable2matrix<-function(x,letter.convert=TRUE,# Logical. If TRUE hex codes 
 
 rm.empty<-function(x){
   if(!is.matrix(x)) return(x)
-  # empty rows/cols
+  # non empty rows/cols
   i<-rowSums(x=="")!=ncol(x)
   j<-colSums(x=="")!=nrow(x)
   # escape if all empty
-  if(sum(i)==ncol(x)) return(NULL)
-  # remove row/cols
-  x<-x[i,]
-  if(is.vector(x)) x<-matrix(x,ncol=length(x))
-  x<-x[,j]
-  if(is.vector(x)) x<-matrix(x,nrow=length(x))
+  if(sum(i)==0) return(NULL)
+  if(sum(i)>0|sum(j)>0){
+   # remove row/cols
+   x<-x[i,]
+   if(is.vector(x)) x<-matrix(x,ncol=length(x))
+   x<-x[,j]
+   if(is.vector(x)) x<-matrix(x,nrow=length(x))
+  }
   return(x)
 }

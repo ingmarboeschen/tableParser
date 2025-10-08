@@ -81,7 +81,7 @@ matrix2text<-function(x,
   
 
   x<-lapply(x,prepareMatrix)
-  
+  x
   fun<-function(x,rotate=FALSE,unifyMatrix=TRUE,correctComma=FALSE){
   # escapes
   if(length(x)==0) return(NULL)
