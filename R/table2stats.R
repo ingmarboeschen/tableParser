@@ -140,7 +140,7 @@ table2stats<-function(x,
   
   # get copy with results for output
   raw<-unname(unlist(text))
-  raw<-grep("[<=>][-\\.0-9][\\.0-9]*",raw,value=TRUE)
+  raw<-grep("[<=>] *[-\\.0-9][\\.0-9]*",raw,value=TRUE)
   
   # unlist and unify stats
   text<-unname(unlist(lapply(text,unifyStats)))
@@ -148,6 +148,9 @@ table2stats<-function(x,
   # convert ns to p>.05
   if(standardPcoding==TRUE) text<-gsub("[,:;] *[Nn]\\.*[Ss]\\.*$",";; p>.05",text)
   if(standardPcoding==TRUE) text<-gsub("[,:;] *[Nn]\\.*[Ss]\\.*([,:; ])",";; p>.05\\1",text)
+  
+  # remove space around operators
+  text<-gsub(" *([<=>][<=>]*) *","\\1",text)        
   
   # remove num=text
   text<-gsub("[0-9][0-9]*[<=>][<=>]*[A-z][A-z]*","",text)
@@ -162,6 +165,7 @@ table2stats<-function(x,
   ###########################
   ### splitting of lines with parsed text
   text<-letter.convert(text,greek2text=TRUE)
+  
   text<-splitLastStat(text)
   text<-splitCIs(text)
   
@@ -170,6 +174,7 @@ table2stats<-function(x,
   text[i]<-gsub("df[^=]*(=[0-9][\\.0-9]*)(, .*)df[^=]*(=[0-9][\\.0-9]*)","df1\\1\\2df2\\3",text[i])
   
   #text<-splitTFZB(text)
+
 
   # extract standard results
   stats<-standardStats(text,

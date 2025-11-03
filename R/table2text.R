@@ -68,7 +68,6 @@ table2text<-function(x,
   if(length(grep("<table",x[1]))>0){
     # split multiple tables inside of one <table-wrap>-tag
     x<-multiTable(x)
-    
     # extract and combine legend text, then extract codings
     caption<-lapply(x,get.caption)
     footer<-lapply(x,get.footer)
@@ -93,7 +92,7 @@ table2text<-function(x,
   if(is.matrix(m)) m<-list(m)
   if(!is.list(m)) return(NULL)
   
-  # set legend to empty, if non is existant
+  # set legend to empty, if non is existent
   if(length(legend)==0) legend[1:length(m)]<-""
 
   # function to convert matrix with matrix2text

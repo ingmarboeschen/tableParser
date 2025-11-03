@@ -19,7 +19,12 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,greek2text=TRUE,text2num=TRUE
   #  hasDF<-colSums(matrix(grepl("^[dD][Ff]|[dD][Ff]$|[dD]eg[res\\.]* [ of]*[Ff]re",x),ncol=nCol))
   #  if(sum(hasDF)>1) hasDF[hasDF>0]<-0
   #  i<-which(hasDF==0)
-
+    
+    # remove brackets around content in columns with brackets around header and text in front
+    i<-grep("^\\(.*\\)$",x[1,])
+    if(length(i)>0)
+      x[,i]<-gsub("^[\\(](.*)[\\)]$","\\1",x[,i])
+      
     # add space in "num.num,num.num" -> "num.num, num.num"
     ind<-grep("([0-9]\\.[0-9][0-9]*),(-*[0-9][0-9]*\\.[0-9])",x)
     if(length(ind)>0) {
@@ -47,8 +52,6 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,greek2text=TRUE,text2num=TRUE
     # has F value with df
     patF<-"F *\\([1-9][0-9]*,[1-9][0-9]*\\)"
     
-    
-    
     if(length(grep(patComma,grep(patF,x,invert=TRUE,value=TRUE)))>0 & isTRUE(correctComma)) {
       warning(paste0("Detected comma as decimal in: '",
                      paste(grep(patComma,grep(patF,x,invert=TRUE,value=TRUE),value=TRUE),collapse="; "),
@@ -70,7 +73,7 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,greek2text=TRUE,text2num=TRUE
       patDF<-"F *\\([0-9][0-9]*,[0-9][0-9]*\\)"
       i<-grep(patDF,x,invert=TRUE)
       if(length(i)>0){
-        warnings("One or more detected big mark comma signs were removed from numeric content.",call.=FALSE)
+        warning("One or more detected big mark comma signs were removed from numeric content.",call.=FALSE)
         x[i]<-gsub("([0-9]),([0-9]{3})","\\1\\2",x[i])
       }
     }
@@ -83,6 +86,9 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,greek2text=TRUE,text2num=TRUE
     # super and subscript
     x<-gsub("<sup>","^",x)
     x<-gsub("<sub>","_",x) 
+    # lower asterix to *
+    x<-gsub("\u204e","*",x) 
+    
     ## space removal
     # " ^ "
     x<-gsub(" *\\^ *","^",x)
@@ -95,6 +101,9 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,greek2text=TRUE,text2num=TRUE
     # unify minus/hyphen sign
     x<-gsub("\u2212|\u02D7|\u002D|\u2013","-",x)
     
+    ## clean up empty cells
+    # remove only minus sign
+    x<-gsub("^-$","",x)
     # remove NA
     x<-gsub("^[Nn]/*[Aa]$","",x)
     
@@ -106,21 +115,29 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,greek2text=TRUE,text2num=TRUE
     x<-gsub("^([0-9\\.-][0-9\\.\\%]*)\\(","\\1 (",x)
     x<-gsub("([0-9])  *\\%","\\1%",x)
     x<-gsub("  *"," ",x)
-    # unify Pr(<|t|) -> p
-    x<-gsub("Pr *\\([<>]*\\|*[a-zA-Z]\\|*\\)","p",x)
+    
     # sparse cells to empty
     x<-gsub("^ *[-\\.][-\\.]* *$","",x)
-    # remove space between letter operator numer
-    x<-gsub("([A-z]) *([<=>][<=>]*) *([0-9\\.-])","\\1\\2\\3",x)
+    # remove space around operator number
+    x<-gsub("([A-z2]) *([<=>][<=>]*) *(-*[0-9\\.-])","\\1\\2\\3",x)
+    # remove space between operator number at start
+    x<-gsub("^ *([<=>][<=>]*) *(-*[0-9\\.-])","\\1\\2",x)
     # add Comma between number/star-letter-operator
     x<-gsub("([0-9\\*])( [A-z][A-z]*[<=>][<=>]*[-0-9\\.])","\\1,\\2",x)
     if(letter.convert==TRUE) x<-letter.convert(x,greek2text=greek2text)
+    # convert exponents with *10^-num
+    i<-grep("[0-9] *\\* *10\\^[- ]*[0-9]",x)
+    x[i]<-text2num(x[i],exponent = TRUE,percentage = FALSE,fraction = FALSE,product = FALSE, words=FALSE)
     # remove tailoring spaces
     x<-gsub("  *$","",x)
     x<-gsub("^  *","",x)
     x<-gsub("  *"," ",x)
+    # remove space in front of ^
+    x<-gsub(" \\^","^",x)
+    
     # vector to matrix
     m<-matrix(x,ncol=nCol)
+    
     # remove empty rows/cols
     row.rm<-which(rowSums(m=="",na.rm=TRUE)==ncol(m))
     if(length(row.rm)>0) m<-m[-row.rm,]

@@ -4,6 +4,7 @@
 #' @param x A character matrix or list with a character matrix as first and only element.
 #' @param legend The tables caption/footer notes as character vector.
 #' @param standardPcoding Logical. If TRUE, and no other detection of p-value coding is detected, standard coding of p-values is assumed to be: * p<.05, ** p<.01 and *** p<.001.
+#' @param forceClass Character. Set a fixed table class for extraction heuristic. One of c("tabled result","correlation","text").
 #' @param expandAbbreviations Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footer with tableParser::legendCodings().
 #' @param superscript2bracket Logical. If TRUE, detected superscript codings are inserted inside parentheses.
 #' @param addDF Logical. If TRUE, detected sample size N in caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom. 
@@ -12,14 +13,19 @@
 
 parseMatrixContent<-function(x,legend=NULL,
                              standardPcoding=TRUE,
+                             forceClass=NULL,
                              expandAbbreviations=TRUE,
                              superscript2bracket=FALSE,
                              addDF=TRUE){
   # escapes and preparation
   if(length(x)==0) return(NULL)
   if(is.list(x)&length(x)==1) x<-x[[1]]
-  if(!is.matrix(x)) stop("Input must be a character matrix or list with a character matrix as first and only element. You may consider lapply(x,parseMatrixContent) to parse more than one matrix strored in a list.")
+  if(!is.matrix(x)) stop("Input must be a character matrix or list with a character matrix as first and only element. You may consider lapply(x,parseMatrixContent) to parse multiple matrices strored in a list.")
   
+  # check forceClass
+  if(!is.null(forceClass))
+    if(sum(is.element(c("tabled result","correlation","text"),forceClass))!=1)
+      stop("Argument 'forceClass' can only be set to one of 'tabled result','correlation', or 'text'.")
    
   # prepare codesFromLegend
   if(is.list(legend)) codesFromLegend<-legend
@@ -65,6 +71,10 @@ parseMatrixContent<-function(x,legend=NULL,
     if(sum(x[,1]==x[,2])==nrow(x)) x<-x[,-2]
     if(!is.matrix(x)) x<-as.matrix(x)
   }
+  
+  # remove brackets in column with only brackets around anything
+  i<-grep("^\\(.*\\)$",x[1,])
+  if(length(i>0)) x[,i]<-gsub("^\\((.*)\\)","\\1",x[,i])
   
   # extract first cell for later correction
   firstCell<-x[1,1]
@@ -122,11 +132,12 @@ parseMatrixContent<-function(x,legend=NULL,
   if(ncol(m)==1) return(paste0(m[,1],collapse=", "))
   if(nrow(m)==1) return(paste0(m[1,],collapse=", "))
   
-  # Classify table  
-  class<-tableClass(m,legend=legend)
+  # classify table  
+  if(!is.null(forceClass)) class<-forceClass
+  if(is.null(forceClass)) class<-tableClass(m,legend=legend)
   
   # return parsed vector 
-  if(class=="vector"){
+  if(tableClass(m)=="vector"){
     m<-parseContent(m)
     # add degrees of freedom
     if(isTRUE(addDF)){
@@ -251,8 +262,8 @@ parseMatrixContent<-function(x,legend=NULL,
   }
   
   # reclassify table  
-  class<-tableClass(m,legend=legend)
-#  print(class)
+  if(is.null(forceClass)) class<-tableClass(m,legend=legend)
+  #  print(class)
 
   # expand detected abbreviations
   if(expandAbbreviations=="TRUE"){
@@ -270,7 +281,7 @@ parseMatrixContent<-function(x,legend=NULL,
   ####################################################################
   ## return parsed content if is text matrix
   if(class=="text"|class=="vector"){
-    m<-parseContent(m)
+    m<-parseContent(m,forceClass=forceClass)
     # add degrees of freedom
     if(isTRUE(addDF)){
       # add df=max(n)-2 for t and r values if has N= in legend
@@ -311,9 +322,9 @@ parseMatrixContent<-function(x,legend=NULL,
   if(class=="correlation"){
     
     # extract correlations as vector
-    correlations<-extractCorrelations(m,legendCodes=legend,remove=FALSE)
+    correlations<-extractCorrelations(m,legendCodes=legend,remove=FALSE,standardPcoding=standardPcoding)
     # table without correlations
-    m<-extractCorrelations(m,legendCodes=legend,remove=TRUE)
+    m<-extractCorrelations(m,legendCodes=legend,remove=TRUE,standardPcoding=standardPcoding)
     # set first cell to ""
     if(length(m)>0) m[1,1]<-""
     
@@ -424,11 +435,26 @@ parseMatrixContent<-function(x,legend=NULL,
     }
   }
   
+  # clean up spaces
+  output<-gsub("  *"," ",output)
+  # remove ": ;;"
+  output<-gsub(": ;;",";;",output)
+  
+  # remove more than one appearing of grouping variable
+  group<-gsub("^([^:][^:]*): .*","\\1",output)
+  ind<-which(group!=output)
+  if(length(ind)>0)
+  for(i in ind) output[i]<-gsub(paste0(" ",specialChars(group[i]),": ")," ",output[i])
+
+  # clean up spaces
+  output<-gsub("  *"," ",output)
+  output<-gsub("^ | $","",output)
+  
   return(output)
 } # end parseMatrixContent()
 
 # paste name with content if number is present and does not contain = num
-parseContent<-function(x){
+parseContent<-function(x,forceClass=NULL){
   # escapes
   if(length(x)==0) return(NULL)
   if(length(unlist(x))==0) return(NULL)
@@ -436,7 +462,8 @@ parseContent<-function(x){
   if(is.vector(x)) return(paste(x,collapse="; "))
   if(!is.matrix(x)) return(x)
   
-    class<-tableClass(x)
+  if(!is.null(forceClass)) class<-forceClass
+  if(is.null(forceClass)) class<-tableClass(x)
   # take a copy
   m<-x
   out<-NULL
@@ -473,6 +500,10 @@ parseContent<-function(x){
   out<-gsub(": [,;=] ",": ",out)
   out<-gsub("([^0-9]) %=([0-9\\.][0-9\\.]*)[^%]*","\\1 \\2%\\3",out)
   out<-gsub("% *%","%",out)
+  # remove badly collapsed empty cells
+  out<-gsub("([,:]) [,:]","\\1",out)
+  out<-gsub(", [^,:=]*: , ",", ",out)
+  out<-gsub(", [^,:=]*[:,] *$","",out)
   
   return(out)
   

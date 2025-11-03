@@ -5,6 +5,7 @@
 specialChars<-function(x){
   i<-gsub("\\)","\\\\)",gsub("\\(","\\\\(",x))
   i<-gsub("\\]","\\\\]",gsub("\\[","\\\\[",i))
+  i<-gsub("\\}","\\\\}",gsub("\\{","\\\\{",i))
   i<-gsub("\\+","\\\\+",gsub("\\$","\\\\$",i))
   i<-gsub("\\?","\\\\?",gsub("\\&","\\\\&",i))
   i<-gsub("\\|","\\\\|",gsub("\\*","\\\\*",i))
@@ -287,28 +288,37 @@ headerHandling<-function(m){
   if(!is.matrix(m)) return(m)
   if(nrow(m)==1) return(m)
   if(ncol(m)==1) return(m)
+  # if has many characters, skip processing headers
+  if(sum(unlist(lapply(m,nchar))>100)>0) return(m)
+  
   #collapse first two lines if first two cells in first column are empty 
   loop<-TRUE
   while(loop==TRUE & m[1,1]==""&m[2,1]==""){
-  if(nrow(m)>2) if(m[1,1]==""&m[2,1]==""){
-    m[2,][m[1,]==m[2,]]<-""
-    m[1,-1]<-paste0(m[1,-1]," ",m[2,-1])
+  if(nrow(m)>2) 
+    if(m[1,1]==""&m[2,1]==""){
+    m[1,m[1,]!=m[2,]]<-paste0(m[1,m[1,]!=m[2,]]," ",m[2,m[1,]!=m[2,]])
+    # remove duplicated text in first row
+    for(i in 1:length(m[1,])) m[1,i]<-gsub(paste0("(",specialChars(m[2,i]),") ",specialChars(m[2,i]),"$"),"",m[1,i])
+    # remove second row
     m<-m[-2,]
   }
   if(nrow(m)==2) loop<-FALSE
   }
   
+  m
   #collapse first two lines if second cell in first column is empty 
   loop<-TRUE
   while(loop==TRUE & m[1,1]!=""&m[2,1]==""){
     if(nrow(m)>2) if(m[1,1]!=""&m[2,1]==""){
-      m[2,][m[1,]==m[2,]]<-""
-      m[1,-1]<-gsub("  "," ",paste0(m[1,-1]," ",m[2,-1]))
+      m[1,m[1,]!=m[2,]]<-paste0(m[1,m[1,]!=m[2,]]," ",m[2,m[1,]!=m[2,]])
+      # remove duplicated text in first row
+      for(i in 1:length(m[1,])) m[1,i]<-gsub(paste0("(",specialChars(m[2,i]),") ",specialChars(m[2,i]),"$"),"\\1",m[1,i])
+      # remove second row
       m<-m[-2,]
     }
     if(nrow(m)==2) loop<-FALSE
   }
-  
+  m
   #collapse first two lines if first two rows have character and last row numeric and second row does not only contain the same value 
   while(nrow(m)>2 & ncol(m)>1 & 
         length(grep("[A-z]|^$",gsub("\\^[A-z]*|<su[pb].*","",m[1,])))==ncol(m) &
@@ -316,17 +326,24 @@ headerHandling<-function(m){
         sum(is.element( m[2,-1],m[2,1]))!=length(m[2,-1]) &
         sum(is.element( m[2,-1],""))!=length(m[2,-1]) &
         length(grep("[0-9]",m[nrow(m),-1])>0) ){
-      m[1,]<-gsub("  "," ",paste0(m[1,]," ",m[2,]))
-      m<-m[-2,]
+          m[1,m[1,]!=m[2,]]<-paste0(m[1,m[1,]!=m[2,]]," ",m[2,m[1,]!=m[2,]])
+          # remove duplicated text in first row
+          for(i in 1:length(m[1,])) m[1,i]<-gsub(paste0("(",specialChars(m[2,i]),") ",specialChars(m[2,i]),"$"),"\\1",m[1,i])
+          # remove second row
+          m<-m[-2,]
     }
-
+  
+  
   # if second row has enumeration only parse to first row
   if(nrow(m)>2 & 
         length(grep("[A-z]|^$",m[1,]))==ncol(m) &
         length(grep("^1\\.*$",m[2,]))==1 & length(grep("^2\\.*$",m[2,]))==1 &
         length(grep("[0-9]",m[nrow(m),-1])>0) ){
     if((grep("^1\\.*$",m[2,])[1]+1)==grep("^2\\.*$",m[2,])[1]){
-      m[1,]<-gsub("  "," ",paste0(m[1,]," ",m[2,]))
+      m[1,m[1,]!=m[2,]]<-paste0(m[1,m[1,]!=m[2,]]," ",m[2,m[1,]!=m[2,]])
+      # remove duplicated text in first row
+      for(i in 1:length(m[1,])) m[1,i]<-gsub(paste0("(",specialChars(m[2,i]),") ",specialChars(m[2,i]),"$"),"\\1",m[1,i])
+      # remove second row
       m<-m[-2,]
     }
   }
@@ -335,11 +352,17 @@ headerHandling<-function(m){
   while(nrow(m)>2 & 
         length(grep("[A-z]|^$",m[1,]))==ncol(m) &
         length(grep("[89][059]\\.*9*%[- ]CI|[89][059]\\.*9*%[- ]confidence",m[2,]))>=1){
-    m[1,]<-gsub("  "," ",paste0(m[1,]," ",m[2,]))
+    m[1,m[1,]!=m[2,]]<-paste0(m[1,m[1,]!=m[2,]]," ",m[2,m[1,]!=m[2,]])
+    # remove duplicated text in first row
+    for(i in 1:length(m[1,])) m[1,i]<-gsub(paste0("(",specialChars(m[2,i]),") ",specialChars(m[2,i]),"$"),"\\1",m[1,i])
+    # remove second row
     m<-m[-2,]
   }
+  
   # remove tailoring white spaces
   m<-gsub("^  *|  *$","",m)
+  
+  
   return(m)
   }
 
@@ -372,6 +395,14 @@ textColHandling<-function(x){
 rowHandling<-function(x){ 
   m<-x
   if(!is.matrix(m)) return(m)
+  
+  # repeat first cell if all other cells in same row are empty
+  if(nrow(m)>2 & ncol(m)>2){ 
+    j<-rowSums(!m[,-1]=="")==0
+    # only if there is enough (>.5) lines with content
+    if(sum(j)/length(j)<.5) m[j,]<-m[j,1]
+  }
+  
   if(nrow(m)>1 & ncol(m)>1){
     ind<-rep(TRUE,nrow(m))
     for(i in 1:nrow(m)) ind[i]<-sum(duplicated(m[i,]))<(length(m[i,])-1)
@@ -543,10 +574,11 @@ extractCorrelations<-function(x,
   
   if(ncol(m)<2|nrow(m)<2) return(m)
   
-  
   nCol<-ncol(m)     
   # convert signs to p-values
   m[-1,-1]<-sign2p(m[-1,-1],sign=psign,val=pval)
+  
+
   # unify numbering at beginning of first column/row to "number."
   m[,1]<-gsub("^\\(*0*([1-9][0-9]*)[\\),;:] ","\\1. ",m[,1])
   m[1,]<-gsub("^\\(*0*([1-9][0-9]*)[\\),;:] ","\\1. ",m[1,])
@@ -583,8 +615,8 @@ extractCorrelations<-function(x,
   }
   
   # set rows/cols with mean/sd/etc to FALSE
-  cors[grep("^ICC|intraclass correlation|Cronbach|^[Mm]ean$| [Mm]eans*$|^M$|[Ss]tandard [Dd]eviation|^SD[Ss]*$| SD[Ss]*$|^[aA]lpha$| [aA]lpha$|^CR |^CR$|^AVE[^A-z]|[^A-z]AVES*$|^AVE$|^MSV$|^ASV$|Skewnes|[KC]urtosis|[Rr]eliabilit|^[Vv]ariance| [Vv]ariance|[sS]quared",m[,1]),-1]<-FALSE
-  cors[-1,grep("^ICC|intraclass correlation|Cronbach|^[Mm]ean$| [Mm]eans*$|^M$|[Ss]tandard [Dd]eviation|^SD[Ss]*$| SD[Ss]*$|^[aA]lpha$| [aA]lpha$|^CR |^CR$|^AVE[^A-z]|[^A-z]AVES*$|^AVE$|^MSV|^ASV$$|Skewnes|[KC]urtosis|[Rr]eliabilit|^[Vv]ariance| [Vv]ariance|[sS]quared",m[1,])]<-FALSE
+  cors[grep("eta\\^*2|omega\\^2|^rho\\^*2*$|^ICC|intraclass correlation|Cronbach|^[Mm]ean$| [Mm]eans*$|^M$|[Ss]tandard [Dd]eviation|^SD[Ss]*$| SD[Ss]*$|^[aA]lpha$| [aA]lpha$|^CR |^CR$|^AVE[^A-z]|[^A-z]AVES*$|^AVE$|^MSV$|^ASV$|Skewnes|[KC]urtosis|[Rr]eliabilit|^[Vv]ariance| [Vv]ariance|[sS]quared",m[,1]),-1]<-FALSE
+  cors[-1,grep("eta\\^*2|omega\\^2|^rho\\^*2*$|^ICC|intraclass correlation|Cronbach|^[Mm]ean$| [Mm]eans*$|^M$|[Ss]tandard [Dd]eviation|^SD[Ss]*$| SD[Ss]*$|^[aA]lpha$| [aA]lpha$|^CR |^CR$|^AVE[^A-z]|[^A-z]AVES*$|^AVE$|^MSV|^ASV$$|Skewnes|[KC]urtosis|[Rr]eliabilit|^[Vv]ariance| [Vv]ariance|[sS]quared",m[1,])]<-FALSE
   
   #i<-which(rowSums(cors[-1,-1]==FALSE,na.rm=T)==0)+1
   #j<-which(colSums(cors[-1,-1]==FALSE,na.rm=T)==0)+1
@@ -741,40 +773,40 @@ sign2p<-function(x,sign,val,sep=";;"){
   #val<-leg$pval
   if(length(x)==0) return(x)
   if(length(sign)==0) return(x)
-  # reorder by nChar of sign
+  # remove ^ in front of dagger
+  x<-gsub("\\^([\u2020\u2021])","\\1",x)
+  # reorder by nChar of signs
   i<-order(nchar(sign),decreasing=TRUE)
   sign<-sign[i]
   val<-val[i]
   # special sign handling (replaces * to \\*)
-  sign<-gsub("\\*","\\\\*",sign)
-  sign<-gsub("\\^","\\\\^",sign)
-  sign<-gsub("\\+","\\\\+",sign)
-  sign<-gsub("\\$","\\\\$",sign)
-  sign<-gsub("\\.","\\\\.",sign)
-  
+  sign<-specialChars(sign)
+
   for(i in 1:length(sign)){
     #convert sign to pval if at end 
-    x<-gsub(paste0(sign[i],"$"),
+    x<-gsub(paste0("\\^*",sign[i],"$"),
              # p value with seperator     
              paste(sep,val[i]),gsub("^n\\.*s\\.*$|( )n\\.*s\\.*$","\\1ns",x))
     # convert sign to pval if NOT at end 
-    incl<-grep(paste0("[A-z] *",sign[i]," *[A-z]"),x,invert=TRUE)
-    x[incl]<-gsub(paste0(sign[i],"[,; ]*"),
+    incl<-grep(paste0(". *",sign[i]," *."),x)#,invert=TRUE)
+    x[incl]<-gsub(paste0("\\^*",sign[i],"[,; ]*"),
             # p value with seperator     
             paste0(sep," ",val[i],", "),x[incl])
     
     # clean up if cell has ^;; p-val
     x<-gsub(paste0("\\^(",sep," )"),"\\1",x)
     # clean up if cell starts with seperator
-    x<-gsub(paste0("^",sep," "),"",x)
+#    x<-gsub(paste0("^",sep," "),"",x)
     # clean up before bracket
     x<-gsub(", \\)",")",x)
     x<-gsub(", \\]",")",x)
   }
- return(x)
+  
+  x<-gsub(": ;;",";;",x)
+  return(x)
 }
 
-## convert no p sign to p>max(p)
+## convert non existant p sign to p>max(p)
 noSign2p<-function(x,pval){
   if(!is.matrix(x)) return(x)
   # remove pvalues with ">" in coding
@@ -790,13 +822,20 @@ noSign2p<-function(x,pval){
   # get max of coded p
   if(length(pval)>0) Pmax<-max(as.numeric(gsub("p<=*","",pval)))
   if(length(pval)==0) Pmax<-max(as.numeric(gsub("^(0*.*[0-9][0-9]*).*","\\1",gsub(".*;; p<=*","",grep(";; p<",x[,cols],value=TRUE)))))
-  # go through columns and add p>Pmax
+  # go through columns and add p>Pmax in non
   for(j in cols){
-    cells<-grep(";; p<",x[,j],invert=TRUE)
-    # remove cell=1 if exists
-    cells<-cells[cells!=1]
+    cells<-!grepl(";; p<",x[,j])
+    # set first cell to FALSE 
+    cells[1]<-FALSE
+    # exclude empty cells if has number-coded p 
+    if(sum(grepl("[0-9];; p",x[-1,j]))>0)
+    cells[x[,j]==""]<-FALSE
+    
+    # impute p>max(p<num)
     x[cells,j]<-gsub("([0-9])$",paste0("\\1;; p>",Pmax),x[cells,j])
-    }
+    if(j>1)
+    x[cells,j][grepl("[0-9]$",x[cells,j-1])]<-gsub("^$",paste0(";; p>",Pmax),x[cells,j][grepl("[0-9]$",x[cells,j-1])])
+  }
   return(x)
 }
 
@@ -850,9 +889,13 @@ sup2text<-function(x,sup=NULL,sup_label=NULL){
   i<-order(sup,decreasing=TRUE)
   sup<-sup[i]
   sup_label<-sup_label[i]
-  for(i in 1:length(sup))
-    x<- gsub(specialChars(sup[i]),paste0(" (",sup_label[i],")"),
-             gsub("([^\\^])\\*","\\1^*",x))
+  # exclude cells with chi, eta, omega, R square
+  j<-grep("[ -]R\\^2|[ /-]chi\\^2|[ -]eta\\^2|[ -]omega\\^2|^R\\^2|^[cC]hi\\^2|^eta\\^2|^omega\\^2",x,invert = TRUE)
+  if(length(j)>0)
+    temp<-x==""
+    temp[j]<-TRUE
+   for(i in 1:length(sup))
+      x[temp]<-gsub(specialChars(sup[i]),paste0(" (",sup_label[i],")"),gsub("([^\\^])\\*","\\1^*",x[temp]))
   return(x)
 }
 
@@ -909,9 +952,11 @@ splitLastStat<-function(x){
       # split at last detected stat
       fun1<-function(x){
       lastStat<-gsub(".*,[^<=>]* ([-A-z0-9\\^_][-A-z0-9\\^_]*)[<=>][<=>]*-*[0-9\\.][-0-9\\.\\^]*$","\\1",x)
+      # except coded p
+      lastStat[grep(";; p[<>=][<>=]*[0-9\\.][0-9\\.]*$",x)]<-x
       
       # remove till standard stat
-      lastStat<-gsub(".* ([StTzZpPQIHdbBF][DFEdfe]*)$","\\1",lastStat)
+      lastStat<-gsub(".* ([SstTzZpPQIHdbBF][DFEdfe]*)$","\\1",lastStat)
       lastStat<-gsub(".* ([Cce][ht][ai]\\^*2*)$","\\1",lastStat)
       lastStat<-gsub(".* (omega\\^*2*)$","\\1",lastStat)
       lastStat<-gsub(".* (R\\^*2*)$","\\1",lastStat)
@@ -919,14 +964,13 @@ splitLastStat<-function(x){
   #    lastStat<-gsub(".*([^A-z])\\\\\\^","\\\\\\1\\\\^",lastStat)
       
       if(lastStat!=x){
-      x<-gsub(paste0("(",specialChars(lastStat),"[<=>][<=>]*-*[0-9\\.]*)[,;]* "),"\\1SPLITHERE",x)
+      x<-gsub(paste0("([^;][^;] ",specialChars(lastStat),"[<=>][<=>]*-*[0-9\\.]*)[,:]* "),"\\1SPLITHERE",x)
       x<-unlist(strsplit(x,"SPLITHERE"))
-      if(length(x)>1)
+      if(length(x)>2)
         # add first cell content to front of new lines
         #  x[-1]<-paste0(gsub("^([^,]*), .*","\\1, ",x[1]),x[-1])
         # add stats in table num:
-        x[-1]<-paste0(gsub("^([^:]*): .*","\\1: ",x[1]),x[-1])
-      
+        x[-1]<-paste0(gsub("^([^:]*): .*","\\1: ",x[1]),", ",x[-1])
       }
       return(x)
       }
@@ -968,11 +1012,7 @@ splitTFZB<-function(x){
       return(x)
     }
     
-# 2 p-values??? (to do!!)
-splitP<-function(x){
-      return(x)
-    }
-    
+
 
 # split at duplicatated header cells
 splitter<-function(x){
@@ -1009,20 +1049,27 @@ newColumnBracket<-function(x){
   # escapes
   if(length(x)==0) return(x)
   if(!is.matrix(x)) return(x)
-  if(nrow(x)<1) return(x)
+  if(nrow(x)<2) return(x)
   if(ncol(x)<2) return(x)
+  
+  # remove brackets in column with only brackets around anything
+  i<-grep("^\\(.*\\)$",x[1,])
+  if(length(i>0)) x[,i]<-gsub("^\\((.*)\\)","\\1",x[,i])   
   
   # extract and insert number in round brackets as column
   ind<-which(grepl("\\([-0-9\\.][-,;0-9\\. ]*\\)", as.vector(x[-1,]))&grepl("\\([-0-9\\.A-z][-,;0-9\\. A-z]*\\)", as.vector(x[1,])))
-  if(length(ind)>0){
+    if(length(ind)>0){
     nCols<-ncol(x)
     ind<-which((colSums(matrix(unlist(
       grepl("\\([-0-9\\.][-,;0-9\\. ]*\\)",as.vector(x[-1,]))),ncol=nCols,byrow=FALSE))>0) 
       &
-      grepl("\\([A-z].*\\)|\\(.*[A-z]\\)|\\(.*%\\)",x[1,])  
+      grepl("\\([-A-z].*\\)|\\(.*[A-z]\\)|\\(.*%\\)",x[1,])
+      & # no citation in header
+      !grepl("\\([A-z].* et al\\..*\\)",x[1,])
         )
-    Nadded<-0
     
+    # add columns with content in bracket and remove content within bracket 
+    Nadded<-0
     if(length(ind)>0) for(j in ind){
       noBracket<-gsub("^ | $","",gsub(" \\([-0-9\\.A][-,;0-9\\. A-z]*\\)","",x[,j+Nadded]))
       noBracket[1]<-gsub("  *"," ",gsub(" *\\(([^\\)]*)\\)","",noBracket[1]))
@@ -1031,16 +1078,10 @@ newColumnBracket<-function(x){
       k<-grep("\\(([-0-9\\.][-,;0-9\\. A-z]*)\\)",x[,j+Nadded],invert=TRUE)
       Bracket[k]<-""
       # add code in brackets to first cell
-      
       Bracket[1]<-gsub("  *"," ",gsub(".*\\(([^\\)]*)\\).*","\\1",x[1,j+Nadded]))
-      
-      Bracket[1]<-gsub("\\+","\\\\+",Bracket[1])
-      Bracket[1]<-gsub("\\^","\\\\^",Bracket[1])
-      Bracket[1]<-gsub("\\$","\\\\$",Bracket[1])
-      Bracket[1]<-gsub("\\*","\\\\*",Bracket[1])
-      
+
       # and remove from all other entries
-      noBracket<-gsub(paste0(" *\\(",Bracket[1],"\\)"),"",noBracket)
+      noBracket<-gsub(paste(paste0(" *\\(",specialChars(Bracket)[nchar(Bracket)>0],"\\)"),collapse="|"),"",noBracket)
       Bracket[1]<-gsub("\\\\","",Bracket[1])
       
       # add column
@@ -1049,7 +1090,9 @@ newColumnBracket<-function(x){
       if(j>1&(j+Nadded)==ncol(x)) x<-cbind(x[,1:(j+Nadded-1)],noBracket,Bracket)
       Nadded<-Nadded+1
     }
-  }
+    if(nrow(x)>2) x<-x[,colSums(x[-1,]=="")!=(nrow(x)-1)]
+    if(nrow(x)==2) x<-x[,(x[-1,]=="")!=(nrow(x)-1)]
+    }
   
   # extract and insert number in squared brackets as column
   ind<-which(grepl("\\[[-0-9\\.][-,;0-9\\. ]*\\]", as.vector(x[-1,]))&grepl("\\[[-0-9\\.A-z][-,;0-9\\. A-z]*\\]", as.vector(x[1,])))
@@ -1077,11 +1120,15 @@ newColumnBracket<-function(x){
       if(j>1&(j+Nadded)==ncol(x)) x<-cbind(x[,1:(j+Nadded-1)],noBracket,Bracket)
       Nadded<-Nadded+1
     }
+    # remove empty colums
+    if(nrow(x)>2) x<-x[,colSums(x[-1,]=="")!=(nrow(x)-1)]
+    if(nrow(x)==2) x<-x[,(x[-1,]=="")!=(nrow(x)-1)]
   }
   
   x<-unname(x)
   return(x)
 }
+
 
 # Function to split and create new columns with (95%CI)
 newColumnCI<-function(x){
@@ -1110,7 +1157,6 @@ newColumnCI<-function(x){
   x<-unname(x)
   return(x)
 }
-
 
 # flatten list of lists to simple list
 flatten<-function(x){
@@ -1153,44 +1199,124 @@ R2handler<-function(x){
 ##################################################################
 anovaHandler<-function(x){
   if(length(x)==0) return(x)
-  # take a copy
-  y<-x
-  # add df2
-  if(sum(grepl(" F=",x)&grepl(" df=",x))>0 & 
-     sum(!grepl(" F=",x)&grepl(" df=",x))>0){
-    i<-grep(" F=",x)
-    j<-grep(" F=|[Tt]otal",x,invert=TRUE)
-    if(length(j)>0&length(grep("df=",x[j]))>0){
-      x[i]<-gsub("df=","df1=",x[i])
-      x[j]<-gsub("df=","df2=",x[j])
-      # extract sum of df2
-      df2<-sum(as.numeric(unique(gsub(".*df2=([0-9][0-9\\.]*).*","\\1",x[j]))),na.rm=T)
-      # add df2 to df 1
-      x[i]<-gsub("(df1=[0-9][0-9\\.]*)",paste0("\\1",", df2=", df2),x[i])
-      # remove df2 from j
-#      x[j]<-gsub(", df2=[0-9][0-9\\.]","",x[j])  
-    
-      }
-    }
-  #
-  # warning
-  if(sum(x!=y)>1) warning("Special handling for degrees of freedom in ANOVA tables was performed. This may result in erroneous df2-values, which where imputet in order to check the reported p-values.")
+  # remove text behind "F-"
+  x<-gsub(" (F) *- *[A-z]*([<=>])"," \\1\\2",x)
   
-  # in Lines with F-values
+  # take a copy for later activation of warning message
+  y<-x
+  # add df2 in lines with F-values
+  if(sum(grepl(" F=",x)&grepl(" [dD]\\.*[fF]\\.*=",x))>0 & 
+     sum(!grepl(" F=",x)&grepl(" [dD]\\.*[Ff]\\.*=",x))>0){
+    # has F but no "total"
+    i<-which(grepl(" F=",x)&!grepl(" [Tt]otal[^a-z]|^[Tt]otal[^a-z]",x))
+    j<-which(grepl(" [dD]\\.*[Ff]\\.*=",x)&!grepl(" F=",x)&!grepl("[Tt]otal",x))
+    if(length(j)>0&length(grep(" [dD]\\.*[Ff]\\.*=",x[j]))>0){
+      x[i]<-gsub(" [dD]\\.*[Ff]\\.*="," df1=",x[i])
+      x[j]<-gsub(" [dD]\\.*[Ff]\\.*="," df2=",x[j])
+      
+      ## extract and add sum of unique df2 if i is a single sequence of increasing numbers or only one unique df2
+      if(is.single.sequence(i)|length(unique(gsub(".*df2=([0-9][0-9\\.]*).*","\\1",x[j])))==1){
+        df2<-sum(as.numeric(unique(gsub(".*df2=([0-9][0-9\\.]*).*","\\1",x[j]))),na.rm=TRUE)
+        # add df2 to df1
+        x[i]<-gsub("(df1=[0-9][0-9\\.]*)",paste0("\\1",", df2=", df2),x[i])
+      }
+      
+      # extract and add df2 to df1, if i has multiple sequences  
+      if(!is.single.sequence(i)){
+        s<-sequence.split(i)
+        df2<-(as.numeric((gsub(".*df2=([0-9][0-9\\.]*).*","\\1",x[j]))))
+        
+        # try to correct sequence if s and df2 are not of same length
+        if(length(s)>length(df2)){
+          s<-list()
+          for(k in 1:length(j)){
+          if(k==1) s[[k]]<-i[i<j[k]]
+          if(k>1) s[[k]]<-i[i<j[k]&i>j[k-1]]
+          }
+          }
+        
+        # add df2 to df 1
+        if(length(s)==length(df2)){
+          for(k in 1:length(s))
+          x[s[[k]]]<-gsub("(df1=[0-9][0-9\\.]*)",paste0("\\1",", df2=", df2[k]),x[s[[k]]])
+         }
+
+        }
+      
+      }
+    # warning
+    if(sum(x!=y)>1) warning("Special handling for degrees of freedom in ANOVA tables was performed. This may result in erroneous df2-values, which where imputed behind df1-values in lines with F-values in order to check the reported p-values.",call. = FALSE)
+  }
+  
+  # in lines with F-values
   i<-grep(" F=",x)
   if(length(i)>0){
    # convert df1 and df2 in brackets to text
-   x[i]<-gsub(" [Dd][Ff]: \\(([0-9][0-9\\.]*)[,;] ([0-9][0-9\\.]*)\\)"," df1=\\1, df2=\\2",x[i])
+   x[i]<-gsub(" [dD]\\.*[Ff]\\.*: \\(([0-9][0-9\\.]*)[,;] ([0-9][0-9\\.]*)\\)"," df1=\\1, df2=\\2",x[i])
    # unify df1 and df2 in text
 #   x[i]<-gsub(",[^,]*[Dd][Ff][=: ]*([0-9][0-9\\.]*),[^,]*[Dd][Ff]=([0-9][0-9\\.]*)",", df1=\\1, df2=\\2",x[i])
   }
 
   # unify df1 and df2 in text
-  x<-gsub(",[^,]*[Dd][Ff][=: ]*([0-9][0-9\\.]*)[,;] *([0-9][0-9\\.]*)",", df1=\\1, df2=\\2",x)
+  x<-gsub("(:[^:]*)[dD]\\.*[Ff]\\.*[=: ]*([0-9][0-9\\.]*)[,;] *([0-9][0-9\\.]*)","\\1df1=\\2, df2=\\3",x)
+  x<-gsub("(,[^,]*)[dD]\\.*[Ff]\\.*[=: ]*([0-9][0-9\\.]*)[,;] *([0-9][0-9\\.]*)","\\1df1=\\2, df2=\\3",x)
   
   return(x)
 }
 
+#######################################################
+# function to detect simple sequences
+is.single.sequence<-function(x){
+  if(length(x)<2) return(TRUE)
+  temp<-NULL
+  for(j in 1:(length(x)-1)) temp[j]<-x[j]+1==x[j+1]
+  return(ifelse(sum(!temp)==0,TRUE,FALSE))
+}
+# function to split to list of sequences
+sequence.split<-function(x){
+  if(is.single.sequence(x)) return(list(x))
+  temp<-TRUE
+  for(j in 2:(length(x)))
+    temp[j]<-(x[j-1])==(x[j]-1)
+  w<-which(!temp)
+  out<-list()
+  for(j in 1:(length(w)+1)){
+    if(j==1) out[[j]]<-x[1]:x[(w[j]-1)]
+    if(j>1&j<(length(w)+1)) out[[j]]<-x[w[j-1]]:x[(w[j]-1)]
+    if(j==(length(w)+1)) out[[j]]<-x[w[j-1]]:x[length(x)]
+  }
+  return(out)
+}
+
+## collapse all cells with pasted statistics per col 
+hasSequence<-function(x){
+  if(length(x)==0) return(FALSE)
+  if(length(x)==1) return(TRUE)
+  temp<-NULL
+  listSeq<-list()
+  listInd<-1
+  for(i in 1:(length(x)-1)){
+    temp<-c(temp,(x[i]+1)==x[i+1])
+    if((x[i]+1)==x[i+1]){
+      listSeq
+    } 
+  }
+  out<-sum(temp,na.rm=TRUE)>0
+  return(out)
+}
+
+# get first sequence from grep result
+firstSeq<-function(x){
+  if(length(x)<=1) return(x)
+  seq<-NULL
+  for(i in 1:(length(x)-1)){
+    if((x[i]+1)==x[1+i]) seq<-unique(c(seq,x[i],x[i+1]))
+    if((x[i]+1)!=x[1+i]&length(seq)>1) break()
+  }
+  return(seq)
+}
+
+###########################################################
 
 
 #####################################
@@ -1216,69 +1342,116 @@ dupSplit<-function(x){
   
 
 
-## paste model and standard statistics in first col to numeric field behind
+## paste model and standard statistics in first or second col to numeric/result fields behind
 modelStatsHandler<-function(x){
   if(!is.matrix(x)) return(x)
   if(nrow(x)<3) return(x)
-  if(ncol(x)<2) return(x)
+  if(ncol(x)<3) return(x)
   
-  ## paste first cell to all cells with numbers in rows starting from search term 
-  
+  ## paste first cell to all cells with numbers in rows starting with search term 
+  fun<-function(x){
+    if(!is.matrix(x)) return(x)
+    if(nrow(x)<3) return(x)
+    if(ncol(x)<3) return(x)
+    
   ## for standard results
-  ind1<-grep("^[A-z]$|^[RO]R$|^[Ss][Ee]$",gsub("[- ]val*u*e*s*","",x[,1]))
+  ind1<-grep("eta\\^2|omega\\^2|chi\\^2|^[tZprbBd]$|^[RO]R$|^[Ss]\\.* *[EeDd]\\.* *$|^[SsDd]\\.*[FfEeDd]\\.*$|^.\\^2$",
+             gsub(".*: |[- ]val*u*e*s*|[_-][A-z0-9\\*+-]*|[ *_]\\(.*\\)","",x[,1]))
   ## for model statistics
-  ind2<-grep("^R2$|[- ]R2|R\\^2|R[- ][Ss]q|[Rr]esidual|AIC|BIC|[Ii]nformation [Cr]iter|chi\\^2|degrees* of freedom|^df$|^DF$|[Ll]ikelihood",x[,1])
+  ind2<-grep("^R2$|[- ]R2|R\\^2|R[- ][Ss]q|[Rr]esidual|AIC|BIC|[Ii]nformation [Cr]iter|chi\\^2|degrees* of freedom|^[Dd]\\.*[Ff]\\.*$|[Ll]ikelihood",x[,1])
   # model index if second cell (constant/first variable) only exists once
-  if(length(ind2)>0&!is.element(x[2,1],x[c(-1,-2),1])) ind2<-ind2[1]:nrow(x)
+  #if(length(ind2)>0&!is.element(x[2,1],x[c(-1,-2),1])) ind2<-ind2[1]:nrow(x)
   # combined index
-  ind<-sort(unique(c(ind1,ind2)))
-  ind
-  # paste first cell to numeric cells in same row
-  if(length(ind)>0){
-    for(h in ind){
+  #ind<-sort(unique(c(ind1,ind2)))
+  # for all stats
+  ind<-ind1
+  if(length(ind)==0) return(x)
+  
+  # check if has only unique stats and extract first duplicated stat
+  uniques<-ifelse(sum(duplicated(x[,1][ind]))==0,TRUE,FALSE)
+  dups<-duplicated(x[,1][ind])
+  dupSplit<-NULL
+  if(sum(dups>0)&!uniques) dupSplit<-x[,1][ind][dups][1]
+  pos<-grep(paste0("^",specialChars(dupSplit),"$"),x[,1])
+  k<-sum(x[,1]==dupSplit)
+  
+  # paste paste first cell to numeric cells in same row
+  for(h in ind){
       x[h,grep("^-*[\\.0-9]",x[h,])]<-paste0(x[h,1],"=",x[h,grep("^-*[\\.0-9]",x[h,])])
       x[h,grep("^[<=>][<=>]*-*[\\.0-9]",x[h,])]<-paste0(x[h,1],"",x[h,grep("^[<=>][<=>]*-*[\\.0-9]",x[h,])])
     }
-    # remove first cell content
-    if(length(ind>0)) x[ind,1]<-"TEMP_TEXT"
-  }
+  # change first cell content
+  x[ind,1]<-"TEMP_TEXT"
   
-  ## collapse all cells with pasted statistics per col 
-  hasSequence<-function(x){
-    if(length(x)<2) return(FALSE)
-    temp<-NULL
-    listSeq<-list()
-    listInd<-1
-    for(i in 1:(length(x)-1)){
-      temp<-c(temp,(x[i]+1)==x[i+1])
-      if((x[i]+1)==x[i+1]){
-        listSeq
-      } 
+  ## collapse results in multiple rows
+  # - if contains duplicated stats
+  if(!uniques){
+       indexes<-list()
+       # if duplicated stat is first stat
+       if(pos[1]==min(ind)){
+         for(i in 1:k){
+           if(i<k) indexes[[i]]<-pos[i]:(pos[i+1]-1)
+           if(i==k) indexes[[i]]<-pos[i]:max(ind)
+           indexes[[i]]<-indexes[[i]][is.element(indexes[[i]],ind)]
+           }
+         }
+       
+       # if duplicated stat is last stat but not first
+       if(length(indexes)==0&(pos[k]==max(ind))&!(pos[1]==min(ind))){
+         for(i in 1:k){
+           if(i==1) indexes[[i]]<-min(ind):pos[i]
+           if(i>1) indexes[[i]]<-(pos[i-1]+1):pos[i]
+           indexes[[i]]<-indexes[[i]][is.element(indexes[[i]],ind)]
+         }
+       }
+       
+       if(length(indexes)>0)
+       for(l in 1:length(indexes)){
+         i<-indexes[[l]]
+         for(j in 2:ncol(x)) x[i[1],j]<-paste0(x[i,j],collapse=", ")
+           x[i[-1],]<-"removeLine"
+        }
+      }
+        
+  # - if no duplicated stat is detected
+  if(uniques){
+    while(hasSequence(ind)){
+      i<-firstSeq(ind)
+      for(j in 2:ncol(x)) x[i[1],j]<-paste0(x[i,j],collapse=", ")
+      x[i[-1],]<-"removeLine"
+      ind<-ind[!is.element(ind,i)]
     }
-    out<-sum(temp,na.rm=TRUE)>0
-    return(out)
-  }
-
-  firstSeq<-function(x){
-    seq<-NULL
-  for(i in 1:(length(x)-1)){
-    if((x[i]+1)==x[1+i]) seq<-unique(c(seq,x[i],x[i+1]))
-    if((x[i]+1)!=x[1+i]&length(seq)>1) break()
-  }
-  return(seq)
   }
   
-  # apply function to parse cells
-  while(hasSequence(ind)){
-    i<-firstSeq(ind)
-       for(j in 2:ncol(x)) x[i[1],j]<-paste0(x[i,j],collapse=", ")
-       x[i[-1],]<-"removeLine"
-     ind<-ind[!is.element(ind,i)]
-   }
-   x<-x[grep("removeLine",x[,1],invert=TRUE),]
-   x<-gsub("(, )(, )*|^, |, $","\\1",x)
-   return(x)
-}
+  # clean up 
+  x<-x[grep("removeLine",x[,1],invert=TRUE),]
+  x<-gsub("(, )(, )*|^, |, $","\\1",x)
+  
+  if(!is.matrix(x)) x<-matrix(x,nrow=1)
+  
+  return(x)
+  }
+  
+  
+  # apply function to table     
+  out<-fun(x)
+  
+  # check if is also senseful for second column if nothing was detected in first col
+  out2<-fun(x[,-1])
+  if(nrow(out)==nrow(x)&nrow(out2)!=nrow(x)){
+    # and only if unique labels in first column match to length of result 
+    if(sum(unique(x[-1,1])!="")==(nrow(out2)-1)){
+    out2[-1,1]<-unique(x[-1,1])[unique(x[-1,1])!=""]
+    # paste cell 1, 1 to cells in first column
+    if(nchar(x[1,1])>0) out2[-1,1]<-paste(x[1,1],", ",out2[-1,1])
+    # return result
+    return(out2)
+    }
+    }
+  
+  # else 
+  return(out)
+  }
 
 
 

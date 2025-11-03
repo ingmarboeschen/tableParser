@@ -7,7 +7,7 @@
 #' @export
 
 prepareMatrix<-function(x,split=FALSE){
-  
+  x<-suppressWarnings(unifyMatrixContent(x,correctComma = FALSE))
   # remove duplicated 2nd column
   if(ncol(x)>1){
     if(sum(x[,1]==x[,2])==nrow(x)) x<-x[,-2]
@@ -104,9 +104,6 @@ prepareMatrix<-function(x,split=FALSE){
       x[,1]<-paste(x[,1],x[,2])
       x<-x[,-2]
     }
-    
-
-    
     
     # parse first and second row, if first row has no letters and second row starts with letter in every cell
     if(length(grep("[A-z]",x[1,-1]))==0&length(grep("^[A-z]",x[2,-1]))==(ncol(x)-1)){

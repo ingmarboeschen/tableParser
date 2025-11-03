@@ -42,7 +42,7 @@
 
 matrix2text<-function(x,
                       legend=NULL,
-                      unifyMatrix=TRUE,correctComma=FALSE,
+                      unifyMatrix=TRUE,correctComma=FALSE,forceClass=NULL,
                       expandAbbreviations=TRUE,
                       superscript2bracket=TRUE,
                       standardPcoding=FALSE,
@@ -59,6 +59,10 @@ matrix2text<-function(x,
   if(is.matrix(x)) x<-list(x)
   # escape
   if(!is.list(x) | !is.matrix(x[[1]])) stop("x must be a character matrix or a list of character matrices.")
+  # check forceClass
+  if(!is.null(forceClass))
+    if(sum(is.element(c("tabled result","correlation","text"),forceClass))!=1)
+      stop("Argument 'forceClass' can only be set to one of 'tabled result','correlation', or 'text'.")
   
   # remove html but convert sub and sup, bold and italic numbers
   x<-lapply(x,function(x) gsub("<sub>","_",gsub("<sup>","^",x)))
@@ -118,7 +122,7 @@ matrix2text<-function(x,
   
   out<-NULL
   
-  if(is.list(x)) out<-lapply(x,parseMatrixContent,legend=legend,
+  if(is.list(x)) out<-lapply(x,parseMatrixContent,legend=legend,forceClass=forceClass,
                                     standardPcoding=standardPcoding,
                                     expandAbbreviations=expandAbbreviations,
                              superscript2bracket=superscript2bracket,addDF=addDF)

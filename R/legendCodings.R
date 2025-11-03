@@ -30,7 +30,8 @@ legendCodings<-function(x){
   if(length(x)==0) return(NULL)
   x<-gsub("\\.([[:punct:]])",". \\1",x)
   
-  out<-c(get.pCodes(x),
+  out<-c(
+    get.pCodes(x),
     get.bracketCodes(x),
     get.HTMLcodes(x),
   #  get.CronbachAlpha(x),
@@ -59,7 +60,11 @@ legendCodings<-function(x){
 get.sup<-function(x){
   if(length(x)==0) return(list(sup=NULL,sup_label=NULL))
   # add ^ to stars without ^
-  x<-gsub("^([^\\^0-9])(\\*\\**)","\\1^\\2",x)
+  x<-gsub("^(\\*\\**)","^\\1",x)
+  x<-gsub("([\\.,;] )(\\*\\**)","\\1^\\2",x)
+  # add space between stars and following
+  x<-gsub("(\\^\\*\\**)([^ \\*,;])","\\1 \\2",x)
+  x<-gsub("(\\^\\*\\**)[,;]","\\1 ",x)
   # has lines with supersript
   sup<-grep("\\^[^0-9]|\\^1$|\\^1[^0-9]",x,value=T)  
   if(length(sup)==0) return(list(sup=NULL,sup_label=NULL))
@@ -172,7 +177,7 @@ get.pCodes<-function(x){
   # remove text between brackets
   x<-gsub(" \\([A-z0-9][A-z0-9 -]*\\)","",x)
   
-  # remove space between . and nuber
+  # remove space between . and number
   x<-gsub("([pP][<=>][<=>]*)0*[\\.,] ([0-9])","\\1.\\2",x)
   # convert , to . as decimal sign in numbers with 0,num
   x<-gsub("([<=>])0*,([0-9])","\\1.\\2",x)
@@ -180,6 +185,8 @@ get.pCodes<-function(x){
   x<-gsub("\\*([<=>][<=>]*0*\\.[0-9][0-9])","* p\\1",x)
   # add space between punctuation-letter at start of line
   x<-gsub("^([[:punct:]][[:punct:]]*)([A-z])","\\1 \\2",x)
+  # but not after ^
+  x<-gsub("^\\^ ","^",x)
   # remove:
   x<-gsub(":","",x)
   # remove "and" behind ","
@@ -188,16 +195,19 @@ get.pCodes<-function(x){
   # remove "'" around * or letters 
   x<-gsub("[\\*A-z]'","\\*",x)
   x<-gsub("'[\\*A-z]","\\*",x)
+  # remove -value
+  x<-gsub("-values*","",x)
   # Pr and capital P to p
   x<-gsub("(.)[pP]r*( *[<=>][<=>]* *0*\\.[0-9])","\\1p\\2",x)
   x<-gsub("^[pP]r*( *[<=>][<=>]* *0*\\.[0-9])","p\\1",x)
-  # remove -value
-  x<-gsub("-value","",x)
   x
-  # alpha-level to p-value in lines with 
+  # alpha to p-value in lines with 
   i<-grep("level.*signific|[Ss]ignif.*level",x)
   x[i]<-gsub("\u03B1 *= *|\u1D6FC *= *|&#945 *= *","p<",x[i])
   x[i]<-gsub("([^p][^<])([0\\.]*[0-9][0-9]*) levels* ","\\1 p<\\2 ",x[i])
+  # all other lines with alpha level p<
+  x<-gsub("alpha[- ]level[^\\.015]*([\\.015][\\.015])","p<\\1",x)
+  
   # cyrillic Er to p
   x<-gsub("\u0420|\u0440","p",x)
   # rho to p
@@ -212,7 +222,7 @@ get.pCodes<-function(x){
   
   # unify numbers
   x<-text2num(x,percentage=FALSE)
-  
+  x
   # remove sign behind "*" or dagger if is followed by "p<"
   x<-gsub("(\\*)[^\\*]( *p[<=>])","\\1\\2",x)
   x<-gsub("(\u202[01])[^\u2020\u2021]]( *p[<=>])","\\1\\2",x)
@@ -220,8 +230,8 @@ get.pCodes<-function(x){
   # add space between anything-p-value
   x<-gsub("([^ ])([pP][<=>][<=>]*0*\\.[0-9])","\\1 \\2",x)
   # add space in front of * or dagger
-  x<-gsub("([^*])\\*","\\1 *", x)
-  x<-gsub("([^\u2020\u2021])\\\u2020\u2021","\\1 *", x)
+  x<-gsub("([^*\\^])\\*","\\1 *", x)
+  x<-gsub("([^\\^\u2020\u2021])([\u2020\u2021])","\\1 \\2", x)
 
   # add % behind numbers in list of percentual values that do not have % yet
   #i<-grep("[0-9]\\%",x)
@@ -230,6 +240,9 @@ get.pCodes<-function(x){
   
   # select lines with ".number"
   x<-grep("\\.[0-9]",x,value=TRUE)
+  # remove text behind "text"-text
+  x<-gsub("([a-z] *)- *[A-z][A-z]*","\\1",x)
+  
   # escape
   if(length(x)==0) return(list(psign=NULL,pval=NULL))
   
@@ -284,7 +297,6 @@ get.pCodes<-function(x){
   pCodes <- unlist(strsplit(pCodes,"[,;\\.] | and ",pCodes))
   pCodes <- grep(pattern,pCodes,value=TRUE)
   
-  
   ###########################################
   # remove text in front and behind * p-value
   pCodes <- gsub(".*[^[:punct:]]([[:punct:]][[:punct:]]* *[pP] *[<=>][<=>]* *0*\\.[0-9][0-9]*).*","\\1",pCodes)
@@ -306,6 +318,8 @@ get.pCodes<-function(x){
   psign <- gsub("\\.","",gsub("(.*) *[pP] *[<=>][<=>]* *0*\\.[0-9][0-9]*","\\1",pCodes))
   pval <- gsub(".*[^A-z]([pP] *[<=>][<=>]* *0*\\.[0-9][0-9]*)","\\1",pCodes)
   
+  # remove tailoring spaces
+  psign<-gsub("^  *|  *$","",psign)
   
   ## extract psigns that have "n.s." for non significant
   i<-grep("[ [:punct:]][nN]\\.*[sS]\\.*[ [:punct:]]",paste0(" ",psign," "))
@@ -332,7 +346,7 @@ get.pCodes<-function(x){
   
   #####################################
   # remove words (more than two letters)
-  psign<-gsub("  *"," ",gsub("[A-z][A-z][A-z]*","",psign))
+  psign<-gsub("\\^[A-z][A-z][A-z]*","",psign)
   
   # clean up
   pval<-gsub("[Pp] *([<=>][<=>]*) *([0-9\\.][0-9\\.]*).*","p\\1\\2",pval)
@@ -341,8 +355,10 @@ get.pCodes<-function(x){
   pval<-gsub("p *([<=>][<=>]*) *","p\\1",pval)
   pval<-gsub("([<=>][<=>]*)0\\.","\\1.",pval)
   pval<-gsub("0$","",pval)
+  
   pval
   psign
+  
   ## clean up psign
   # remove tailoring ' in psign
   psign<-gsub("^'*([^'][^']*)'*$","\\1",psign)
@@ -360,16 +376,17 @@ get.pCodes<-function(x){
   pval<-pval[j]
   psign<-psign[j]
   psign
+  if(length(psign)==0) return(list(psign=NULL,pval=NULL))
   
   #####################################
   # remove letters that are not a, b, c or d
-  psign<-gsub("[e-zE-Z]","",psign)
+  #psign<-gsub("^[e-zE-Z]","",psign)
   
   # remove [,;] at end
   psign<-gsub("([^,;])[,;]$","\\1",psign)
 
   # remove psigns with number, brackets or /
-  j <- grep("[0-9]|\\[|\\]|/|[^-]-|-[^-]",psign,invert=TRUE)
+  j <- grep("[0-9]|\\[|\\]|/|^-|-[^-]",psign,invert=TRUE)
   pval<-pval[j]
   psign<-psign[j]
   
@@ -382,10 +399,24 @@ get.pCodes<-function(x){
   
  
   # remove psigns with more than one letter
-  j<-grep("[A-z][A-z]",psign,invert=TRUE)
+  j<-grep("\\^[A-z][A-z]|^[^A-z][A-z]",psign,invert=TRUE)
   pval<-pval[j]
   psign<-psign[j]
     
+  # correct operator "="
+  psign<-gsub("=([<>][<=>]*)","\\1",psign)
+  psign<-gsub("=([<>][<=>]*)","\\1",psign)
+  # remove 0 in "0.num"
+  pval<-gsub("([<=>])0\\.","\\1.",pval)
+  
+  # if has a p-value multiple times, remove those without star
+  if(sum(duplicated(pval))>0){
+    for(k in 1:3){ # repeat three times
+  if(sum(duplicated(pval))>0){
+    rem<-psign[pval==pval[duplicated(pval)][1]][grep("\\*",psign[pval==pval[duplicated(pval)][1]],invert = TRUE)]
+    pval<-pval[!is.element(psign,rem)]
+    psign<-psign[!is.element(psign,rem)]
+  }}}
   # remove un- and badly captured psigns
   j <- nchar(psign)>0 & nchar(psign)<=3
   pval<-pval[j]
@@ -394,8 +425,9 @@ get.pCodes<-function(x){
   pvalNS<-pvalNS[j]
   psignNS<-psignNS[j]
   
+  
   # replace maxP with biggest p<num, else remove ns coding
-  if(length(pvalNS)>0) if(pvalNS=="maxP"&length(grep("p<0*\\.",pval))>0){
+  if(length(pvalNS)>0) if(pvalNS[1]=="maxP"&length(grep("p<0*\\.",pval))>0){
       temp<-suppressWarnings(max(as.numeric(
         gsub("p<0*","",grep("p<",pval,value=TRUE))
         )))
@@ -406,7 +438,7 @@ get.pCodes<-function(x){
       }
   
   # remove bad captures
-  if(length(pvalNS)>0) if(pvalNS=="maxP"){
+  if(length(pvalNS)>0) if(pvalNS[1]=="maxP"){
     psignNS<-character(0)
     pvalNS<-character(0)
   }
@@ -426,6 +458,14 @@ get.pCodes<-function(x){
     pval<-pval[-j]
     psign<-psign[-j]
   }
+  
+  # remove bad captures
+  j<-which(
+    (!grepl("^[;,:\\.~]$|^[A-z]$|^[A-MO-Za-mo-z][A-z]|^[A-z][A-RT-Za-rt-z]$|^[A-z][A-z][A-z]$",psign)|grepl("^\\^[A-z]$",psign))
+    )
+    pval<-pval[j]
+    psign<-psign[j]
+
   
   if(length(pval)==0) return(list(psign=NULL,pval=NULL))
 
@@ -476,10 +516,15 @@ get.HTMLcodes<-function(x){
   x<-gsub("-values*","",x)
   # remove brackets
   x<-gsub("\\(\\)","",x)
-  
+  # text 2 number
+  x<-text2num(x)
   # alpha-level to p-value in lines with 
-  i<-grep("level.*signific|signif.*level",x)
+  i<-grep("level.*signific|[Ss]ignif.*level",x)
   x[i]<-gsub("\u03B1 *= *|\u1D6FC *= *|&#945 *= *","p<",x[i])
+  x[i]<-gsub("([^p][^<])([0\\.]*[0-9][0-9]*) levels* ","\\1 p<\\2 ",x[i])
+  # all other lines with alpha level p<
+  x<-gsub("alpha[- ]level[^\\.015]*([\\.015][\\.015])","p<\\1",x)
+  x
   
   # kyrillic Er to p
   x<-gsub("\u0420|\u0440","p",x)
@@ -707,7 +752,7 @@ get.abbr<-function(text=NULL,footer=NULL){
   i<-grep("inline-formula",x)
   x[i]<-gsub("</*[a-z][^>]*>","",x[i])
   
-  # select lines with at least two capital letters or capital letter and number
+  # select lines with at least two capital letters or capital letter and number/_
   x<-grep("[A-Z][-a-z_0-9]*[A-Z]|[A-Z][-0-9A-Z_]|[A-Z][a-z]*.[,;=] ",x,value=TRUE)
   x
   # split at "and" after abbreviation 
@@ -728,8 +773,8 @@ get.abbr<-function(text=NULL,footer=NULL){
   x<-gsub("[A-Z][-0-9A-Z/]*[,; ]*(and|or|[,;]) [A-Z][-0-9A-Z][-0-9A-Z/]*","",x)
     
   # TYPE A: if has "ABB[,:] full;"
-  pattern<-"^[A-Z][0-9]*[,:] |[A-Z][-0-9a-z_]*[A-Z][,:] [A-z][a-z][^;]|[A-Z][-0-9A-Z_][-0-9A-Z_]*[,:] [A-z][a-z][^;]*;|[A-Z][-0-9A-Z_][-0-9A-Z_]*[,:] [A-z][a-z][^;]*$"
-    
+  pattern<-"^[A-Z][A-Z_-][A-z_-]*[,:] |[,;\\.] [A-Z][A-Z_-][A-z_-]*[,:] |^[A-Z][0-9]*[,:] |[A-Z][-0-9A-z_]*[A-Z][,:] [A-z][a-z][^;]|[A-Z][-0-9A-Z_][-0-9A-Z_]*[,:] [A-z][a-z][^;]*;|[A-Z][-0-9A-Z_][-0-9A-Z_]*[,:] [A-z][a-z][^;]*$"
+  
   typeA<-length(grep(pattern,x))>0
   typeA
   if(typeA){
@@ -768,9 +813,7 @@ get.abbr<-function(text=NULL,footer=NULL){
       x<-gsub(specialChars(i),"",x)
     }
     }
-  x
-  abb
-  full
+  
   
   # TYPE B: if has "ABB = full;"
   typeB<-length(grep("^[A-Z][0-9]* *[=] *|[A-Z][-0-9A-z_]* *[=] *[A-z]",x))>0
@@ -826,7 +869,7 @@ get.abbr<-function(text=NULL,footer=NULL){
     for(i in 1:length(brack_abb)){
       chars<-nchar(brack_abb[i])
       firstChar<-substr(brack_abb[i],1,1)
-      if(length(chars)>0) if(!is.na(chars)){
+      if(length(chars)>0) if(!is.na(chars)) if(chars>0){
         # extract nchars+(1-2) words
         if(chars==1) bag_pre<-ngram2(brack[i],brack_abb[i],c(-chars-2,-1))
         if(chars==2) bag_pre<-ngram2(brack[i],brack_abb[i],c(-chars-2,-1))
@@ -1036,6 +1079,7 @@ get.abbr<-function(text=NULL,footer=NULL){
 
 ngram2<-function(x,pattern,ngram=c(-3,3),tolower=FALSE,split=FALSE,exact=FALSE){
   temp<-NA
+  
   if(length(x)>0){
     text<-unlist(x)
     #text<-text2sentences(x)

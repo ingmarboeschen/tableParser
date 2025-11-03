@@ -7,6 +7,8 @@
 #' @export
 #' 
 tableClass<-function(x,legend=NULL){
+  if(length(x)==0) return(NULL)
+  if(!is.matrix(x)) return(NULL)
   ## standard output:
   class<-"tabled results"
   
@@ -27,7 +29,9 @@ tableClass<-function(x,legend=NULL){
   nCol<-ncol(m)
   if(is.null(nCol)|nCol==1|nrow(m)==1) return("vector")
   if(nrow(m)==1&ncol(m)==1) return("vector")
-
+  
+  # if has cells with many characters, return text
+  if(sum(unlist(lapply(m,nchar))>150,na.rm=TRUE)>0) return("text")
 
   ## check if matrix is text matrix
   # is cell with character?
@@ -41,8 +45,7 @@ tableClass<-function(x,legend=NULL){
   
   # escape if more than 90% are character cells
   if(sum(characterCell,na.rm=TRUE)/length(characterCell)>.9){
-    class<-"text"
-    return(class)
+    return("text")
   }
   
   ###################################
@@ -74,7 +77,7 @@ tableClass<-function(x,legend=NULL){
   # has correlation in legend?
   t2<-length(grep("[Cc]orr*elation|[Aa]ssociation|[Re]elation",legend))>0
   # is there no p/d/beta/R^2 value in matrix?
-  t3<-length(grep("[Ii]ntercept|^[PpdDBb]$| [PpdDBb]$[Pp]-value|[0-9]%[-]*[Cc][oIi]|R\\^2",m))==0
+  t3<-length(grep("[Ii]ntercept|^[PpdDBb]$| [PpdDBb]$[Pp]-value|[0-9]%[-]*[Cc][oIi]|R\\^*2|eta\\^*2$",m))==0
   
   if(t1&t2&t3){
     class<-"correlation"
@@ -99,7 +102,7 @@ tableClass<-function(x,legend=NULL){
     # minimum length of sequence: 3
     hasSeq<-length(grep("0 1 2|1 2 3|2 3 4|4 5 6",paste0(s[i],collapse=" ")))>0
     # are there no p/d/beta/R^2 value in matrix?
-    t3<-length(grep("^[Ppd]DBb$| [PpdDBb]$[Pp]-value|[0-9]%[-]*[Cc][oIi]|R\\^2|R[- ]squa",m))==0
+    t3<-length(grep("^[Ppd]DBb$| [PpdDBb]$[Pp]-value|[0-9]%[-]*[Cc][oIi]|R\\^*2$|R[- ]squa|eta\\^*2",m))==0
     if(!t3) hasSeq<-FALSE 
     #block<-empty%*%t(empty)
     ## must be better done!!!
@@ -139,7 +142,7 @@ tableClass<-function(x,legend=NULL){
   # has correlation in legend?
   t2<-length(grep("[Cc]orr*elation|[Aa]ssociation|[Re]elation",legend))>0
   # is there no p/d/beta/R^2 value in matrix?
-  t3<-length(grep("[Ii]ntercept|^[PpdDBb]$| [PpdDBb]$[Pp]-value|[0-9]%[-]*[Cc][oIi]|R\\^2",m))==0
+  t3<-length(grep("[Ii]ntercept|^[PpdDBb]$| [PpdDBb]$[Pp]-value|[0-9]%[-]*[Cc][oIi]|R\\^*2$|eta\\^*2",m))==0
   
   if(t1&t2&t3){
     class<-"correlation"
@@ -158,9 +161,9 @@ tableClass<-function(x,legend=NULL){
   # model and multi model
   if(nrow(m)>2 &
      # has R^2|F|etc
-     (length(grep("^R\\^*2|[^A-z]R\\^*2|R[- ][Ss]q|^F$|^AIC|^BIC|Aikaike|[Ii]nformation [Cr]iter",m[-1:-2,1]))>0 
+     (length(grep("^R\\^*2|R\\^*2$|[^A-z]R\\^*2|R[- ][Ss]q|^F$|^AIC|^BIC|Aikaike|[Ii]nformation [Cr]iter",m[-1:-2,1]))>0 
       | 
-      length(grep("^R\\^*2|[^A-z]R\\^*2|R[- ][Ss]q|^F$|^AIC|^BIC|Aikaike|[Ii]nformation [Cr]iter",m[1,-1:-2]))>0 
+      length(grep("^R\\^*2|R\\^*2$|[^A-z]R\\^*2|R[- ][Ss]q|^F$|^AIC|^BIC|Aikaike|[Ii]nformation [Cr]iter",m[1,-1:-2]))>0 
       )
      & 
     # has Regression/Model in legend or header?
@@ -170,7 +173,7 @@ tableClass<-function(x,legend=NULL){
   }
   
   if(class=="model with model statistics"){
-    ind<-grep("^R\\^*2|[^A-z]R\\^*2|R[- ][Ss]q|^F$|^AIC|^BIC|Aikaike|[Ii]nformation [Cr]iter",m[,1])
+    ind<-grep("^R\\^*2|R\\^*2$|[^A-z]R\\^*2|R[- ][Ss]q|^F$|^AIC|^BIC|Aikaike|[Ii]nformation [Cr]iter",m[,1])
     if( 
      # has more than 1 R^2
      length(grep("[\\.0]*[0-9]",m[ind[1],]))>1|
