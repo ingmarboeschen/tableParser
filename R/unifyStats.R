@@ -119,12 +119,12 @@ unifyStats<-function(x){
   x<-gsub(" d[ _][^<=>]*([<=>])"," d\\1",x)
   
   # unify parameter/coefficient/Estimate
-  x<-gsub("([pP]aram[\\.etrs]) *([<=>])|([Cc]oef[\\.ficents]*) *([<=>])|( [Ee]st[\\.imates]*) *([<=>])|^([Ee]st[\\.imates]*) *([<=>])",
+  x<-gsub("([pP]aram[\\.etrs]*) *([<=>])|([Cc]oef[\\.ficents]*) *([<=>])|( [Ee]st[\\.imates]*) *([<=>])|^([Ee]st[\\.imates]*) *([<=>])",
           "\\1\\3\\5\\7 beta\\2\\4\\6\\8",x)
   x<-gsub("( [Pp]redictors*) *([<=>])|^[Pp]redictors* *([<=>])","\\1 beta\\2",x)
   # standard error
-  x<-gsub("[Ss]td*\\.*[- ]*[Ee]rr*[or\\.]*([^a-z])|[Ss]tandardi*[sz]*e*d*[- ][Ee]rr*or|S\\.[- ]*E\\.","SE\\1",x)
-  x<-gsub("\\(SE\\)=","SE=",x)
+  x<-gsub("[Ss]td*\\.*[- ]*[Ee]rr*[or\\.s]*([^a-z])|[Ss]tandardi*[sz]*e*d*[- ][Ee]rr*[or\\.s]*|S\\.[- ]*E\\.","SE\\1",x)
+  x<-gsub("\\(SE\\)([<=>])","SE\\1",x)
   # unify Sum of squares/Odds ratio/Risk Ratio
   x<-gsub("(Sum of squares)","\\1 SSq",x)
   x<-gsub(" [Oo]dd*s*[ -][Rr]atios*"," OR",x)
@@ -154,7 +154,8 @@ unifyStats<-function(x){
   x<-gsub("(R\\^2)[- ]([-a-zA-z \\.]*)([<=>])"," \\2 \\1\\3",x)
   
   # add "d=" to effect in lines with SE
-  x<-gsub("( [Ee]ffect)([<=>][<=>]*-*[\\.0-9][\\.0-9]*, SE=[\\.0-9])"," \\1 d\\2",x)
+  x<-gsub("( [Ee]ffects*)([<=>][<=>]*-*[\\.0-9][\\.0-9]*[,;][,;]* SE[<=>][<=>]*[\\.0-9])"," \\1 d\\2",x)
+  x<-gsub("( [Ee]ffects*)([<=>][<=>]*-*[\\.0-9][\\.0-9]*[,;][,;]* p[<=>][<=>]*[0-9\\.][0-9\\.]*[,;][,;]* SE[<=>][<=>]*[\\.0-9])"," \\1 d\\2",x)
   
   # remove badly set space in "=. num"
   x<-gsub("([<=>]\\.) ([0-9])","\\1\\2",x)

@@ -1,5 +1,6 @@
-## Matrix processing functions
-#############################
+##########################################
+## some useful matrix processing functions
+##########################################
 
 # convert special characters for replacement
 specialChars<-function(x){
@@ -220,7 +221,6 @@ multiHeaderSplit<-function(x,split=FALSE,class=NULL){
 }
 
 
-#########################
 ## function to unify textual output
 unifyOutput<-function(x){
   # unify minus/hyphen sign
@@ -366,10 +366,10 @@ headerHandling<-function(m){
   return(m)
   }
 
+# paste first and second column with ", "
+# if second column doesn't contain any number or letters in every cell
 textColHandling<-function(x){
   if(!is.matrix(x)) return(x)
-  # paste first and second column with ", "
-  # if second column doesn't contain any number or letters in every cell
   loop<-TRUE
   while((loop==TRUE & length(grep("[0-9]",x[,2]))==0)|
         (loop==TRUE & length(grep("[A-z]",x[,2]))==nrow(x))
@@ -559,14 +559,17 @@ extractCorrelations<-function(x,
   m[,1]<-gsub(": ([A-z][-A-z _\\^\\.\\*]*) (\\([1-9][0-9]*\\))$",": \\2 \\1",m[,1])
   m[1,]<-gsub("^([A-z][-A-z _\\^\\.\\*]*) (\\([1-9][0-9]*\\)): ","\\2 \\1: ",m[1,])
   m[,1]<-gsub("^([A-z][-A-z _\\^\\.\\*]*) (\\([1-9][0-9]*\\)): ","\\2 \\1: ",m[,1])
-  
+  m
   # remove brackets around numbers from first row and col
   m[1,]<-gsub("^ *\\(([1-9][0-9]*\\.*)\\)","\\1",m[1,])
   m[,1]<-gsub("^ *\\(([1-9][0-9]*\\.*)\\)","\\1",m[,1])
   
-  # paste first and second column, if first column has enumeration only
+  # paste first and second column, if first column has enumeration only and all cells in second column start with letters
   col1<-m[,1]
-  if(length(col1)>1&sum(gsub("[0-9\\[:punct:]]","",col1[-1])=="",na.rm=TRUE)==(length(col1[-1]))){
+  if(length(col1)>1&
+     sum(gsub("[0-9\\[:punct:]]","",col1[-1])=="",na.rm=TRUE) == length(col1[-1]) &
+     sum(grepl("^[A-z]",m[-1,2])) == length(col1[-1])
+     ){
     col2<-m[,2]
     m[,1]<-gsub("^ | $","",paste(col1,col2))
     m<-m[,-2]
@@ -578,7 +581,7 @@ extractCorrelations<-function(x,
   # convert signs to p-values
   m[-1,-1]<-sign2p(m[-1,-1],sign=psign,val=pval)
   
-
+m
   # unify numbering at beginning of first column/row to "number."
   m[,1]<-gsub("^\\(*0*([1-9][0-9]*)[\\),;:] ","\\1. ",m[,1])
   m[1,]<-gsub("^\\(*0*([1-9][0-9]*)[\\),;:] ","\\1. ",m[1,])
@@ -601,7 +604,7 @@ extractCorrelations<-function(x,
       m[1,i+1]<-m[2:(max(i)+1),1]
     }
   }
-  
+  m
   # if matrix has enumeration in rows and cols, 
   if((length(grep("^[0-9][0-9\\.]*$",m[1,-1]))>2&length(grep("^[0-9].*[A-z]",m[-1,1]))>2)|
       (length(grep("^[0-9].*[A-z]",m[1,-1]))>2&length(grep("^[0-9][0-9\\.]*$",m[-1,1]))>2)){
@@ -857,8 +860,10 @@ bracket2value<-function(x,value,type=c("parentheses","brackets")[1],sep=";"){
   if(length(i)==0){
   if(type=="parentheses") 
     x<-gsub("\\(([^\\)]*[0-9][^\\)]*)\\)",paste0(paste(sep,value),"=","\\1"),x)    
+    x<-gsub("([^<=>])=([<>])","\\1\\2",x)
   if(type=="bracket") 
     x<-gsub("\\[([^\\]*[0-9][^\\]*)\\]",paste0(paste(sep,value),"=","\\1"),x)    
+    x<-gsub("([^<=>])=([<>])","\\1\\2",x)
   }
   
   
@@ -1043,7 +1048,6 @@ splitter<-function(x){
   return(x)
 }
 
-
 # Function to parse content from brackets to a new column
 newColumnBracket<-function(x){
   # escapes
@@ -1057,7 +1061,9 @@ newColumnBracket<-function(x){
   if(length(i>0)) x[,i]<-gsub("^\\((.*)\\)","\\1",x[,i])   
   
   # extract and insert number in round brackets as column
-  ind<-which(grepl("\\([-0-9\\.][-,;0-9\\. ]*\\)", as.vector(x[-1,]))&grepl("\\([-0-9\\.A-z][-,;0-9\\. A-z]*\\)", as.vector(x[1,])))
+  ind<-which(
+    colSums(matrix(grepl("\\([-0-9\\.][-,;0-9\\. ]*\\)", (x[-1,])),ncol=ncol(x)))>1 &
+      grepl("\\([-0-9\\.A-z][-,;0-9\\. A-z]*\\)", as.vector(x[1,])))
     if(length(ind)>0){
     nCols<-ncol(x)
     ind<-which((colSums(matrix(unlist(
@@ -1095,7 +1101,9 @@ newColumnBracket<-function(x){
     }
   
   # extract and insert number in squared brackets as column
-  ind<-which(grepl("\\[[-0-9\\.][-,;0-9\\. ]*\\]", as.vector(x[-1,]))&grepl("\\[[-0-9\\.A-z][-,;0-9\\. A-z]*\\]", as.vector(x[1,])))
+  ind<-which(
+    colSums(matrix(grepl("\\[[-0-9\\.][-,;0-9\\. ]*\\]", (x[-1,])),ncol=ncol(x)))>1 &
+      grepl("\\[[-0-9\\.A-z][-,;0-9\\. A-z]*\\]", as.vector(x[1,])))
   if(length(ind)>0){
     nCols<-ncol(x)
     ind<-which(colSums(matrix(unlist(
