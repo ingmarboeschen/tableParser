@@ -4,7 +4,8 @@
 #' @param x A character matrix or list with a character matrix as first and only element.
 #' @param legend The tables caption/footer notes as character vector.
 #' @param standardPcoding Logical. If TRUE, and no other detection of p-value coding is detected, standard coding of p-values is assumed to be: * p<.05, ** p<.01 and *** p<.001.
-#' @param forceClass Character. Set a fixed table class for extraction heuristic. One of c("tabled result","correlation","text").
+#' @param noSign2p Logical. If TRUE, imputes 'p>maximum of coded p-values' to cells that are not coded to be significant.
+#' @param forceClass Character. Set a fixed table class for extraction heuristic. One of c("tabled result","correlation","matrix","text").
 #' @param expandAbbreviations Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footer with tableParser::legendCodings().
 #' @param superscript2bracket Logical. If TRUE, detected superscript codings are inserted inside parentheses.
 #' @param addDF Logical. If TRUE, detected sample size N in caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom. 
@@ -13,6 +14,7 @@
 
 parseMatrixContent<-function(x,legend=NULL,
                              standardPcoding=TRUE,
+                             noSign2p=TRUE,
                              forceClass=NULL,
                              expandAbbreviations=TRUE,
                              superscript2bracket=FALSE,
@@ -24,8 +26,8 @@ parseMatrixContent<-function(x,legend=NULL,
   
   # check forceClass
   if(!is.null(forceClass))
-    if(sum(is.element(c("tabled result","correlation","text"),forceClass))!=1)
-      stop("Argument 'forceClass' can only be set to one of 'tabled result','correlation', or 'text'.")
+    if(sum(is.element(c("tabled result","correlation","matrix","text"),forceClass))!=1)
+      stop("Argument 'forceClass' can only be set to one of 'tabled result','correlation', 'matrix', or 'text'.")
    
   # prepare codesFromLegend
   if(is.list(legend)) codesFromLegend<-legend
@@ -38,13 +40,13 @@ parseMatrixContent<-function(x,legend=NULL,
   # get legend codings
   if(is.list(codesFromLegend)){
     parentheses<-codesFromLegend$parentheses
-    brackets<-codesFromLegend$brackets
+    brackets<-codesFromLegend$bracket
     psign<-codesFromLegend$psign
     pval<-codesFromLegend$pval
     abbr<-codesFromLegend$abbreviation
     label<-codesFromLegend$label
-    italic<-codesFromLegend$italicP
-    bold<-codesFromLegend$boldP
+    italic<-codesFromLegend$italic
+    bold<-codesFromLegend$bold
     alpha<-codesFromLegend$alpha
     N<-codesFromLegend$N
     sup<-codesFromLegend$superscript
@@ -213,7 +215,9 @@ parseMatrixContent<-function(x,legend=NULL,
   # convert numbers in brackets in inner matrix
   if(length(parentheses)>0) m[-1,-1]<-bracket2value(m[-1,-1],parentheses,"parentheses",sep=";;")
   if(length(brackets)>0) m[-1,-1]<-bracket2value(m[-1,-1],brackets,"brackets",sep=";;")
-
+  if(length(brackets)>0&length(parentheses)==0) m[-1,-1]<-bracket2value(m[-1,-1],brackets,"parentheses",sep=";;")
+  if(length(brackets)==0&length(parentheses)>0) m[-1,-1]<-bracket2value(m[-1,-1],brackets,"brackets",sep=";;")
+  
   # add standard p-coding
   if(standardPcoding==TRUE&length(pval)==0){
     psign<-c("***","**","*")
@@ -233,14 +237,15 @@ parseMatrixContent<-function(x,legend=NULL,
     i<-grep("[A-z][<=>][<=>]-*[\\.0-9]*[0-9]\\^*\\*",m[1,])
     if(length(i)>0) m[1,i]<-sign2p(m[1,i],psign,pval,sep=";;")
     }
+  
   # bold p
-  if(length(grep("p[<=>]",bold))>0){
-    m[-1,-1]<-gsub("(-*[\\.0-9][\\.0-9]*)\\^bold",paste("\\1;;",bold),m[-1,-1])
-  }
-  # italic p
-  if(length(grep("p[<=>]",italic))>0){
-      m[-1,-1]<-gsub("(-*[\\.0-9][\\.0-9]*)\\^italic",paste("\\1;;",italic),m[-1,-1])
-    }
+#  if(length(grep("p[<=>]",bold))>0){
+#    m[-1,-1]<-gsub("(-*[\\.0-9][\\.0-9]*)\\^bold",paste("\\1;;",bold),m[-1,-1])
+#  }
+#  # italic p
+#  if(length(grep("p[<=>]",italic))>0){
+#      m[-1,-1]<-gsub("(-*[\\.0-9][\\.0-9]*)\\^italic",paste("\\1;;",italic),m[-1,-1])
+#    }
   
   # remove superscripted bold and italic text
   m<-gsub("\\^italic","",m)
@@ -308,7 +313,7 @@ parseMatrixContent<-function(x,legend=NULL,
     nrow(m) > 2 & 
     # no line with only the same values
     sum(duplicated(m[2,]))!= ncol(m) & 
-    # and at least 30% of all other fields contain numbers 
+    # and at least 30% of all other fields contain numbers or nothing
     sum(grepl("[0-9]|^$",m[-1:-2,-1]))/length(m[-1:-2,-1])>.3
   ){
     m[2,][m[1,]==m[2,]]<-""
@@ -319,12 +324,14 @@ parseMatrixContent<-function(x,legend=NULL,
   ###################################################################
   ## specific correlation table handling
   correlations<-NULL
-  if(class=="correlation"){
-    
+  if(class=="correlation"|class=="matrix"){
     # extract correlations as vector
-    correlations<-extractCorrelations(m,legendCodes=legend,remove=FALSE,standardPcoding=standardPcoding)
+    if(class=="correlation") correlations<-extractCorrelations(m,legendCodes=legend,remove=FALSE,noSign2p=noSign2p,standardPcoding=standardPcoding)
+    if(class=="matrix") correlations<-extractMatrix(m,legendCodes=legend,remove=FALSE,noSign2p=noSign2p,standardPcoding=standardPcoding)
     # table without correlations
-    m<-extractCorrelations(m,legendCodes=legend,remove=TRUE,standardPcoding=standardPcoding)
+    if(class=="correlation") m<-extractCorrelations(m,legendCodes=legend,remove=TRUE,noSign2p=noSign2p,standardPcoding=standardPcoding)
+    if(class=="matrix") m<-extractMatrix(m,legendCodes=legend,remove=TRUE,noSign2p=noSign2p,standardPcoding=standardPcoding)
+    
     # set first cell to ""
     if(length(m)>0) m[1,1]<-""
     
@@ -332,20 +339,18 @@ parseMatrixContent<-function(x,legend=NULL,
     if(length(m)>0) 
       if(nrow(m)<(ncol(m)/2))
         m<-t(m)
-    
-    
     # add df to extracted correlations
-    if(isTRUE(addDF)){
-    # add df=max(n)-2 if has N in legend
-    if(!is.null(N)){
+    if(class=="correlation")
+      if(isTRUE(addDF)){
+      # add df=max(n)-2 if has N in legend
+      if(!is.null(N)){
       # get highest N
       maxN<-suppressWarnings(max(suppressWarnings(as.numeric(gsub(".*[<=>]","",N))),na.rm=T))
       # add maxN-2 to r=
       if(maxN!=-Inf) correlations<-gsub("r=",paste0("r(",maxN-2,")="),correlations)
     }
-      }
-    
-  } # results are in updated "m" and object "correlations"
+  }
+} # results are in updated "m" and object "correlations"
 
   
   # if first cell contains result create new line and move result to first cell in new line
@@ -364,11 +369,13 @@ parseMatrixContent<-function(x,legend=NULL,
   # convert ns -> p>.05
   if(standardPcoding==TRUE) m<-gsub(" [Nn]\\.*[Ss]\\.*$",";; p>.05",m)
   if(standardPcoding==TRUE) m<-gsub("^[Nn]\\.*[Ss]\\.*$",";; p>.05",m)
+  
   # add non significant p-values in columns that have cells with coded p-values,
-  # but exclude lines from model statistics/residuals
-  i<-grep("^R2$| R2|R\\^2|R[- ][Ss]q|[Rr]esidual|AIC|BIC|[Ii]nformation [Cr]iter|chi\\^2|degrees* of freedom|^df$|^DF$|[Ll]ikelihood",m[,1])
-  if(length(i)>0) i<-1:(min(i[1])-1)
-  if(length(i)==0) i<-1:nrow(m)
+  if(isTRUE(noSign2p)){
+    # but exclude lines from model statistics/residuals
+    i<-grep("^R2$| R2|R\\^2|R[- ][Ss]q|[Rr]esidual|AIC|BIC|[Ii]nformation [Cr]iter|chi\\^2|degrees* of freedom|^df$|^DF$|[Ll]ikelihood",m[,1])
+    if(length(i)>0) i<-1:(min(i[1])-1)
+    if(length(i)==0) i<-1:nrow(m)
   
   # which of these lines have imputed p-values
   j<-max(i)+which(rowSums(matrix(grepl(";; p[<=>]",m[-i,]),ncol=ncol(m)))>0)
@@ -379,7 +386,7 @@ parseMatrixContent<-function(x,legend=NULL,
   # remove inserted grouping from Model stats
   m[-i,1]<-gsub("^[^,;]*: ","",m[-i,1])
   }
-  
+}  
   # which line has number-star in model stats
   #if(is.matrix(m[-i,]))
   #j<-rowSums(matrix(grepl("[0-9]\\*|[0-9]\\^[^0-9]",m[-i,]),ncol=ncol(m)))>0
@@ -400,11 +407,17 @@ parseMatrixContent<-function(x,legend=NULL,
   parsed<-NULL
   parsed<-parseContent(m)
   
+  # remove 'statistic:' in lines with "TEMP_TEXT" from model stats
+  i<-grep("^TEMP_TEXT",parsed)
+  parsed[i]<-gsub(" ([sS]tandardi[zs]ed beta|beta|SE|[tTzZFpPORb][R]*|[8-9][0-9]\\%[ -]CI)([,:] )","\\2",parsed[i])
+  parsed[i]<-gsub(" (\u0392|\u03b2|\u00df)([,:] )","\\2",parsed[i])
+  parsed[i]<-gsub("([,:])[,:]","\\1",parsed[i])
+  
   # combine parsed results and correlations 
   output<-c(parsed,correlations)
   
   # remove dummy text
-  output<-gsub("TEMP_TEXT, ","",output)
+  output<-gsub("[^,]*TEMP_TEXT, ","",output)
   firstCell<-"Variable"
   output<-gsub(paste0("^(",specialChars(firstCell),": [^:]*: )",specialChars(firstCell),": "),"\\1",output)
   
@@ -433,6 +446,9 @@ parseMatrixContent<-function(x,legend=NULL,
       if(maxN!=-Inf) output[i]<-gsub(" t=",paste0(" t(",maxN-2,")="),output[i])
       if(maxN!=-Inf) output[i]<-gsub(" T=",paste0(" T(",maxN-2,")="),output[i])
     }
+    # perform ANOVQA df handling
+    output<-anovaHandler(output)  
+    
   }
   
   # clean up spaces
@@ -498,7 +514,7 @@ parseContent<-function(x,forceClass=NULL){
   out<-gsub("^  *","",out)
   out<-gsub(" : ",": ",out)
   out<-gsub(": [,;=] ",": ",out)
-  out<-gsub("([^0-9]) %=([0-9\\.][0-9\\.]*)[^%]*","\\1 \\2%\\3",out)
+  out<-gsub("([^0-9]) %=(-*[0-9\\.][0-9\\.]*)([^%]*)","\\1 \\2%\\3",out)
   out<-gsub("% *%","%",out)
   # remove badly collapsed empty cells
   out<-gsub("([,:]) [,:]","\\1",out)

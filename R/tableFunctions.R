@@ -399,9 +399,20 @@ rowHandling<-function(x){
   # repeat first cell if all other cells in same row are empty
   if(nrow(m)>2 & ncol(m)>2){ 
     j<-rowSums(!m[,-1]=="")==0
+    if(sum(j)==0){
+    # except lines that start with a number and following line as well
+    id<-which(j)
+    if(length(id)>0)
+    for(k in 1:length(id))
+      if(k<nrow(m))
+        if(grepl("^[1-9]",m[id[k],1]) & 
+            grepl("^[1-9]",m[id[k]+1,1]))
+          j[id[k]]<-FALSE
+    
     # only if there is enough (>.5) lines with content
-    if(sum(j)/length(j)<.5) m[j,]<-m[j,1]
-  }
+    if(sum(j)>0 & sum(j)/length(j)<.5) m[j,]<-m[j,1]
+    }
+    }
   
   if(nrow(m)>1 & ncol(m)>1){
     ind<-rep(TRUE,nrow(m))
@@ -461,7 +472,7 @@ coding2variable<-function(m){
     # move number in brackets at end to front
     m[1,]<-gsub("(.*) \\(([0-9][0-9]*\\.*)\\)$","\\2 \\1",m[1,])
     m[,1]<-gsub("(.*) \\(([0-9][0-9]*\\.*)\\)$","\\2 \\1",m[,1])
-    
+    m
     fullNames<-m[1,] 
     # get numeric coding and varNames
     coding<-gsub("^([0-9][0-9]*).*|^[^:]*: ([0-9][0-9]*).*","\\1\\2",fullNames)
@@ -470,7 +481,7 @@ coding2variable<-function(m){
     
     codes<-varNames[coding!=""]
     coding<-coding[coding!=""]
-    rowname<-m[,1]
+    rowname<-gsub("\\.$","",m[,1])
     
     if(sum(is.element(c(1,2,3),gsub("^0","",coding)))==3&
        sum(nchar(coding))!=0){
@@ -482,6 +493,7 @@ coding2variable<-function(m){
       m[1,]<-varNames  
     }
   }
+  
   
   # if coding is in first column
   if(sum(nchar(m[1,]),na.rm=TRUE)<sum(nchar(m[,1]),na.rm=TRUE)){
@@ -510,7 +522,7 @@ coding2variable<-function(m){
     }
   } 
 
-# if first row still contains numbers and nrow=ncol
+  # if first row still contains numbers and nrow=ncol
   if(sum(is.element(c(1,2,3),gsub("^0","",m[1,])))==3){
     if(nrow(m)==ncol(m))
       m[1,]<-m[,1]
@@ -524,7 +536,7 @@ return(m)
 ## Function to handle correlation tables
 extractCorrelations<-function(x,
                               legendCodes=NULL,
-                              remove=FALSE,
+                              remove=FALSE,noSign2p=TRUE,
                               standardPcoding=TRUE){
   # prepare legend codings
   parentheses<-NULL;brackets<-NULL;psign<-NULL;pval<-NULL;italic<-NULL;bold<-NULL;N<-NULL;diagonal<-NULL
@@ -550,7 +562,6 @@ extractCorrelations<-function(x,
   i<-grep("(.*: )",m[,1])
   preText[i]<-gsub("(.*: ).*","\\1",m[i,1])
   m[,1]<-gsub(".*: ","",m[,1])
-  
   
   # move number in bracket at end in first row and col to front
   m[1,]<-gsub("^([A-z][-A-z _\\^\\.\\*]*) (\\([1-9][0-9]*\\))$","\\2 \\1",m[1,])
@@ -616,7 +627,7 @@ m
   rem[rows,]<-FALSE
   rem[,cols]<-FALSE
   }
-  
+  m
   # set rows/cols with mean/sd/etc to FALSE
   cors[grep("eta\\^*2|omega\\^2|^rho\\^*2*$|^ICC|intraclass correlation|Cronbach|^[Mm]ean$| [Mm]eans*$|^M$|[Ss]tandard [Dd]eviation|^SD[Ss]*$| SD[Ss]*$|^[aA]lpha$| [aA]lpha$|^CR |^CR$|^AVE[^A-z]|[^A-z]AVES*$|^AVE$|^MSV$|^ASV$|Skewnes|[KC]urtosis|[Rr]eliabilit|^[Vv]ariance| [Vv]ariance|[sS]quared",m[,1]),-1]<-FALSE
   cors[-1,grep("eta\\^*2|omega\\^2|^rho\\^*2*$|^ICC|intraclass correlation|Cronbach|^[Mm]ean$| [Mm]eans*$|^M$|[Ss]tandard [Dd]eviation|^SD[Ss]*$| SD[Ss]*$|^[aA]lpha$| [aA]lpha$|^CR |^CR$|^AVE[^A-z]|[^A-z]AVES*$|^AVE$|^MSV|^ASV$$|Skewnes|[KC]urtosis|[Rr]eliabilit|^[Vv]ariance| [Vv]ariance|[sS]quared",m[1,])]<-FALSE
@@ -629,7 +640,7 @@ m
   
   # add pretext again
   m[,1]<-paste0(preText,m[,1])
-  
+   
   # select correlation matrix and replicate var names
   corTab<-m
   corTab[-1,-1][-which(cors[-1,-1])]<-""
@@ -652,6 +663,7 @@ m
   corTab<-gsub("r=([<>])","r\\1",corTab)
 
   # add "p > max(p<x)" if has added p-value or coding in legend
+  if(isTRUE(noSign2p)){
   if(length(grep(";; p<",corTab))>0|length(grep("p<",pval))>0){
   if(length(grep("p<",pval))>0) 
     Pmax<-suppressWarnings(max(as.numeric(
@@ -662,6 +674,7 @@ m
 
   corTab<-gsub("^(r=-*0*\\.[0-9][0-9]*)$",paste0("\\1;; p>",Pmax),corTab)
   }
+    }
   
   # add "p < min(p>x)" if has added p-value or coding in legend
     if(length(grep(";; p>",corTab))>0|length(grep("p>",pval))>0){
@@ -750,24 +763,223 @@ m
 } # end extractCorrelations
 
 
-extractMatrixWise<-function(x,remove=FALSE){
-  if(!is.matrix(x)&remove==FALSE) return(NULL)
-  if(!is.matrix(x)&remove==TRUE) return(x)
-  # extend numeric variable codings
-  x<-coding2variable(x)  
-  # find variables that exist in 1st row and col
+## Function to handle correlation tables
+extractMatrix<-function(x,
+                        legendCodes=NULL,
+                        statistic="VALUE",      
+                        range=NULL,
+                        remove=FALSE,noSign2p=TRUE,
+                        standardPcoding=TRUE){
+  # prepare legend codings
+  parentheses<-NULL;brackets<-NULL;psign<-NULL;pval<-NULL;italic<-NULL;bold<-NULL;N<-NULL;diagonal<-NULL
+  # get legend codings
+  if(!is.list(legendCodes)) legendCodes<-legendCodings(legendCodes)
+  if(is.list(legendCodes)){
+    psign<-legendCodes$psign
+    pval<-legendCodes$pval
+    italic<-legendCodes$italic
+    bold<-legendCodes$bold
+    N<-gsub("[Nn]=","",legendCodes$N)
+    diagonal<-legendCodes$diagonal
+  }
   
-  row<-x[1,]
-  col<-x[,1]
-  i_row<-which(is.element(row,col))
-  i_col<-which(is.element(col,row))
+  # take a copy of unified matrix
+  x<-unifyMatrixContent(x)
+  m<-x
+  # unify letters
+  m<-letter.convert(m,greek2text=TRUE)
+  if(ncol(m)<=2|nrow(m)<=2) return(m)
+  # remove grouping text 
+  preText<-rep("",length(m[,1]))
+  i<-grep("(.*: )",m[,1])
+  preText[i]<-gsub("(.*: ).*","\\1",m[i,1])
+  m[,1]<-gsub(".*: ","",m[,1])
   
-  #####....
+  # move number in bracket at end in first row and col to front
+  m[1,]<-gsub("^([A-z][-A-z _\\^\\.\\*]*) (\\([1-9][0-9]*\\))$","\\2 \\1",m[1,])
+  m[,1]<-gsub("^([A-z][-A-z _\\^\\.\\*]*) (\\([1-9][0-9]*\\))$","\\2 \\1",m[,1])
+  m[1,]<-gsub(": ([A-z][-A-z _\\^\\.\\*]*) (\\([1-9][0-9]*\\))$",": \\2 \\1",m[1,])
+  m[,1]<-gsub(": ([A-z][-A-z _\\^\\.\\*]*) (\\([1-9][0-9]*\\))$",": \\2 \\1",m[,1])
+  m[1,]<-gsub("^([A-z][-A-z _\\^\\.\\*]*) (\\([1-9][0-9]*\\)): ","\\2 \\1: ",m[1,])
+  m[,1]<-gsub("^([A-z][-A-z _\\^\\.\\*]*) (\\([1-9][0-9]*\\)): ","\\2 \\1: ",m[,1])
+  m
+  # remove brackets around numbers from first row and col
+  m[1,]<-gsub("^ *\\(([1-9][0-9]*\\.*)\\)","\\1",m[1,])
+  m[,1]<-gsub("^ *\\(([1-9][0-9]*\\.*)\\)","\\1",m[,1])
   
-
-  if(remove==FALSE) return(x)
-  if(remove==TRUE) return(x)
-}
+  # paste first and second column, if first column has enumeration only and all cells in second column start with letters
+  col1<-m[,1]
+  if(length(col1)>1&
+     sum(gsub("[0-9\\[:punct:]]","",col1[-1])=="",na.rm=TRUE) == length(col1[-1]) &
+     sum(grepl("^[A-z]",m[-1,2])) == length(col1[-1])
+  ){
+    col2<-m[,2]
+    m[,1]<-gsub("^ | $","",paste(col1,col2))
+    m<-m[,-2]
+  }
+  
+  if(ncol(m)<2|nrow(m)<2) return(m)
+  
+  nCol<-ncol(m)     
+  # convert signs to p-values
+  m[-1,-1]<-sign2p(m[-1,-1],sign=psign,val=pval)
+  
+  m
+  # unify numbering at beginning of first column/row to "number."
+  m[,1]<-gsub("^\\(*0*([1-9][0-9]*)[\\),;:] ","\\1. ",m[,1])
+  m[1,]<-gsub("^\\(*0*([1-9][0-9]*)[\\),;:] ","\\1. ",m[1,])
+  
+  ##############################################################
+  # including range
+  values<-suppressWarnings(as.numeric(gsub("[^0-9\\.-]|;;.*|\\^.*","",m)))
+  # prepare removal matrix of correlations
+  rem<-abs(values)>=0
+  if(!is.null(range))
+    rem<-values<=sort(range)[2]&values>=sort(range)[1]
+  # select correlations 
+  values<-abs(values)>=0
+  if(!is.null(range))
+    values<-values<=sort(range)[2]&values>=sort(range)[1]
+  
+  values<-matrix(values,ncol=nCol)
+  rem<-matrix(rem,ncol=nCol)
+  
+  # if first row has increasing numbers but first column has not add detected numbers to text in first column
+  if(sum(is.element(c("1","2","3"),gsub("[\\.\\(\\) ]*","",m[1,-1])))==3 & 
+     sum(is.element(c("1","2","3"),gsub("^([1-9]).*","\\1",m[-1,1])))==0){
+    i<-grep("^[0-9][0-9]*$",gsub("[\\.\\(\\) ]*","",m[1,-1]))
+    if(length(i)==max(i)&max(i)<=(nrow(m)-1)){
+      m[1,i+1]<-m[2:(max(i)+1),1]
+    }
+  }
+  m
+  # if matrix has enumeration in rows and cols, 
+  if((length(grep("^[0-9][0-9\\.]*$",m[1,-1]))>2&length(grep("^[0-9].*[A-z]",m[-1,1]))>2)|
+     (length(grep("^[0-9].*[A-z]",m[1,-1]))>2&length(grep("^[0-9][0-9\\.]*$",m[-1,1]))>2)){
+    # deselect lines for extraction 
+    cols<-grep("^[1-9]| [1-9]*[0-9]$",m[1,],invert=TRUE)
+    rows<-grep("^[1-9]| [1-9]*[0-9]$",m[,1],invert=TRUE)
+    values[,cols]<-FALSE
+    values[rows,]<-FALSE
+    rem[rows,]<-FALSE
+    rem[,cols]<-FALSE
+  }
+  # set rows/cols with mean/sd/etc to FALSE
+  values[grep("eta\\^*2|omega\\^2|^rho\\^*2*$|^ICC|intraclass correlation|Cronbach|^[Mm]ean$| [Mm]eans*$|^M$|[Ss]tandard [Dd]eviation|^SD[Ss]*$| SD[Ss]*$|^[aA]lpha$| [aA]lpha$|^CR |^CR$|^AVE[^A-z]|[^A-z]AVES*$|^AVE$|^MSV$|^ASV$|Skewnes|[KC]urtosis|[Rr]eliabilit|^[Vv]ariance| [Vv]ariance|[sS]quared",m[,1]),-1]<-FALSE
+  values[-1,grep("eta\\^*2|omega\\^2|^rho\\^*2*$|^ICC|intraclass correlation|Cronbach|^[Mm]ean$| [Mm]eans*$|^M$|[Ss]tandard [Dd]eviation|^SD[Ss]*$| SD[Ss]*$|^[aA]lpha$| [aA]lpha$|^CR |^CR$|^AVE[^A-z]|[^A-z]AVES*$|^AVE$|^MSV|^ASV$$|Skewnes|[KC]urtosis|[Rr]eliabilit|^[Vv]ariance| [Vv]ariance|[sS]quared",m[1,])]<-FALSE
+  
+  # convert numbered variable name to full name label 
+  m<-coding2variable(m)  
+  
+  # add pretext again
+  m[,1]<-paste0(preText,m[,1])
+  
+  # select correlation matrix and replicate var names
+  valueTab<-m
+  valueTab[-1,-1][-which(values[-1,-1])]<-""
+  # set first row and column to FALSE
+  values[1,]<-FALSE
+  values[,1]<-FALSE
+  # add STATISTIC= to cells with correlations
+  valueTab[which(values)]<-gsub("^([-\\.]*[\\.0-9][\\.0-9[:punct:]]*)","STATISTIC=\\1",valueTab[which(values)])
+  # stars2p if still has star and standardPcoding==TRUE
+  if(standardPcoding==TRUE){
+    if(length(grep("\\*$",valueTab))>0){
+      #valueTab[which(values)]<-gsub("([0-9])$","\\1;; p>.05",valueTab[which(values)])
+      valueTab[which(values)]<-gsub("\\^*\\*\\*\\*$",";; p<.001",valueTab[which(values)])
+      valueTab[which(values)]<-gsub("\\^*\\*\\*$",";; p<.01",valueTab[which(values)])
+      valueTab[which(values)]<-gsub("\\^*\\*$",";; p<.05",valueTab[which(values)])
+    }}
+  
+  valueTab<-gsub("STATISTIC=([<>])","STATISTIC\\1",valueTab)
+  
+  # add "p > max(p<x)" if has added p-value or coding in legend
+  if(isTRUE(noSign2p)){
+    if(length(grep(";; p<",valueTab))>0|length(grep("p<",pval))>0){
+      if(length(grep("p<",pval))>0) 
+        Pmax<-suppressWarnings(max(as.numeric(
+          gsub("p<=*","",grep("p<=*",gsub("p=0*\\.0([51])","p<.0\\1",grep("p<",pval,value=TRUE)),value=T)))))
+      if(length(grep("p<",pval))==0) 
+        Pmax<-suppressWarnings(max(as.numeric(
+          gsub("^(0*.*[0-9][0-9]*).*","\\1",gsub(".*;; p<=*","",grep(";; p<",valueTab,value=TRUE))))))
+      
+      valueTab<-gsub("^(STATISTIC=-*0*\\.[0-9][0-9]*)$",paste0("\\1;; p>",Pmax),valueTab)
+    }
+  }
+  
+  # add "p < min(p>x)" if has added p-value or coding in legend
+  if(length(grep(";; p>",valueTab))>0|length(grep("p>",pval))>0){
+    if(length(grep("p>",pval))>0) 
+      Pmin<-suppressWarnings(min(as.numeric(
+        gsub("p>=*","",grep("p<|p>",gsub("p=0*\\.0([51])","p>.0\\1",grep("p>",pval,value=TRUE)),value=T)))))
+    if(length(grep("p>",pval))==0) 
+      Pmin<-suppressWarnings(min(as.numeric(
+        gsub("^(0*.*[0-9][0-9]*).*","\\1",gsub(".*;; p>=*","",grep(";; p>",valueTab,value=TRUE))))))
+    
+    valueTab<-gsub("^(STATISTIC=-*0*\\.[0-9][0-9]*)$",paste0("\\1;; p<",Pmin),valueTab)
+  }
+  
+  # extract correlations as vector
+  correlations<-NULL
+  for(i in 2:nrow(valueTab))
+    for(j in 2:ncol(valueTab))
+      if(valueTab[i,j]!="")
+        correlations<-c(correlations,paste0(valueTab[i,1]," <<~>> ",valueTab[1,j],": ",valueTab[i,j]))
+  
+  # set extracted correlations to "" in matrix
+  m[-1,-1][valueTab[-1,-1]!=""]<-""
+  #m<-gsub("^-$","",m)
+  
+  ### remove empty lines/columns
+  nonempty<-m!=""
+  # lines
+  m<-m[c(1,which(rowSums(matrix(nonempty[-1,-1],ncol=nCol-1))!=0)+1),]
+  if(is.vector(m)) m<-matrix(m,ncol=1)
+  # columns
+  m<-m[,c(1,which(colSums(matrix(nonempty[-1,-1],ncol=nCol-1))!=0)+1)]
+  if(is.vector(m)) m<-matrix(m,ncol=length(m))
+  
+  # empty matrix if only one row or column is left
+  if(nrow(m)==1|ncol(m)==1) m<-NULL
+  
+  # insert diaginal statistic instead of r=
+  if(length(diagonal)>0){
+    x<-gsub("^(.*) <<~>>.*","\\1",correlations)
+    y<-gsub(".*<<~>> (.*): r=.*","\\1",correlations)
+    i<-which(x==y)
+    correlations[i]<-gsub("(<<~>>[^:]*: )r\\(*[0-9]*\\)*=",paste0("\\1",diagonal,"="),correlations[i])
+    correlations[i]<-gsub(paste0("(",diagonal,"=-*[0-9\\.][0-9\\.]*);; p[<=>][<=>]*[0-9\\.]*"),"\\1",correlations[i])
+  }
+  
+  
+  
+  # insert "alpha" for r if var x and y are the same and 0<r<1
+  x<-gsub("^(.*) <<~>>.*","\\1",correlations)
+  y<-gsub(".*<<~>> (.*): STATISTIC=.*","\\1",correlations)
+  i<-which(x==y)
+  correlations[i]<-gsub("(<<~>>[^:]*: )STATISTIC\\(*[0-9]*\\)*=([0\\.])",paste0("\\1diagonal=\\2"),correlations[i])
+  
+  # remove p values behind alpha
+  correlations[i]<-gsub("(diagonal=[0-9\\.][0-9\\.]*);; p[<=>][<=>]*[0-9\\.]*","\\1",correlations[i])
+  
+  # convert square root sign and AVE
+  correlations<-gsub("\u221a","sqrt",correlations)
+  correlations<-gsub("[Aa]verage [Vv]ariance [Ee]xtracted","AVE",correlations)
+  
+  # replace alpha with AVE if is followed by AVE
+  correlations[i]<-gsub("alpha(=[0-9\\.][0-9\\.]*)[ ,;].*[Ss]quare.*AVE.*","sqrt AVE\\1",correlations[i])
+  correlations[i]<-gsub("alpha(=[0-9\\.][0-9\\.]*)[ ,;].*sqrt *AVE*.*","sqrt AVE\\1",correlations[i])
+  correlations[i]<-gsub("alpha(=[0-9\\.][0-9\\.]*)[ ,;].*AVE.*|alpha(=[0-9\\.][0-9\\.]*) .*[ \\(]AVE\\)*.*","AVE\\1\\2",correlations[i])
+  
+  
+  correlations<-gsub("STATISTIC",statistic,correlations)
+  
+  # output
+  if(remove==FALSE) return(correlations)
+  if(remove==TRUE){
+    return(m)
+  }
+} # end extractMatrix
 
  
 # convert signs to p-values
@@ -825,9 +1037,9 @@ noSign2p<-function(x,pval){
   # get max of coded p
   if(length(pval)>0) Pmax<-max(as.numeric(gsub("p<=*","",pval)))
   if(length(pval)==0) Pmax<-max(as.numeric(gsub("^(0*.*[0-9][0-9]*).*","\\1",gsub(".*;; p<=*","",grep(";; p<",x[,cols],value=TRUE)))))
-  # go through columns and add p>Pmax in non
+  # go through columns and add p>Pmax in without ;; p>
   for(j in cols){
-    cells<-!grepl(";; p<",x[,j])
+    cells<-!grepl(";; p<|;; p>",x[,j])
     # set first cell to FALSE 
     cells[1]<-FALSE
     # exclude empty cells if has number-coded p 
@@ -950,8 +1162,20 @@ splitCIs<-function(x){
       x<-unlist(x)
       x<-gsub("[,;] *$","",x)
       return(x)
-    }
-    
+}
+
+splitBeta<-function(x){
+  fun<-function(y){
+    y<-unlist(strsplit(gsub(", ([^,;:<=>]* ([bB]|[bB]eta)[<=>][<=>]*[^,;]*[,;];* [^<=>]*[<=>])","SPLITHERE\\1",y),"SPLITHERE"))
+    if(length(y)>1){
+      y[-1]<-paste0(y[1],", ",y[-1])
+      y<-y[-1]}
+    return(y)
+  }
+  return(unlist(lapply(x,fun)))
+}
+
+
 splitLastStat<-function(x){
       # define functions
       # split at last detected stat
@@ -971,11 +1195,12 @@ splitLastStat<-function(x){
       if(lastStat!=x){
       x<-gsub(paste0("([^;][^;] ",specialChars(lastStat),"[<=>][<=>]*-*[0-9\\.]*)[,:]* "),"\\1SPLITHERE",x)
       x<-unlist(strsplit(x,"SPLITHERE"))
-      if(length(x)>2)
+      if(length(x)>2){
         # add first cell content to front of new lines
         #  x[-1]<-paste0(gsub("^([^,]*), .*","\\1, ",x[1]),x[-1])
         # add stats in table num:
-        x[-1]<-paste0(gsub("^([^:]*): .*","\\1: ",x[1]),", ",x[-1])
+        #x[-1]<-paste0(gsub("^([^:]*): .*","\\1: ",x[1]),", ",x[-1])
+      }
       }
       return(x)
       }
@@ -998,6 +1223,7 @@ splitLastStat<-function(x){
       # apply function cell wise
       x<-unlist(lapply(x,fun1))
       x<-unlist(lapply(x,fun2))
+      x<-gsub(": ,",":",x)
       return(x)
     }
 
@@ -1207,6 +1433,7 @@ R2handler<-function(x){
 ##################################################################
 anovaHandler<-function(x){
   if(length(x)==0) return(x)
+  
   # remove text behind "F-"
   x<-gsub(" (F) *- *[A-z]*([<=>])"," \\1\\2",x)
   
@@ -1255,7 +1482,7 @@ anovaHandler<-function(x){
     # warning
     if(sum(x!=y)>1) warning("Special handling for degrees of freedom in ANOVA tables was performed. This may result in erroneous df2-values, which where imputed behind df1-values in lines with F-values in order to check the reported p-values.",call. = FALSE)
   }
-  
+  y
   # in lines with F-values
   i<-grep(" F=",x)
   if(length(i)>0){
@@ -1361,18 +1588,25 @@ modelStatsHandler<-function(x){
     if(!is.matrix(x)) return(x)
     if(nrow(x)<3) return(x)
     if(ncol(x)<3) return(x)
-    
+  
   ## for standard results
-  ind1<-grep("eta\\^2|omega\\^2|chi\\^2|^[tZprbBd]$|^[RO]R$|^[Ss]\\.* *[EeDd]\\.* *$|^[SsDd]\\.*[FfEeDd]\\.*$|^.\\^2$",
+  ind1<-grep("eta\\^2|omega\\^2|chi\\^2|^[tZprRbBd]$|^[RO]R$|^[Ss]\\.* *[EeDd]\\.* *$|^[SsDd]\\.*[FfEeDd]\\.*$|^.\\^2$",
              gsub(".*: |[- ]val*u*e*s*|[_-][A-z0-9\\*+-]*|[ *_]\\(.*\\)","",x[,1]))
   ## for model statistics
-  ind2<-grep("^R2$|[- ]R2|R\\^2|R[- ][Ss]q|[Rr]esidual|AIC|BIC|[Ii]nformation [Cr]iter|chi\\^2|degrees* of freedom|^[Dd]\\.*[Ff]\\.*$|[Ll]ikelihood",x[,1])
+  ind2<-NULL
+  if(length(grep("[Cc]onstant|[Ii]ntercept|[Mm]odel",x))>0|(length(grep("[Mm]odel",class(x)))>0)) 
+  ind2<-grep("^R2$|[- ]R2|^R2 |R\\^2|R[- ][Ss]q|AIC|BIC|[Ii]nformation [Cr]iter|chi\\^2|degrees* of freedom|^[Dd]\\.*[Ff]\\.*$|[Ll]ikelihood",
+             x[,1])
+  ## take all the last rows if first hit is in lower half of table
+  if(length(ind2)>0) 
+    if(min(ind2)>(nrow(x)/2)) ind2<-min(ind2):nrow(x)
+      
   # model index if second cell (constant/first variable) only exists once
   #if(length(ind2)>0&!is.element(x[2,1],x[c(-1,-2),1])) ind2<-ind2[1]:nrow(x)
   # combined index
-  #ind<-sort(unique(c(ind1,ind2)))
+  ind<-sort(unique(c(ind1,ind2)))
   # for all stats
-  ind<-ind1
+  #ind<-ind1
   if(length(ind)==0) return(x)
   
   # check if has only unique stats and extract first duplicated stat
@@ -1434,6 +1668,7 @@ modelStatsHandler<-function(x){
   # clean up 
   x<-x[grep("removeLine",x[,1],invert=TRUE),]
   x<-gsub("(, )(, )*|^, |, $","\\1",x)
+  x<-gsub("^[, ]*$","",x)
   
   if(!is.matrix(x)) x<-matrix(x,nrow=1)
   
@@ -1452,6 +1687,7 @@ modelStatsHandler<-function(x){
     out2[-1,1]<-unique(x[-1,1])[unique(x[-1,1])!=""]
     # paste cell 1, 1 to cells in first column
     if(nchar(x[1,1])>0) out2[-1,1]<-paste(x[1,1],", ",out2[-1,1])
+    out2<-gsub("^[, ]*$","",out2)
     # return result
     return(out2)
     }
@@ -1462,11 +1698,10 @@ modelStatsHandler<-function(x){
   }
 
 
-
 # handling of model statistics. Use with: unlist(lapply(dupSplit(stats),modelhandler))
 modelHandler<-function(x){
   fun<-function(x){
-    i<-grep("R\\^2|R[- ][Ss]q|[Rr]esidual|AIC|BIC|[Ii]nformation [Cr]iter|chi\\^2|degrees* of freedom|^df$|^DF$|^F$",x)
+    i<-grep(" R2|^R2|R\\^2|R[- ][Ss]q|[Rr]esidual|AIC|BIC|[Ii]nformation [Cr]iter|chi\\^2|degrees* of freedom|^df$|^DF$|^F$",x)
   stats<-x
   if(length(i)>0){
     i<-min(i):length(stats)
@@ -1491,7 +1726,7 @@ modelHandler<-function(x){
     }
     
     # remove standard model stats
-    stats[i]<-gsub(" *standardized beta[,:] | *beta[,:] | *SE[,:] | [tTzZFpPORb][R]*[,:] |^[tTzZFpPORb][R]*[,:] | *[8-9][0-9]\\%[ -]CI[,:]* *"," ",stats[i])
+    stats[i]<-gsub(" *standardized beta[,:] | *beta[,:] | \u0392[,:] | \u03b2[,:] | \u00df[,:] | *SE[,:] | [tTzZFpPORb][R]*[,:] |^[tTzZFpPORb][R]*[,:] | *[8-9][0-9]\\%[ -]CI[,:]* *"," ",stats[i])
     stats[i]<-gsub("^  *","",gsub("  "," ",stats[i]))
     # add model stats:
     out<-c("- Extracted model table:", stats[1:(i[1]-1)],"- Extracted and processed model statistics:",
@@ -1572,4 +1807,39 @@ flattenList<-function(x){
   return(x)
 }
 
+
+
+# Custom wrapper function to capture warnings
+capture_warnings <- function(expr) {
+  warnings_list <- list()
+  value <- withCallingHandlers(
+    expr, warning = function(w) {
+      # Store warnings as character vectors
+      warnings_list[[length(warnings_list) + 1]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    })
+  ## output result as list
+  return(list(value = value, warnings = warnings_list))
+}
+
+uniqueWarnings<-function(exp){
+  y<-capture_warnings(exp)
+  ## unique warnings
+  if(length(y$warnings)>0){
+    uWarn<-unique(unlist(y$warnings))
+    # reorder
+    i<-grep("Some textual result",uWarn)[1]
+    j<-grep("Special handling for degrees",uWarn)[1]
+    if(!is.na(i)>0&!is.na(j)>0){
+      if(i>j){
+        x<-uWarn[i]
+        uWarn[i]<-uWarn[j]
+        uWarn[j]<-x
+      }}
+    for(i in 1:length(uWarn))
+          warning(gsub("^[- ]*","",uWarn[i]),call. = FALSE)
+    }
+  ## output result
+  return(y$value)
+}
 

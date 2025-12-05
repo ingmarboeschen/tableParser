@@ -8,8 +8,10 @@
 #' @param superscript2bracket Logical. If TRUE, detected superscript codings are inserted inside parentheses.
 #' @param addDF Logical. If TRUE, detected sample size N in caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom. 
 #' @param standardPcoding Logical. If TRUE, and no other detection of coding is detected, standard coding of p-values is assumed to be * p<.05, ** p<.01 and ***p<.001.
+#' @param noSign2p Logical. If TRUE, imputes 'p>maximum of coded p-values' to cells that are not coded to be significant.
 #' @param rotate Logical. If TRUE, matrix content is parsed by column.
 #' @param correctComma Logical. If TRUE and unifyMatrix=TRUE, decimal sign commas are converted to dots. 
+#' @param na.rm Logical. If TRUE, NA cells are set to empty cells.
 #' @param addDescription Logical. If TRUE, table caption and footer are added before the extracted table content for better readability.
 #' @param unlist Logical. If TRUE, output is returned as vector.
 #' @param addTableName Logical. If TRUE and unlist=TRUE, table number is added in front of unlisted text lines.
@@ -23,12 +25,15 @@ table2text<-function(x,
                      expandAbbreviations=TRUE,
                      superscript2bracket=TRUE,
                      standardPcoding=FALSE,
-                     addDF=TRUE,
+                     noSign2p=FALSE,
+                     addDF=FALSE,
                      rotate=FALSE,
                      correctComma=FALSE,
+                     na.rm=TRUE,
                      addDescription=TRUE,
                      unlist=FALSE,addTableName=TRUE
 ){
+  
   # preparation/escapes
   if(is.list(x)|is.matrix(x))
     stop("x must be a vector of HTML tables or a single file path to an HTML, XML, CERMXML, HML, PDF or DOCX file.")
@@ -36,7 +41,7 @@ table2text<-function(x,
 
   caption<-NULL;footer<-NULL;legend<-list();m<-NULL;file<-FALSE
   
-  # get tables as matrix if x is file
+  # get tables as matrix if x is a file
   if(length(x)==1 & file.exists(x[1])){ 
     file<-TRUE
     # get file type
@@ -48,6 +53,17 @@ table2text<-function(x,
     # docx 
     if(is.element(type,c("docx"))){
       m<-docx2matrix(x)
+      
+      if(length(m)>0){
+      # extract and combine legend text
+      y<-guessCaptionFooterDOCX(x)
+      caption<-lapply(y$caption,function(x) return(x))
+      footer<-lapply(y$footer,function(x) return(x))
+      for(i in 1:length(m)){
+        legend[[i]]<-c(caption[[i]],footer[[i]])
+      }
+      }
+      
     }
     # pdf
     if(type=="pdf"){
@@ -68,13 +84,10 @@ table2text<-function(x,
   if(length(grep("<table",x[1]))>0){
     # split multiple tables inside of one <table-wrap>-tag
     x<-multiTable(x)
-    # extract and combine legend text, then extract codings
+    # extract and combine legend text
     caption<-lapply(x,get.caption)
     footer<-lapply(x,get.footer)
     for(i in 1:length(x)){
-#      temp<-legendCodings(c(caption[[i]],footer[[i]]))
-#      if(length(temp)==0) temp<-legendCodings("")
-#      legend[[i]]<-temp
       legend[[i]]<-c(caption[[i]],footer[[i]])
     }
     
@@ -97,27 +110,27 @@ table2text<-function(x,
 
   # function to convert matrix with matrix2text
   fun<-function(x,
-                unifyMatrix=TRUE,unifyStats=FALSE,
+                unifyMatrix=TRUE,unifyStats=FALSE,noSign2p=FALSE,
                 expandAbbreviations=TRUE,superscript2bracket=TRUE,
                 standardPcoding=FALSE,addDF=TRUE,
-                rotate=FALSE,correctComma=FALSE,
+                rotate=FALSE,correctComma=FALSE,na.rm=TRUE,
                 legend=NULL,unlist=FALSE){
     
     if(length(x)==0)  return(NULL)
-    if(unifyMatrix==TRUE) x<-unifyMatrixContent(x,correctComma=correctComma)
+    if(unifyMatrix==TRUE) x<-unifyMatrixContent(x,correctComma=correctComma,na.rm=na.rm)
     if(length(x)==0) return(NULL)
     
     # convert matrix to text
      out<-matrix2text(x,legend=legend,
-                   expandAbbreviations=expandAbbreviations,
+                   expandAbbreviations=expandAbbreviations,noSign2p=noSign2p,
                    superscript2bracket=superscript2bracket,
                    unifyMatrix=FALSE,standardPcoding=standardPcoding,
-                   addDF=addDF,
+                   addDF=addDF,na.rm=na.rm,
                    rotate=rotate,unlist=unlist
                    )
      
-  if(!is.list(out)&unifyStats==TRUE) out<-unifyStats(out)
-  if(is.list(out)&unifyStats==TRUE) out<-lapply(out,unifyStats)
+  if(!is.list(out)&isTRUE(unifyStats)) out<-unifyStats(out)
+  if(is.list(out)&isTRUE(unifyStats)) out<-lapply(out,unifyStats)
      # output
   return(out)
   }
@@ -126,14 +139,16 @@ table2text<-function(x,
   if(length(m)==0) return(NULL)
   
   output<-list()
+  uniqueWarnings({
   for(i in 1:length(m)) 
     output[[i]]<-unname(unlist(fun(m[[i]],unifyMatrix=unifyMatrix,
-                      unifyStats=unifyStats,
+                      unifyStats=unifyStats,noSign2p=noSign2p,
                       expandAbbreviations=expandAbbreviations,
                       superscript2bracket=superscript2bracket,
                       standardPcoding=standardPcoding,addDF=addDF,
-                      correctComma=correctComma,rotate=rotate,
+                      correctComma=correctComma,rotate=rotate,na.rm=na.rm,
                       legend=legend[[i]],unlist=FALSE)))
+  })
   
   # escape
   if(length(output)==0) return(NULL)

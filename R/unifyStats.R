@@ -6,6 +6,7 @@
 #' @returns A unified text string.
 #' @export
 unifyStats<-function(x){
+  temp<-x
   x<-letter.convert(x,greek2text=TRUE)
   # unify minus/hyphen sign
   x<-gsub("\u2212|\u02D7|\u002D|\u2013","-",x)
@@ -72,7 +73,8 @@ unifyStats<-function(x){
   x<-gsub(" [Ss]ig[nifckazet \\.\\:]*([<=>][<=>]*1[\\.0]*)$"," p\\1",x)
   x<-gsub(" [Ss]ig[nifckazet \\.\\:]*([<=>][<=>]*1[\\.0]*, )"," p\\1",x)
   # unify Pr(<|letter|) -> p
-  x<-gsub("Pr *\\([<>]*\\|*[a-zA-Z]\\|*\\)","p",x)
+  x<-gsub(" Pr* *\\([<>]*\\|*[A-z]\\|*\\)([<=>])"," p\\1",x)
+  x<-gsub(" p *\\([<>]*\\|*[A-z]\\|*\\)([<=>])"," p\\1",x)
   x<-gsub(" P *([<=>])"," p\\1",x)
   
   # Correlation
@@ -196,9 +198,9 @@ unifyStats<-function(x){
   ## add b= in lines with SE= but without b= nor d=
   i<-grepl(" SE[<=>]",x) & !grepl(" d\\|*[<=>]| [bB][<=>]| [bB]eta[<=>]",x)
     # if no potential other standard stat is in front of SE 
-    x[i]<-gsub("([a-z][a-z0-9]*[a-z])([<=>][<=>]*-*[\\.0-9][0-9\\.]*[; p<>=05\\.]*,[^,]* [Ss][Ee]=)","\\1 b\\2",x[i])
-    x[i]<-gsub("([a-z][a-z][a-z]* [0-9]*)([<=>][<=>]*[-\\.0-9]*[0-9][; p<>=05\\.]*,[^,]* [Ss][Ee]=)","\\1 b\\2",x[i])
-    x[i]<-gsub("([a-z][a-z][a-z]* [0-9][-A-z_0-9]*)([<=>][<=>]*[-\\.0-9]*[0-9][; p<>=05\\.]*,[^,]* [Ss][Ee]=)","\\1 b\\2",x[i])
+    x[i]<-gsub("([a-z][a-z0-9]*[a-z])([<=>][<=>]*-*[\\.0-9][0-9\\.]*([;,];* p[<=>][<=>]*[0-9\\.][0-9\\.]*)*[,;];*[^,<=>]* [Ss][Ee]=)","\\1 b\\2",x[i])
+    x[i]<-gsub("([a-z][a-z][a-z]* [0-9]*)([<=>][<=>]*[-\\.0-9]*[0-9]([;,];* p[<=>][<=>]*[0-9\\.][0-9\\.]*)*[,;];*[^,<=>]* [Ss][Ee]=)","\\1 b\\2",x[i])
+    x[i]<-gsub("([a-z][a-z][a-z]* [0-9][-A-z_0-9]*)([<=>][<=>]*[-\\.0-9]*[0-9]([;,];* p[<=>][<=>]*[0-9\\.][0-9\\.]*)*[,;];*[^,<=>]* [Ss][Ee]=)","\\1 b\\2",x[i])
   }
   
   # clean up p
@@ -206,8 +208,26 @@ unifyStats<-function(x){
   x<-gsub(", p: *(;; p[<=>])","\\1",x)
   x<-gsub(" p: *(;; p[<=>])","\\1",x)
   
-  
+  # remove all but last coded p in lines with one normal p-value
+  if(length(x)>0){
+  fun<-function(x){
+  multiCodedP<-length(unlist(strsplit(x,";; p[<=>]")))>2
+  oneP<-length(unlist(strsplit(x,"[^;] p[<=>]")))==2
+  if(multiCodedP & oneP){
+    temp<-unlist(strsplit(x,";; p"))
+    temp[2:(length(temp)-1)]<-
+      gsub("^[<=>][<=>]*[0]*\\.[0-9][0-9],",",",temp[2:(length(temp)-1)])
+    temp[length(temp)]<-paste0(";; p",temp[length(temp)])
+    x<-paste0(temp,collapse="")
+  }
+  return(x)
+  }
+  x<-unlist(lapply(x,fun))
+  }
+  # warning
+  if(sum(!is.element(x,temp))>0) warning("Some textual result representations have been unified for a smoother extraction of statistical standard results.",call. = FALSE)
   # special processing of ANOVA results (add df2 to df1)
   x<-anovaHandler(x)
+  
   return(x)
 }

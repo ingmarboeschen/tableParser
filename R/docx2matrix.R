@@ -3,9 +3,6 @@
 #' Extracts tables from DOCX documents and returns list of character matrices.
 #' @param x File path to a DOCX input file with tables.
 #' @param replicate Logical. If TRUE, replicates content when splitting connected cells.
-#' @importFrom xml2 read_xml
-#' @importFrom xml2 xml_ns
-#' @importFrom xml2 xml_find_all
 #' @return List with extracted tables as character matrices.
 #' @export
 
@@ -15,16 +12,28 @@ docx2matrix<-function(x,replicate=TRUE){
   tempZip<-paste0(tempdir(),"/temp.zip")
   file.copy(x, tempZip,overwrite=TRUE)
   a<-utils::unzip(tempZip,"word/document.xml",exdir=tempdir())
-  doc<-xml2::read_xml(a)
+  
+  d<-paste(readLines(a,warn = FALSE),collapse=" ")
+  # extract tables as vector
+  t<-unlist(strsplit(d,"<w:tbl>"))[-1]
+  # escape
+  if(length(t)==0) return(NULL)
+
+  t<-paste0("<w:tbl>",t)
+  t<-grep("<w:tbl>",unlist(strsplit(t,"</w:tbl>")),value=T)
+  y<-paste0(t,"</w:tbl>")
+  
+  #doc<-xml2::read_xml(a)
   # extract namespace
-  ns<-xml2::xml_ns(doc)
+  #ns<-xml2::xml_ns(doc)
+  
   # get tables
-  tbls<-xml2::xml_find_all(doc,".//w:tbl",ns=ns)
+  #tbls<-xml2::xml_find_all(doc,".//w:tbl",ns=ns)
   # as character
-  y<-as.character(tbls)
-#y<-y[[3]]
+  #y<-as.character(tbls)
+
   # function to convert single table
-  tempFun<-function(y){
+  tempFun<-function(y,replicate=FALSE){
   if(length(grep("<w:tr>",y))==0) return(NULL)
   # split to row vector
   y<-unlist(strsplit(y,"<w:tr>"))[-1]
@@ -44,6 +53,8 @@ docx2matrix<-function(x,replicate=TRUE){
     if((i+Nadded)<length(y)&reps>0) y<-c(y[1:(i+Nadded)],rep(y[i+Nadded],reps),y[(i+1+Nadded):length(y)])
     if((i+Nadded)==length(y)&reps>0) y<-c(y[1:(i+Nadded)],rep(y[i+Nadded],reps))
   }
+  
+  
   if(replicate==FALSE){
     if((i+Nadded)<length(y)&reps>0) y<-c(y[1:(i+Nadded)],rep("",reps),y[(i+1+Nadded):length(y)])
     if((i+Nadded)==length(y)&reps>0) y<-c(y[1:(i+Nadded)],rep("",reps))
@@ -60,6 +71,11 @@ docx2matrix<-function(x,replicate=TRUE){
    y[cell,col]<-y[cell-1,col]
   }
 
+  # add ^bold/^italic to cells with <w:b/<w:i
+  y[grep("<w:b */",y)]<-  paste0(y[grep("<w:b */",y)],"^bold")
+  y[grep("<w:i */",y)]<-  paste0(y[grep("<w:i */",y)],"^italic")
+  
+  
 # clean up
 y<-gsub("</w:t>[^<]*<w:t>","",y)
 y<-gsub("<[^>]*>| *\\n *","",y)
@@ -67,7 +83,7 @@ y<-gsub("<[^>]*>| *\\n *","",y)
 #y<-gsub("^ | $","",y)
 }
 
-y<-lapply(y,tempFun)
+y<-lapply(y,tempFun,replicate=replicate)
 return(y)
 }
 

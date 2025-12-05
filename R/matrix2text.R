@@ -5,10 +5,13 @@
 #' @param legend A list with table legend codes extracted from table caption and/or footer with tableParser::legendCodings(). 
 #' @param unifyMatrix Logical. If TRUE, matrix cells are unified for better post processing.
 #' @param correctComma Logical. If TRUE and unifyMatrix=TRUE, decimal sign commas are converted to dots. 
+#' @param na.rm Logical. If TRUE, NA cells are set to empty cells.
+#' @param forceClass character. Set matrix specific handling to one of c("tabled result","correlation","matrix","text").
 #' @param expandAbbreviations Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footer with tableParser::legendCodings().
 #' @param superscript2bracket Logical. If TRUE, detected superscript codings are inserted inside parentheses.
 #' @param addDF Logical. If TRUE, detected sample size N in caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom. 
 #' @param standardPcoding Logical. If TRUE, and no other detection of p-value coding is detected, standard coding of p-values is assumed to be: * p<.05, ** p<.01 and *** p<.001.
+#' @param noSign2p Logical. If TRUE, imputes 'p>maximum of coded p-values' to cells that are not coded to be significant.
 #' @param rotate Logical. If TRUE, matrix content is parsed by column.
 #' @param unlist Logical. If TRUE, output is returned as vector with parsed text fromm all listed matrices, else a list with parsed text from each matrix is returned as list. 
 #' @param addTableName Logical. If TRUE and unlist=TRUE, table number is added in front of unlisted text lines.
@@ -42,10 +45,12 @@
 
 matrix2text<-function(x,
                       legend=NULL,
-                      unifyMatrix=TRUE,correctComma=FALSE,forceClass=NULL,
+                      unifyMatrix=TRUE,correctComma=FALSE,
+                      na.rm=TRUE,forceClass=NULL,
                       expandAbbreviations=TRUE,
                       superscript2bracket=TRUE,
                       standardPcoding=FALSE,
+                      noSign2p=FALSE,
                       addDF=TRUE,
                       rotate=FALSE,unlist=FALSE,addTableName=TRUE,
                       split=FALSE
@@ -61,8 +66,8 @@ matrix2text<-function(x,
   if(!is.list(x) | !is.matrix(x[[1]])) stop("x must be a character matrix or a list of character matrices.")
   # check forceClass
   if(!is.null(forceClass))
-    if(sum(is.element(c("tabled result","correlation","text"),forceClass))!=1)
-      stop("Argument 'forceClass' can only be set to one of 'tabled result','correlation', or 'text'.")
+    if(sum(is.element(c("tabled result","correlation","matrix","text"),forceClass))!=1)
+      stop("Argument 'forceClass' can only be set to one of 'tabled result','correlation', 'matrix', or 'text'.")
   
   # remove html but convert sub and sup, bold and italic numbers
   x<-lapply(x,function(x) gsub("<sub>","_",gsub("<sup>","^",x)))
@@ -84,15 +89,15 @@ matrix2text<-function(x,
   if(is.matrix(x)) x<-list(x)
   
 
-  x<-lapply(x,prepareMatrix)
+  x<-lapply(x,prepareMatrix,forceClass=forceClass,na.rm=na.rm)
   x
-  fun<-function(x,rotate=FALSE,unifyMatrix=TRUE,correctComma=FALSE){
+  fun<-function(x,rotate=FALSE,unifyMatrix=TRUE,correctComma=FALSE,na.rm=TRUE){
   # escapes
   if(length(x)==0) return(NULL)
   # set NA to ""
   x[is.na(x)]<-""
   # unify matrix content
-  if(unifyMatrix==TRUE) x<-unifyMatrixContent(x,correctComma=correctComma)
+  if(unifyMatrix==TRUE) x<-unifyMatrixContent(x,correctComma=correctComma,na.rm=na.rm)
   
   if(is.matrix(x)){
   # insert col and row names to inner matrix
@@ -107,7 +112,7 @@ matrix2text<-function(x,
   return(x)
   }
   
-  x<-lapply(x,fun,rotate=rotate,unifyMatrix=unifyMatrix,correctComma=correctComma)
+  x<-lapply(x,fun,rotate=rotate,unifyMatrix=unifyMatrix,correctComma=correctComma,na.rm=na.rm)
   
   # split matrices
   if(split==TRUE){
@@ -123,10 +128,10 @@ matrix2text<-function(x,
   out<-NULL
   
   if(is.list(x)) out<-lapply(x,parseMatrixContent,legend=legend,forceClass=forceClass,
-                                    standardPcoding=standardPcoding,
+                                    standardPcoding=standardPcoding,noSign2p=noSign2p,
                                     expandAbbreviations=expandAbbreviations,
                              superscript2bracket=superscript2bracket,addDF=addDF)
-  #if(is.matrix(x)|is.vector(x)) out<-unlist(parseMatrixContent(x,legend=legend,
+  #if(is.matrix(x)|is.vector(x)) out<-unlist(parseMatrixContent(x,legend=legend,noSign2p=noSign2p,
   #                                                             standardPcoding=standardPcoding,
   #                                                             expandAbbreviations=expandAbbreviations))
 

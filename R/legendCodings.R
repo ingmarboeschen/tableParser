@@ -28,7 +28,7 @@ legendCodings<-function(x){
     x<-c(foot,cap)
   }
   if(length(x)==0) return(NULL)
-  x<-gsub("\\.([[:punct:]])",". \\1",x)
+  #x<-gsub("\\.([[:punct:]])",". \\1",x)
   
   out<-c(
     get.pCodes(x),
@@ -36,7 +36,7 @@ legendCodings<-function(x){
     get.HTMLcodes(x),
   #  get.CronbachAlpha(x),
     get.diagonal(x),
-    get.abbr(text=x,footer=foot),
+    get.abbr(x),
     get.N(x),
     get.DV(x),
     get.sup(x)
@@ -725,10 +725,11 @@ get.diagonal<-function(x){
 
 ## get abbreviations and corresponding values
 get.abbr<-function(text=NULL,footer=NULL){
-  x<-text
+
   # escape
-  if(length(x)==0&length(footer)==0) return(list(abbreviation=NULL,label=NULL))
+  if(length(text)==0&length(footer)==0) return(list(abbreviation=NULL,label=NULL))
   
+  x<-c(text,footer)
   abb<-NULL; full<-NULL
   
   # correct [.;][A-z]
@@ -740,6 +741,7 @@ get.abbr<-function(text=NULL,footer=NULL){
 
   # split at sentences
   x<-unlist(strsplit(x,"\\. |\\n"))
+  
   x<-gsub("^[,;] and ","",unlist(strsplit2(x,"[,;] and ",type="before")))
   # remove space around -
   x<-gsub(" *- *","-",x)
@@ -753,7 +755,7 @@ get.abbr<-function(text=NULL,footer=NULL){
   x[i]<-gsub("</*[a-z][^>]*>","",x[i])
   
   # select lines with at least two capital letters or capital letter and number/_
-  x<-grep("[A-Z][-a-z_0-9]*[A-Z]|[A-Z][-0-9A-Z_]|[A-Z][a-z]*.[,;=] ",x,value=TRUE)
+  x<-grep("[A-Z][-a-z_0-9]*[A-Z]|[A-Z][-0-9A-Z_]|[A-Z][a-z]*\\.[,;:=] ",x,value=TRUE)
   x
   # split at "and" after abbreviation 
   x<-gsub(" and $","",unlist(strsplit2(x,"[A-Z][-0-9A-Z_] and ",type="after")))
@@ -923,8 +925,8 @@ get.abbr<-function(text=NULL,footer=NULL){
   }
   
   
-  # TYPE D: if has "Abc. [=,] full;"
-  typeD<-length(grep("[A-Z][a-z]*\\. *[=,] *[A-z]",x))>0
+  # TYPE D: if has "Abc*. [=,:;] full;"
+  typeD<-length(grep("[A-Z][a-z]*\\.[;:=,] [A-z]",x))>0
   typeD
   if(typeD){
     y<-unlist(strsplit(x,"[;] "))
@@ -938,10 +940,10 @@ get.abbr<-function(text=NULL,footer=NULL){
       x<-x[-(i+1)]
     }
     
-    y<-grep("[A-Z][a-z]*\\. *[=,] *[A-z]",y,value=T)
-    y<-gsub(".* ([A-Z][a-z]*\\. *[=,] *[A-z])","\\1",y)
+    y<-grep("[A-Z][a-z]*\\.[;:=,] *[A-z]",y,value=T)
+    y<-gsub(".* ([A-Z][a-z]*\\.*[;:=,] *[A-z])","\\1",y)
     abb<-c(abb,gsub("[^-0-9A-Z_]*([A-Z][a-z]*\\.)[^a-z\\.]*.*","\\1",y))
-    full<-c(full,gsub(".*[=,] *","",y))
+    full<-c(full,gsub(".*\\.[:;=,] ","",y))
     if(length(abb)==0) full<-NULL
     if(length(full)==0) abb<-NULL
     # remove abb and full from input
@@ -953,77 +955,7 @@ get.abbr<-function(text=NULL,footer=NULL){
   brack_abb<-NULL
   brack_label<-NULL
   
-#  if(length(footer)==0&length(text)!=0) footer<-text
-  
-  # all other cases only in footer text
-  if(length(footer)>0)
-  if(!typeA&!typeB&!typeC&!typeD){
-  x<-footer
-  x<-unlist(strsplit(x,"[,;] "))
-  
-  # reduce to lines with Capital =/: letter
-  if(length(grep("[A-Z] *[=:] *[A-z]",x))>0) x<-grep("[A-Z] *[=:] *[A-z]",x,value=TRUE)
-  
-  ######## at start of line/segments
-  start<-grep("^[a-z]*[A-Z][-0-9A-Z_]",x,value=T)
-  #start<-start[1:20]
-  start<-gsub("^ ","",unlist(strsplit2(start," [A-Z][-0-9A-Z_]",type="before")))
-  # extract first abbreviation
-  abb<-gsub("^([a-z]*[A-Z][-0-9A-Z_/][-0-9A-Z_a-z/]*)[^-0-9A-Z_/].*","\\1",start)
-  # text without abbreviation
-  abbRem<-gsub("^[a-z]*[A-Z][-0-9A-Z_/][-0-9A-Z_a-z/]*[^-0-9A-Z_/] *[,;:= ]*(.*)","\\1",start)
-  full<-gsub(" $","",gsub("[,;\\.\\(].*","",abbRem))
-  
-  # full text with two or more small letters
-  i<-grep("[a-z][a-z]",full)
-  abb<-abb[i]
-  full<-full[i]
-  
-
-  # remove text till first match of first character of abb, else remove
-  if(FALSE) # deactivated"
-  if(length(abb)>0){
-    for(i in 1:length(abb)){
-     char1<-substr(abb[i],1,1)
-    if(length(grep(paste0(".* ",tolower(char1)),tolower(full[i])))==0){ 
-      full[i]<-""} else {
-        words<-tolower(unlist(strsplit(full[i]," ")))
-        words<-words[min(grep(paste0("^",tolower(char1)),words)[1]):length(words)]
-        full[i]<-paste(words,collapse=" ")
-      }
-    }}
-  
-  # remove tailoring '' or brackets
-  full<-gsub("^[']([^'][^']*)[']*$","\\1",full)
-  full<-gsub("\\[(.*)\\]*$","\\1",full)
-  full<-gsub("^\\(([^\\)][^\\)]*)\\)*$","\\1",full)
-  full<-gsub("(.*)\\[.*\\]$","\\1",full)
-  full<-gsub("(.*)\\(.*\\)$","\\1",full)
-  
-  # remove cases where abb==full
-  i<-abb!=full
-  abb<-abb[i]
-  full<-full[i]
-  
-  
-  # remove cases whith http
-  i<-grep("http:",full,invert=TRUE)
-  abb<-abb[i]
-  full<-full[i]
-  
-  # remove bad captures
-  i<-grep("^for$|^[Tt]he$|^etc$",full,invert=TRUE)
-  abb<-abb[i]
-  full<-full[i]
-
-  # remove cases where nchar(full)<=2
-  i<-nchar(full)>2
-  #sort(table(full[!i]))
-  abb<-abb[i]
-  full<-full[i]
-  
-}
-  
+  # remove empty  ones
   i<-which(!is.na(abb)&!is.na(full))
   full<-full[i]
   abb<-abb[i]
@@ -1043,18 +975,43 @@ get.abbr<-function(text=NULL,footer=NULL){
   # remove text till abb
   for(i in 1:length(full)){
     if(nchar(abb[i])>1) 
-      full[i]<-gsub(paste0(".*",abb[i],"[^A-z0-1]"),"",full[i])
+      full[i]<-gsub(paste0(".*",abb[i],"[^A-z0-1]"),"[,:=]*",full[i])
   }
   
+  # remove tailoring '' or brackets
+  full<-gsub("^[']([^'][^']*)[']*$","\\1",full)
+  full<-gsub("^\\(([^\\)][^\\)]*)\\)*$","\\1",full)
   # remove text
-  full<-gsub("^[Ss]tands for |^means |^is the ","",full)
   full<-gsub("^,* ","",full)
+  full<-gsub("^[Ss]tands for |^means |^is the ","",full)
   
   # remove cases where the initial "abb" letter doesn't match and "full" is only one word
   #i<-grep("[- ]",full,invert=T) # one words
   #j<-tolower(substr(abb[i],1,1))==tolower(substr(full[i],1,1))
   #abb<-abb[i][j]
   #full<-full[i][j]
+  
+  # remove cases where abb==full
+  i<-abb!=full
+  abb<-abb[i]
+  full<-full[i]
+  
+  # remove cases whith http
+  i<-grep("http:",full,invert=TRUE)
+  abb<-abb[i]
+  full<-full[i]
+  
+  # remove bad captures
+  i<-grep("^for$|^[Tt]he$|^etc$",full,invert=TRUE)
+  abb<-abb[i]
+  full<-full[i]
+  
+  # remove cases where nchar(full)<=2
+  i<-nchar(full)>2
+  #sort(table(full[!i]))
+  abb<-abb[i]
+  full<-full[i]
+  
   
   # combine
   abbreviation<-c(abb,brack_abb)
@@ -1064,19 +1021,19 @@ get.abbr<-function(text=NULL,footer=NULL){
   abbreviation<-abbreviation[i]
   label<-label[i]
   
-  # remove cases where the label has less than three times as many characters as the abbr
-  i<-which((nchar(label)/nchar(abbreviation))>3)
+  # remove cases where the label has only or less than two characters more as the abbr
+  i<-which((nchar(gsub("\\.","",label))-nchar(abbreviation))>2)
   abbreviation<-abbreviation[i]
   label<-label[i]
-  
-  
-# output
-    return(list(abbreviation=abbreviation,label=label))
-
+  # remove cases where the label has less than 1.5 times as many characters as the abbr
+  i<-which((nchar(gsub("\\.","",label))/nchar(abbreviation))>1.5)
+  abbreviation<-abbreviation[i]
+  label<-label[i]
+  # output
+  return(list(abbreviation=abbreviation,label=label))
   }
 
-
-
+#############################################################
 ngram2<-function(x,pattern,ngram=c(-3,3),tolower=FALSE,split=FALSE,exact=FALSE){
   temp<-NA
   

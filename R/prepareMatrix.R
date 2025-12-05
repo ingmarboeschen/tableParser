@@ -3,11 +3,22 @@
 #' Prepares character matrix content for parsing.
 #' @param x character matrix
 #' @param split logical. If TRUE multi model matrices are split to a list of single model matrices.
+#' @param forceClass character. Set matrix specific handling to one of c("tabled result","correlation","matrix,"text").
+#' @param na.rm Logical. If TRUE, NA cells are set to empty cells.
 #' @returns character matrix
 #' @export
 
-prepareMatrix<-function(x,split=FALSE){
-  x<-suppressWarnings(unifyMatrixContent(x,correctComma = FALSE))
+prepareMatrix<-function(x,split=FALSE,forceClass=NULL,na.rm=TRUE){
+  # check forceClass
+  if(!is.null(forceClass))
+    if(sum(is.element(c("tabled result","correlation","matrix","text"),forceClass))!=1)
+      stop("Argument 'forceClass' can only be set to one of 'tabled result','correlation', 'matrix', or 'text'.")
+  # escapes
+  if(length(x)==0) return(x)
+  if(length(unlist(x))==0) return(x)
+    
+  # unify matrix cells
+  x<-suppressWarnings(unifyMatrixContent(x,correctComma = FALSE,na.rm=na.rm))
   # remove duplicated 2nd column
   if(ncol(x)>1){
     if(sum(x[,1]==x[,2])==nrow(x)) x<-x[,-2]
@@ -42,7 +53,8 @@ prepareMatrix<-function(x,split=FALSE){
   if(nrow(x)==1|ncol(x)==1) return(x)
 
   # Classify table  
-  class<-tableClass(x)
+  if(is.null(forceClass))  class<-tableClass(x)
+  if(!is.null(forceClass)) class<-forceClass
   
   # no further processing for text matrices
   if(class=="text"|class=="vector") return(x)
@@ -62,12 +74,10 @@ prepareMatrix<-function(x,split=FALSE){
     i<-i[i>min(j)]
   }
   }
-  
-  
   # paste text from lines with only the same value to first cells
   x<-multiHeaderSplit(x,split=FALSE,class=class)
-  # handle empty cells by row
-  x<-rowHandling(x)
+  # handle empty cells by row (except for correlations)
+  if(class!="correlation") x<-rowHandling(x)
   # collapse header rows
   x<-headerHandling(x)
   # paste first text columns to one column
@@ -95,7 +105,8 @@ prepareMatrix<-function(x,split=FALSE){
     x<-gsub("^  *","",x)
   }
   
-  class<-tableClass(x)
+  # reclassify if forceClass is null
+  if(is.null(forceClass))  class<-tableClass(x)
   
   if(class=="correlation"){
     ## parse first and second column, 

@@ -6,11 +6,15 @@
 #' @param greek2text Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text based form (e.g. 'alpha', 'beta'). 
 #' @param text2num Logical. If TRUE, textual representations of numbers (words, exponents, fractions) are converted to digit numbers. 
 #' @param correctComma Logical. If TRUE, commas used as numeric separator are converted to dots. 
+#' @param na.rm Logical. If TRUE, NA cells are set to empty cells.
 #' @importFrom JATSdecoder letter.convert
 #' @importFrom JATSdecoder text2num
 #' @export
-unifyMatrixContent<-function(x,letter.convert=TRUE,greek2text=TRUE,text2num=TRUE,correctComma=FALSE){
-  fun<-function(x,letter.convert=TRUE,greek2text=TRUE,text2num=TRUE,correctComma=FALSE){
+unifyMatrixContent<-function(x,letter.convert=TRUE,
+                             greek2text=TRUE,text2num=TRUE,
+                             correctComma=FALSE,na.rm=TRUE){
+  
+  fun<-function(x,letter.convert=TRUE,greek2text=TRUE,text2num=TRUE,correctComma=FALSE,na.rm=TRUE){
     if(!is.matrix(x)) return(x)
     # number of columns
     nCol<-ncol(x)
@@ -102,11 +106,12 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,greek2text=TRUE,text2num=TRUE
     x<-gsub("\u2212|\u02D7|\u002D|\u2013","-",x)
     
     ## clean up empty cells
-    # remove only minus sign
-    x<-gsub("^-$","",x)
-    # remove NA
-    x<-gsub("^[Nn]/*[Aa]$","",x)
-    
+    if(isTRUE(na.rm)){
+      # set only minus or / sign to NA
+      x<-gsub("^ *[\\.-] *$","NA",x)
+      # remove NA
+      x<-gsub("^[:punct:]*[Nn]/*[Aa][:punct:]*$","",x)
+    }
     # clean up and unify
     x<-gsub("^- ([0-9\\.])","-\\1",x)
     x<-gsub("^\\+ ([0-9\\.])","\\1",x)
@@ -117,7 +122,7 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,greek2text=TRUE,text2num=TRUE
     x<-gsub("  *"," ",x)
     
     # sparse cells to empty
-    x<-gsub("^ *[-\\.][-\\.]* *$","",x)
+    #x<-gsub("^ *[-\\.][-\\.]* *$","",x)
     # remove space around operator number
     x<-gsub("([A-z2]) *([<=>][<=>]*) *(-*[0-9\\.-])","\\1\\2\\3",x)
     # remove space between operator number at start
@@ -157,6 +162,6 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,greek2text=TRUE,text2num=TRUE
   }
   
   # apply function
-  if(!is.list(x)) return(fun(x,letter.convert=letter.convert,greek2text=greek2text,text2num=text2num,correctComma=correctComma))
-  if(is.list(x)) return(lapply(x,fun,letter.convert=letter.convert,greek2text=greek2text,text2num=text2num,correctComma=correctComma))
+  if(!is.list(x)) return(fun(x,letter.convert=letter.convert,greek2text=greek2text,text2num=text2num,correctComma=correctComma,na.rm=na.rm))
+  if(is.list(x)) return(lapply(x,fun,letter.convert=letter.convert,greek2text=greek2text,text2num=text2num,correctComma=correctComma,na.rm=na.rm))
 }

@@ -77,7 +77,7 @@ tableClass<-function(x,legend=NULL){
   # has correlation in legend?
   t2<-length(grep("[Cc]orr*elation|[Aa]ssociation|[Re]elation",legend))>0
   # is there no p/d/beta/R^2 value in matrix?
-  t3<-length(grep("[Ii]ntercept|^[PpdDBb]$| [PpdDBb]$[Pp]-value|[0-9]%[-]*[Cc][oIi]|R\\^*2|eta\\^*2$",m))==0
+  t3<-length(grep("[Ii]ntercept|^[PpdDBb]$| [PpdDBb]$|[Pp]-value|[0-9]%[-]*[Cc][oIi]|R\\^*2|eta\\^*2$",m))==0
   
   if(t1&t2&t3){
     class<-"correlation"
@@ -110,7 +110,10 @@ tableClass<-function(x,legend=NULL){
     nums<-suppressWarnings(as.numeric(gsub("[^0-9\\.-]","",m[r,cols][block>0])))
     nums<-nums[!is.na(nums)]
     hasCor<-sum(nums>=-1&nums<=1)>.9*length(nums)
-    if(hasSeq&hasCor){
+    # is there no p/d/beta/R^2 value in matrix?
+    t3<-length(grep("[Ii]ntercept|^[PpdDBb]$| [PpdDBb]$|[Pp]-value|[0-9]%[-]*[Cc][oIi]|R\\^*2|eta\\^*2$",m))==0
+    
+    if(hasSeq&hasCor&t3){
       class<-"correlation"
       return(class)
       }
