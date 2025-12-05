@@ -9,7 +9,6 @@ Depends: R (>= 4.1)
 Imports: 
     utils,
     tabulapdf,
-    xml2,
     JATSdecoder
 License: GPL-3
 URL: https://github.com/ingmarboeschen/tableParser
