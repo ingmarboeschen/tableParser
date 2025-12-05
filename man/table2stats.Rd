@@ -8,6 +8,7 @@ table2stats(
   x,
   standardPcoding = FALSE,
   correctComma = FALSE,
+  rotate = FALSE,
   expandAbbreviations = TRUE,
   superscript2bracket = TRUE,
   stats.mode = "all",
@@ -27,6 +28,8 @@ table2stats(
 \item{standardPcoding}{Logical. If TRUE, and no other detection of coding is detected, then standard coding of p-values is assumed to be * p<.05, ** p<.01 and ***p<.001.}
 
 \item{correctComma}{Logical. If TRUE, decimal sign commas are converted to dots.}
+
+\item{rotate}{Logical. If TRUE, matrix content is parsed by column.}
 
 \item{expandAbbreviations}{Logical. If TRUE, detected abbreviations are expanded to label from table caption/footer.}
 

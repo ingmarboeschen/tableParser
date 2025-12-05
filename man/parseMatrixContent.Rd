@@ -30,5 +30,5 @@ parseMatrixContent(
 A text vector with the parsed matrix content.
 }
 \description{
-Parses character matrix content into a text vector. This is the basic function of tableParser, which is implemented in matrix2text(), table2text() and table2stats(). Row and column names are parsed to cell content with operators, that depend on the cell content. Numeric cells are parsed with "=", text cells with ":". Detected codings for (e.g. p-values, abbreviations) from tables legend text can be used to extend the tabled content to a fully written out form.
+Parses character matrix content into a text vector. This is the basic function of tableParser, which is implemented in matrix2text(), table2text() and table2stats(). Row and column names are parsed to cell content with operators, that depend on the cell content. Numeric cells are parsed with "=", text cells with ":". Cells that start with an operator ('<', '=' or '>') are parsed without a seperator. Detected codings for (e.g. p-values, abbreviations) from tables legend text can be used to extend the tabled content to a fully written out form.
 }

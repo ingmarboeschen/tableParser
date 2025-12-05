@@ -14,6 +14,8 @@ matrix2text(
   standardPcoding = FALSE,
   addDF = TRUE,
   rotate = FALSE,
+  unlist = FALSE,
+  addTableName = TRUE,
   split = FALSE
 )
 }
@@ -34,7 +36,11 @@ matrix2text(
 
 \item{addDF}{Logical. If TRUE, detected sample size N in caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom.}
 
-\item{rotate}{Logical. If TRUE, matrix/matrices is rotated before parsing.}
+\item{rotate}{Logical. If TRUE, matrix content is parsed by column.}
+
+\item{unlist}{Logical. If TRUE, output is returned as vector with parsed text fromm all listed matrices, else a list with parsed text from each matrix is returned as list.}
+
+\item{addTableName}{Logical. If TRUE and unlist=TRUE, table number is added in front of unlisted text lines.}
 
 \item{split}{Logical. If TRUE, matrix/matrices are split for multi-model tables.}
 }
@@ -42,7 +48,7 @@ matrix2text(
 Character vector with a parsed and human readable form of the input table. The result vector can be further processed with standardStats() to extract and structure the statistical standard test results only.
 }
 \description{
-Converts character matrices to text.
+Converts character matrix content to a screen reader alike readable character string. The parsing is performed row-wise in standard mode.
 }
 \examples{
 # some random data

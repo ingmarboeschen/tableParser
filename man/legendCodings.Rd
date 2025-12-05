@@ -13,7 +13,7 @@ legendCodings(x)
 A list with detected p-value and superscript codings, abbreviations and reported sample size/s.
 }
 \description{
-Extracts the coding of p-values, brackets, abbreviations, superscripts and the reported sample size/s with 'N=number' from tables caption and footer notes/text.
+Extracts the coding of p-values, brackets, abbreviations, superscripts, diagonal content and the reported sample size/s with 'N=number' from tables caption and footer notes/text.
 }
 \examples{
 x<-"+ p>.05, ^**p<.01, SSq, Sum of Squares, ^a t-test, n=120. 

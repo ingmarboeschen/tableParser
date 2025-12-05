@@ -12,8 +12,10 @@ table2text(
   superscript2bracket = TRUE,
   standardPcoding = FALSE,
   addDF = TRUE,
+  rotate = FALSE,
   correctComma = FALSE,
   addDescription = TRUE,
+  unlist = FALSE,
   addTableName = TRUE
 )
 }
@@ -32,11 +34,15 @@ table2text(
 
 \item{addDF}{Logical. If TRUE, detected sample size N in caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom.}
 
+\item{rotate}{Logical. If TRUE, matrix content is parsed by column.}
+
 \item{correctComma}{Logical. If TRUE and unifyMatrix=TRUE, decimal sign commas are converted to dots.}
 
 \item{addDescription}{Logical. If TRUE, table caption and footer are added before the extracted table content for better readability.}
 
-\item{addTableName}{Logical. If TRUE, table number is added before the parsed text lines.}
+\item{unlist}{Logical. If TRUE, output is returned as vector.}
+
+\item{addTableName}{Logical. If TRUE and unlist=TRUE, table number is added in front of unlisted text lines.}
 }
 \value{
 List with parsed tabled content as elements. The text vector in each list element can be further processed with JATSdecoder::standardStats() to extract and structure the statistical standard test results.
