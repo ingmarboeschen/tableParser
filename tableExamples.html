@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+	<title></title>
+	<meta name="generator" content="LibreOffice 24.2.7.2 (Linux)"/>
+	<meta name="created" content="2025-03-13T13:15:10"/>
+	<meta name="changed" content="2026-01-08T08:30:57.839062258"/>
+	<meta name="AppVersion" content="15.0000"/>
+	<style type="text/css">
+		@page { size: 21cm 29.7cm; margin: 2cm }
+		p { color: #000000; line-height: 115%; text-align: left; orphans: 2; widows: 2; margin-bottom: 0.25cm; direction: ltr; background: transparent }
+		p.western { font-family: "Liberation Serif", serif; font-size: 12pt; so-language: de-DE }
+		p.cjk { font-family: "Noto Serif CJK SC"; font-size: 12pt; so-language: zh-CN }
+		p.ctl { font-family: "Noto Sans Devanagari"; font-size: 12pt; so-language: hi-IN }
+		td p { color: #000000; text-align: left; orphans: 0; widows: 0; margin-bottom: 0cm; direction: ltr; background: transparent }
+		td p.western { font-family: "Liberation Serif", serif; font-size: 12pt; so-language: de-DE }
+		td p.cjk { font-family: "Noto Serif CJK SC"; font-size: 12pt; so-language: zh-CN }
+		td p.ctl { font-family: "Noto Sans Devanagari"; font-size: 12pt; so-language: hi-IN }
+		pre { color: #000000; text-align: left; orphans: 2; widows: 2; direction: ltr; background: transparent }
+		pre.western { font-family: "Liberation Mono", serif; font-size: 10pt; so-language: de-DE }
+		pre.cjk { font-family: "Noto Sans Mono CJK SC"; font-size: 10pt; so-language: zh-CN }
+		pre.ctl { font-family: "Liberation Mono"; font-size: 10pt; so-language: hi-IN }
+		a:link { color: #000080; text-decoration: underline }
+		a:visited { color: #800000; text-decoration: underline }
+	</style>
+</head>
+<body lang="de-DE" text="#000000" link="#000080" vlink="#800000" dir="ltr"><pre class="western" style="text-align: left"><font color="#000000"><font size="4" style="font-size: 14pt"><b>Extraction of tabled statistical results with tableParser</b></font></font></pre><p class="western" align="left" style="line-height: 100%; margin-top: 0.5cm; margin-bottom: 0.5cm">
+<font face="Liberation Mono, serif"><b>Appendix A: Example tables</b></font></p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+<br/>
+
+</p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+<br/>
+
+</p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+This HTML file may be processed with the tableParser R package. See:
+/cran/tableParser</p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+<br/>
+
+</p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+- To convert the tables within this document into R character
+matrices run:</p>
+<p class="western" align="left" style="line-height: 100%; margin-top: 0.2cm; margin-bottom: 0.2cm">
+   <font face="Liberation Mono, serif">table2matrix(`tableExamples.</font><font face="Liberation Mono, serif">html</font><font face="Liberation Mono, serif">`)</font></p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+- To convert the reported results in each table into a text string
+run:</p>
+<p class="western" align="left" style="line-height: 100%; margin-top: 0.2cm; margin-bottom: 0.2cm">
+   <font face="Liberation Mono, serif">table2text('tableExamples.</font><font face="Liberation Mono, serif">html</font><font face="Liberation Mono, serif">`)</font></p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+- To extract the statistical standard results as data frame object
+with recalculated p-values run:</p>
+<p class="western" align="left" style="line-height: 100%; margin-top: 0.2cm; margin-bottom: 0.2cm">
+   <font face="Liberation Mono, serif">table2stats(`tableExamples.</font><font face="Liberation Mono, serif">html</font><font face="Liberation Mono, serif">`)</font></p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+See the documentation of each function for further options.</p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+<br/>
+
+</p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+<b>Some blind text</b></p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+Nam quis enim. Quisque ornare dui a tortor. Fusce consequat lacus
+pellentesque metus. Duis euismod. Duis non quam. Maecenas vitae dolor
+in ipsum auctor vehicula. Vivamus nec nibh eget wisi varius pulvinar.
+Cras a lacus. Etiam et massa. Donec in nisl sit amet dui imperdiet
+vestibulum. Duis porttitor nibh id eros.</p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+<br/>
+
+</p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+Single-way matrix example</p>
+<table width="366" cellpadding="4" cellspacing="0">
+	<col width="113"/>
+	<col width="114"/>
+	<col width="113"/>
+	<tr valign="top">
+		<td width="113" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0.1cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			Column A</p>
+		</td>
+		<td width="114" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0.1cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			Column B</p>
+		</td>
+		<td width="113" style="border: 1px solid #000000; padding: 0.1cm"><p class="western">
+			Column C</p>
+		</td>
+	</tr>
+	<tr valign="top">
+		<td width="113" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			1</p>
+		</td>
+		<td width="114" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			3</p>
+		</td>
+		<td width="113" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0.1cm"><p class="western">
+			A</p>
+		</td>
+	</tr>
+	<tr valign="top">
+		<td width="113" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			2</p>
+		</td>
+		<td width="114" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			4</p>
+		</td>
+		<td width="113" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0.1cm"><p class="western">
+			B</p>
+		</td>
+	</tr>
+</table>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+<br/>
+
+</p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+Multi-way matrix example</p>
+<table width="366" cellpadding="4" cellspacing="0">
+	<col width="113"/>
+	<col width="114"/>
+	<col width="113"/>
+	<tr valign="top">
+		<td width="113" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0.1cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			<br/>
+
+			</p>
+		</td>
+		<td width="114" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0.1cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			Column A</p>
+		</td>
+		<td width="113" style="border: 1px solid #000000; padding: 0.1cm"><p class="western">
+			Column B</p>
+		</td>
+	</tr>
+	<tr valign="top">
+		<td width="113" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			Row A</p>
+		</td>
+		<td width="114" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			1</p>
+		</td>
+		<td width="113" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0.1cm"><p class="western">
+			A</p>
+		</td>
+	</tr>
+	<tr valign="top">
+		<td width="113" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			Row B</p>
+		</td>
+		<td width="114" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			2</p>
+		</td>
+		<td width="113" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0.1cm"><p class="western">
+			B</p>
+		</td>
+	</tr>
+</table>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+<br/>
+
+</p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+Nam quis enim. Quisque ornare dui a tortor. Fusce consequat lacus
+pellentesque metus. Duis euismod. Duis non quam. Maecenas vitae dolor
+in ipsum auctor vehicula. Vivamus nec nibh eget wisi varius pulvinar.
+Cras a lacus. Etiam et massa. Donec in nisl sit amet dui imperdiet
+vestibulum. Duis porttitor nibh id eros.</p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+<br/>
+
+</p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+<b>Table 1: An example of tabled descriptive statistics</b></p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+<br/>
+
+</p>
+<table width="435" cellpadding="2" cellspacing="0">
+	<col width="101"/>
+	<col width="83"/>
+	<col width="107"/>
+	<col width="126"/>
+	<tr valign="top">
+		<td width="101" height="12" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="left">
+			<font face="Liberation Serif, Times New Roman, serif"><b>Variable</b></font></p>
+		</td>
+		<td width="83" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			<b>Category</b></p>
+		</td>
+		<td width="107" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			<b>Frequency (%)</b></p>
+		</td>
+		<td width="126" style="border: 1px solid #000000; padding: 0cm 0.05cm"><p class="western" align="center">
+			Mean (SD) Income</p>
+		</td>
+	</tr>
+	<tr valign="top">
+		<td width="101" height="13" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="left">
+			Age</p>
+		</td>
+		<td width="83" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			20–25</p>
+		</td>
+		<td width="107" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			78 (39.79)</p>
+		</td>
+		<td width="126" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding: 0cm 0.05cm"><p class="western" align="center">
+			1,345 (250)</p>
+		</td>
+	</tr>
+	<tr>
+		<td width="101" height="13" valign="bottom" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="left">
+			<br/>
+
+			</p>
+		</td>
+		<td width="83" valign="top" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			26–31</p>
+		</td>
+		<td width="107" valign="top" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			65 (33.16)</p>
+		</td>
+		<td width="126" valign="top" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding: 0cm 0.05cm"><p class="western" align="center">
+			1,825 (535)</p>
+		</td>
+	</tr>
+	<tr>
+		<td width="101" height="13" valign="bottom" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="left">
+			<br/>
+
+			</p>
+		</td>
+		<td width="83" valign="top" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			32 and older</p>
+		</td>
+		<td width="107" valign="top" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			53 (27.05)</p>
+		</td>
+		<td width="126" valign="top" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding: 0cm 0.05cm"><p class="western" align="center">
+			2,315 (930)</p>
+		</td>
+	</tr>
+	<tr valign="top">
+		<td width="101" height="13" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="left">
+			Gender</p>
+		</td>
+		<td width="83" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			Men</p>
+		</td>
+		<td width="107" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			97 (49.49)</p>
+		</td>
+		<td width="126" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding: 0cm 0.05cm"><p class="western" align="center">
+			1,965 (550)</p>
+		</td>
+	</tr>
+	<tr>
+		<td width="101" height="12" valign="bottom" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="left">
+			<br/>
+
+			</p>
+		</td>
+		<td width="83" valign="top" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			Women</p>
+		</td>
+		<td width="107" valign="top" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			99 (50.51)</p>
+		</td>
+		<td width="126" valign="top" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding: 0cm 0.05cm"><p class="western" align="center">
+			1,685 (350)</p>
+		</td>
+	</tr>
+</table>
+<p class="western" style="line-height: 100%; margin-bottom: 0cm"><br/>
+
+</p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+Nam quis enim. Quisque ornare dui a tortor. Fusce consequat lacus
+pellentesque metus. Duis euismod. Duis non quam. Maecenas vitae dolor
+in ipsum auctor vehicula. Vivamus nec nibh eget wisi varius pulvinar.
+Cras a lacus. Etiam et massa. Donec in nisl sit amet dui imperdiet
+vestibulum. Duis porttitor nibh id eros.</p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+<br/>
+
+</p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+<b>Table 2: An example of tabled descriptive statistics and
+correlations with table notes</b></p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+<br/>
+
+</p>
+<table width="436" cellpadding="2" cellspacing="0">
+	<col width="91"/>
+	<col width="83"/>
+	<col width="147"/>
+	<col width="97"/>
+	<tr valign="bottom">
+		<td width="91" height="15" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="left">
+			<font face="Liberation Serif, Times New Roman, serif"><b>Variables</b></font></p>
+		</td>
+		<td width="83" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif"><b>1</b></font></p>
+		</td>
+		<td width="147" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif"><b>2</b></font></p>
+		</td>
+		<td width="97" style="border: 1px solid #000000; padding: 0cm 0.05cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif"><b>3</b></font></p>
+		</td>
+	</tr>
+	<tr valign="bottom">
+		<td width="91" height="16" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="left">
+			Mean</p>
+		</td>
+		<td width="83" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif">45 (11.2)</font></p>
+		</td>
+		<td width="147" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			<font face="Liberation Sans, Arial, serif">5,200 (21,123)</font></p>
+		</td>
+		<td width="97" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding: 0cm 0.05cm"><p class="western" align="center">
+			<font face="Liberation Sans, Arial, serif">26.8 (5.2)</font></p>
+		</td>
+	</tr>
+	<tr valign="bottom">
+		<td width="91" height="16" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="left">
+			Median</p>
+		</td>
+		<td width="83" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif">40</font></p>
+		</td>
+		<td width="147" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			<font face="Liberation Sans, Arial, serif">3,200</font></p>
+		</td>
+		<td width="97" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding: 0cm 0.05cm"><p class="western" align="center">
+			<font face="Liberation Sans, Arial, serif">25</font></p>
+		</td>
+	</tr>
+	<tr valign="bottom">
+		<td width="91" height="16" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="left">
+			<font face="Liberation Serif, Times New Roman, serif">1. Gender</font></p>
+		</td>
+		<td width="83" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif">1</font></p>
+		</td>
+		<td width="147" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			<font face="Liberation Sans, Arial, serif">.38**</font></p>
+		</td>
+		<td width="97" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding: 0cm 0.05cm"><p class="western" align="center">
+			<font face="Liberation Sans, Arial, serif">.04</font></p>
+		</td>
+	</tr>
+	<tr valign="bottom">
+		<td width="91" height="16" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="left">
+			<font face="Liberation Serif, Times New Roman, serif">2. Income</font></p>
+		</td>
+		<td width="83" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			<br/>
+
+			</p>
+		</td>
+		<td width="147" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif">1</font></p>
+		</td>
+		<td width="97" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding: 0cm 0.05cm"><p class="western" align="center">
+			<font face="Liberation Sans, Arial, serif">.21*</font></p>
+		</td>
+	</tr>
+	<tr valign="bottom">
+		<td width="91" height="15" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="left">
+			<font face="Liberation Serif, Times New Roman, serif">3. Ext.</font></p>
+		</td>
+		<td width="83" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			<br/>
+
+			</p>
+		</td>
+		<td width="147" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			<br/>
+
+			</p>
+		</td>
+		<td width="97" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding: 0cm 0.05cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif">.87</font></p>
+		</td>
+	</tr>
+</table>
+<pre class="western">
+N=125, *<font color="#000000"> p&lt;.05, </font>**<font color="#000000"> p&lt;.01 </font>
+<font color="#000000">Numbers in brackets represent standard deviations.</font>
+<font color="#000000">Ext.: Extraversion</font>
+</pre><p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+Nam quis enim. Quisque ornare dui a tortor. Fusce consequat lacus
+pellentesque metus. Duis euismod. Duis non quam. Maecenas vitae dolor
+in ipsum auctor vehicula. Vivamus nec nibh eget wisi varius pulvinar.
+Cras a lacus. Etiam et massa. Donec in nisl sit amet dui imperdiet
+vestibulum. Duis porttitor nibh id eros.</p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+<br/>
+
+</p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+<b>Table 3: An example of a multi model table with table notes</b></p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+<br/>
+
+</p>
+<table width="433" cellpadding="2" cellspacing="0">
+	<col width="163"/>
+	<col width="77"/>
+	<col width="77"/>
+	<col width="97"/>
+	<tr>
+		<td width="163" height="19" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0.05cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="left">
+			<br/>
+
+			</p>
+		</td>
+		<td colspan="3" width="260" style="border: 1px solid #000000; padding: 0.05cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt"><b>Job
+			performance</b></font></font></p>
+		</td>
+	</tr>
+	<tr>
+		<td width="163" height="20" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="left">
+			<font size="3" style="font-size: 12pt"><b>Variables</b></font></p>
+		</td>
+		<td width="77" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt"><b>Model
+			1</b></font></font></p>
+		</td>
+		<td width="77" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt"><b>Model
+			2</b></font></font></p>
+		</td>
+		<td width="97" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0.05cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt"><b>Model
+			3</b></font></font></p>
+		</td>
+	</tr>
+	<tr>
+		<td width="163" height="20" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="left">
+			<font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt">Income</font></font></p>
+		</td>
+		<td width="77" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt">-0.26
+			(.16)</font></font></p>
+		</td>
+		<td width="77" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt">-0.39
+			(.21)</font></font></p>
+		</td>
+		<td width="97" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0.05cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt">-0.36**
+			(.1)</font></font></p>
+		</td>
+	</tr>
+	<tr>
+		<td width="163" height="20" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="left">
+			<font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt">Extraversion</font></font></p>
+		</td>
+		<td width="77" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western">
+			<br/>
+
+			</p>
+		</td>
+		<td width="77" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt">0.12</font></font><sup><font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt">+</font></font></sup><font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt">
+			(.6)</font></font></p>
+		</td>
+		<td width="97" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0.05cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt">0.16***
+			(.03)</font></font></p>
+		</td>
+	</tr>
+	<tr>
+		<td width="163" height="20" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="left">
+			<font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt">Income
+			* Extraversion</font></font></p>
+		</td>
+		<td width="77" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western">
+			<br/>
+
+			</p>
+		</td>
+		<td width="77" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western">
+			<br/>
+
+			</p>
+		</td>
+		<td width="97" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0.05cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt">-0.18**
+			(.1)</font></font></p>
+		</td>
+	</tr>
+	<tr>
+		<td width="163" height="20" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="left">
+			<font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt">R2</font></font></p>
+		</td>
+		<td width="77" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt">0.07</font></font></p>
+		</td>
+		<td width="77" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt">0.22</font></font></p>
+		</td>
+		<td width="97" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0.05cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt">0.31</font></font></p>
+		</td>
+	</tr>
+	<tr>
+		<td width="163" height="20" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="left">
+			<font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt">ΔR2</font></font></p>
+		</td>
+		<td width="77" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt">0.07</font></font></p>
+		</td>
+		<td width="77" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt">0.15</font></font></p>
+		</td>
+		<td width="97" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0.05cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt">0.9</font></font></p>
+		</td>
+	</tr>
+	<tr>
+		<td width="163" height="19" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="left">
+			<font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt">ΔF</font></font></p>
+		</td>
+		<td width="77" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt">2.16</font></font></p>
+		</td>
+		<td width="77" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt">21.76**</font></font></p>
+		</td>
+		<td width="97" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding-top: 0cm; padding-bottom: 0.05cm; padding-left: 0.05cm; padding-right: 0.05cm"><p class="western" align="center">
+			<font face="Liberation Serif, Times New Roman, serif"><font size="3" style="font-size: 12pt">14.37*</font></font></p>
+		</td>
+	</tr>
+</table>
+<pre class="western" style="text-align: left"><font color="#000000">+ p=.075; </font><font color="#008000">*</font><font color="#000000"> p&lt;.05; </font><font color="#008000">**</font><font color="#000000"> p&lt;.01; </font><font color="#008000">***</font><font color="#000000"> p&lt;.001</font>
+<font color="#000000">Numbers in brackets represent standard errors.</font>
+</pre><p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+Nam quis enim. Quisque ornare dui a tortor. Fusce consequat lacus
+pellentesque metus. Duis euismod. Duis non quam. Maecenas vitae dolor
+in ipsum auctor vehicula. Vivamus nec nibh eget wisi varius pulvinar.
+Cras a lacus. Etiam et massa. Donec in nisl sit amet dui imperdiet
+vestibulum. Duis porttitor nibh id eros.</p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+<br/>
+
+</p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+<b>Table 4: An example of an ANOVA table with table notes</b></p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+<br/>
+
+</p>
+<table width="434" cellpadding="4" cellspacing="0">
+	<col width="132"/>
+	<col width="49"/>
+	<col width="31"/>
+	<col width="57"/>
+	<col width="49"/>
+	<col width="66"/>
+	<tr valign="top">
+		<td width="132" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0.1cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			<b>Variable</b></p>
+		</td>
+		<td width="49" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0.1cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			<b>SSq</b></p>
+		</td>
+		<td width="31" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0.1cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			<b>df</b></p>
+		</td>
+		<td width="57" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0.1cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			<b>MSq</b></p>
+		</td>
+		<td width="49" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0.1cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			<b>F</b></p>
+		</td>
+		<td width="66" style="border: 1px solid #000000; padding: 0.1cm"><p class="western">
+			<b>P(&gt;F)</b></p>
+		</td>
+	</tr>
+	<tr valign="top">
+		<td width="132" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			Factor A</p>
+		</td>
+		<td width="49" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			<b>12</b></p>
+		</td>
+		<td width="31" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			<b>2</b></p>
+		</td>
+		<td width="57" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			<b>3</b></p>
+		</td>
+		<td width="49" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			<span style="font-style: normal"><b>9.09</b></span></p>
+		</td>
+		<td width="66" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0.1cm"><p class="western">
+			<span style="font-style: normal"><b>.00</b></span></p>
+		</td>
+	</tr>
+	<tr valign="top">
+		<td width="132" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			Factor B</p>
+		</td>
+		<td width="49" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			<i>4.5</i></p>
+		</td>
+		<td width="31" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			<i>1</i></p>
+		</td>
+		<td width="57" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			<i>4.5</i></p>
+		</td>
+		<td width="49" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			<i><span style="font-weight: normal">6.82</span></i></p>
+		</td>
+		<td width="66" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0.1cm"><p class="western">
+			<i><span style="font-weight: normal">.01</span></i></p>
+		</td>
+	</tr>
+	<tr valign="top">
+		<td width="132" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			Factor A * B</p>
+		</td>
+		<td width="49" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			3</p>
+		</td>
+		<td width="31" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			2</p>
+		</td>
+		<td width="57" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			1.5</p>
+		</td>
+		<td width="49" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			<span style="font-style: normal">2.27</span></p>
+		</td>
+		<td width="66" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0.1cm"><p class="western">
+			<span style="font-style: normal">.12</span></p>
+		</td>
+	</tr>
+	<tr valign="top">
+		<td width="132" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			Residuals</p>
+		</td>
+		<td width="49" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			20</p>
+		</td>
+		<td width="31" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			<span style="font-weight: normal">30</span></p>
+		</td>
+		<td width="57" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			0.66</p>
+		</td>
+		<td width="49" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			<br/>
+
+			</p>
+		</td>
+		<td width="66" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0.1cm"><p class="western">
+			<br/>
+
+			</p>
+		</td>
+	</tr>
+	<tr valign="top">
+		<td width="132" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			Total</p>
+		</td>
+		<td width="49" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			39.5</p>
+		</td>
+		<td width="31" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			35</p>
+		</td>
+		<td width="57" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			1.13</p>
+		</td>
+		<td width="49" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: none; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0cm"><p class="western">
+			<br/>
+
+			</p>
+		</td>
+		<td width="66" style="border-top: none; border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; padding-top: 0cm; padding-bottom: 0.1cm; padding-left: 0.1cm; padding-right: 0.1cm"><p class="western">
+			<br/>
+
+			</p>
+		</td>
+	</tr>
+</table>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+<font face="Liberation Mono, serif"><font size="2" style="font-size: 10pt"><span style="font-weight: normal">Italic
+values are p&lt;.05.</span></font></font></p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+<font face="Liberation Mono, serif"><font size="2" style="font-size: 10pt"><span style="font-weight: normal">Bold
+valus are significant with p&lt;.01.</span></font></font></p>
+<p class="western" align="left" style="font-weight: normal; line-height: 100%; margin-bottom: 0cm">
+<br/>
+
+</p>
+<p class="western" align="left" style="line-height: 100%; margin-bottom: 0cm">
+<span style="font-weight: normal">Nam quis enim. Quisque ornare dui a
+tortor. Fusce consequat lacus pellentesque metus. Duis euismod. Duis
+non quam. Maecenas vitae dolor in ipsum auctor vehicula. Vivamus nec
+nibh eget wisi varius pulvinar. Cras a lacus. Etiam et massa. Donec
+in nisl sit amet dui imperdiet vestibulum. Duis porttitor nibh id
+eros.</span></p>
+</body>
+</html>
