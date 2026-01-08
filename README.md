@@ -17,27 +17,27 @@ devtools::install_github("ingmarboeschen/tableParser")
 ## Examples
 ```R
 ## Download example files with tables from this repo
-download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/test.docx","test.docx")
-download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/test.html","test.html")
-download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/test.pdf","test.pdf")
+download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.docx","test.docx")
+download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.html","test.html")
+download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.pdf","test.pdf")
 
 # extract tables from HTML, HML, DOCX, PDF documents
-table2matrix("test.docx")
-table2matrix("test.html")
-table2matrix("test.pdf")
+table2matrix("tableExamples.docx")
+table2matrix("tableExamples.html")
+table2matrix("tableExamples.pdf")
 
 # parse tabled content in HTML, HML, DOCX, PDF documents to text vector 
-table2text("test.docx")
-table2text("test.html")
-table2text("test.pdf")
+table2text("tableExamples.docx")
+table2text("tableExamples.html")
+table2text("tableExamples.pdf")
 
 # extract and check statistical standard results
-table2stats("test.docx",check=TRUE,estimateZ=T)
-table2stats("test.html",check=TRUE,estimateZ=T)
-table2stats("test.pdf",check=TRUE,estimateZ=T)
+table2stats("tableExamples.docx",check=TRUE,estimateZ=T)
+table2stats("tableExamples.html",check=TRUE,estimateZ=T)
+table2stats("tableExamples.pdf",check=TRUE,estimateZ=T)
 
 # activate next line to remove downloaded files
-# file.remove("test.docx"); file.remove("test.html") file.remove("test.pdf")
+# file.remove("tableExamples.docx"); file.remove("tableExamples.html") file.remove("tableExamples.pdf")
  
 ```
 
