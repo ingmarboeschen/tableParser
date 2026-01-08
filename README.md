@@ -18,9 +18,9 @@ devtools::install_github("ingmarboeschen/tableParser")
 ```R
 library(tableParser)
 ## Download example files with tables from this repo
-download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.docx","test.docx")
-download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.html","test.html")
-download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.pdf","test.pdf")
+download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.docx","tableExamples.docx")
+download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.html","tableExamples.html")
+download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.pdf","tableExamples.pdf")
 
 # extract tables from HTML, HML, DOCX, PDF documents
 table2matrix("tableExamples.docx")
