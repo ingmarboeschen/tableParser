@@ -24,7 +24,7 @@ download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main
 
 # extract tables from HTML, HML, DOCX, PDF documents
 table2matrix("tableExamples.docx")
-table2matrix("tableExamples.html")
+table2matrix("tableExamples.html",rm.html=TRUE)
 table2matrix("tableExamples.pdf")
 
 # parse tabled content in HTML, HML, DOCX, PDF documents to text vector 
