@@ -16,6 +16,7 @@ devtools::install_github("ingmarboeschen/tableParser")
 
 ## Examples
 ```R
+library(tableParser)
 ## Download example files with tables from this repo
 download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.docx","test.docx")
 download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.html","test.html")
