@@ -9,20 +9,23 @@ unifyMatrixContent(
   letter.convert = TRUE,
   greek2text = TRUE,
   text2num = TRUE,
-  correctComma = FALSE
+  correctComma = FALSE,
+  na.rm = TRUE
 )
 }
 \arguments{
 \item{x}{a character matrix.}
 
-\item{letter.convert}{Logical. If TRUE hexadecimal coded letters will be unified and converted to Unicode with JATSdecoder::letter.convert().}
+\item{letter.convert}{Logical. If TRUE, hexadecimal-coded letters will be unified and converted to Unicode with JATSdecoder::letter.convert().}
 
-\item{greek2text}{Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text based form (e.g. 'alpha', 'beta').}
+\item{greek2text}{Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text-based form (e.g., 'alpha', 'beta').}
 
 \item{text2num}{Logical. If TRUE, textual representations of numbers (words, exponents, fractions) are converted to digit numbers.}
 
-\item{correctComma}{Logical. If TRUE, commas used as numeric separator are converted to dots.}
+\item{correctComma}{Logical. If TRUE, commas used as numeric separators are converted to dots.}
+
+\item{na.rm}{Logical. If TRUE, cells with NA, or only minus, hyphen, slash, or dot are set to empty cells.}
 }
 \description{
-Unifies textual and numerical content of character matrices. Unifies hyphens, spaces, hexadecimal and greek letters and performs space and comma corrections. Big marks in numbers are removed. HTML tags <sup> and <sub> are converted to '^' and '_' respectively. All other HTML tags are removed.
+Unifies textual and numerical content of character matrices. Unifies hyphens, spaces, hexadecimal and Greek letters, and performs space and comma corrections. Big marks in numbers are removed. HTML tags <sup> and <sub> are converted to '^' and '_' respectively. All other HTML tags are removed.
 }

@@ -4,15 +4,19 @@
 \alias{prepareMatrix}
 \title{prepareMatrix}
 \usage{
-prepareMatrix(x, split = FALSE)
+prepareMatrix(x, split = FALSE, forceClass = NULL, na.rm = TRUE)
 }
 \arguments{
 \item{x}{character matrix}
 
-\item{split}{logical. If TRUE multi model matrices are split to a list of single model matrices.}
+\item{split}{logical. If TRUE, multi-model matrices are split into a list of single-model matrices.}
+
+\item{forceClass}{character. Set matrix-specific handling to one of c("tabled result", "correlation", "matrix, "text").}
+
+\item{na.rm}{Logical. If TRUE, NA cells are set to empty cells.}
 }
 \value{
-character matrix
+A character matrix
 }
 \description{
 Prepares character matrix content for parsing.

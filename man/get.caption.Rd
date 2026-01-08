@@ -7,17 +7,17 @@
 get.caption(x, rm.html = TRUE, sentences = FALSE, letter.convert = TRUE)
 }
 \arguments{
-\item{x}{A vector with HTML coded tables.}
+\item{x}{A vector with HTML-coded tables.}
 
-\item{rm.html}{logical. If TRUE, all HTML tags are removed, <sub> converts to '_', <sup> to '^'.}
+\item{rm.html}{logical. If TRUE, all HTML tags are removed, <sub> converts to '_', and <sup> to '^'.}
 
 \item{sentences}{logical. If TRUE, a sentence vector is returned.}
 
-\item{letter.convert}{logical. If TRUE, hexadecimal letters are converted to Unicode und unified with JATSdecoder::letter.convert.}
+\item{letter.convert}{logical. If TRUE, hexadecimal letters are converted to Unicode and unified with JATSdecoder::letter.convert.}
 }
 \value{
 A character vector with the extracted caption text and NULL for no caption text
 }
 \description{
-Extracts the content of <caption>-tag/s.
+Extracts the content of HTML <caption>-tags.
 }

@@ -9,9 +9,12 @@ matrix2text(
   legend = NULL,
   unifyMatrix = TRUE,
   correctComma = FALSE,
+  na.rm = TRUE,
+  forceClass = NULL,
   expandAbbreviations = TRUE,
   superscript2bracket = TRUE,
   standardPcoding = FALSE,
+  noSign2p = FALSE,
   addDF = TRUE,
   rotate = FALSE,
   unlist = FALSE,
@@ -24,31 +27,37 @@ matrix2text(
 
 \item{legend}{A list with table legend codes extracted from table caption and/or footer with tableParser::legendCodings().}
 
-\item{unifyMatrix}{Logical. If TRUE, matrix cells are unified for better post processing.}
+\item{unifyMatrix}{Logical. If TRUE, matrix cells are unified for better post-processing.}
 
 \item{correctComma}{Logical. If TRUE and unifyMatrix=TRUE, decimal sign commas are converted to dots.}
+
+\item{na.rm}{Logical. If TRUE, NA cells are set to empty cells.}
+
+\item{forceClass}{character. Set matrix-specific handling to one of c("tabled result", "correlation", "matrix", "text").}
 
 \item{expandAbbreviations}{Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footer with tableParser::legendCodings().}
 
 \item{superscript2bracket}{Logical. If TRUE, detected superscript codings are inserted inside parentheses.}
 
-\item{standardPcoding}{Logical. If TRUE, and no other detection of p-value coding is detected, standard coding of p-values is assumed to be: * p<.05, ** p<.01 and *** p<.001.}
+\item{standardPcoding}{Logical. If TRUE, and no other detection of p-value coding is detected, standard coding of p-values is assumed to be: * p<.05, ** p<.01, and *** p<.001.}
 
-\item{addDF}{Logical. If TRUE, detected sample size N in caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom.}
+\item{noSign2p}{Logical. If TRUE, imputes 'p>maximum of coded p-values' to cells that are not coded to be significant.}
+
+\item{addDF}{Logical. If TRUE, detected sample size N in the caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom.}
 
 \item{rotate}{Logical. If TRUE, matrix content is parsed by column.}
 
-\item{unlist}{Logical. If TRUE, output is returned as vector with parsed text fromm all listed matrices, else a list with parsed text from each matrix is returned as list.}
+\item{unlist}{Logical. If TRUE, output is returned as a vector with parsed text from all listed matrices; else, a list with parsed text from each matrix is returned as a list.}
 
-\item{addTableName}{Logical. If TRUE and unlist=TRUE, table number is added in front of unlisted text lines.}
+\item{addTableName}{Logical. If TRUE and unlist=TRUE, the table number is added in front of unlisted text lines.}
 
-\item{split}{Logical. If TRUE, matrix/matrices are split for multi-model tables.}
+\item{split}{Logical. If TRUE, multi-model tables are split before being processed.}
 }
 \value{
-Character vector with a parsed and human readable form of the input table. The result vector can be further processed with standardStats() to extract and structure the statistical standard test results only.
+Character vector with a parsed and human-readable form of the input table. The result vector can be further processed with standardStats() to extract and structure the statistical standard test results only.
 }
 \description{
-Converts character matrix content to a screen reader alike readable character string. The parsing is performed row-wise in standard mode.
+Converts character matrix content to a screen reader-like readable character string. The parsing is performed row-wise in standard mode.
 }
 \examples{
 # some random data

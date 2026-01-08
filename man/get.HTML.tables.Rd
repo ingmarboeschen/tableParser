@@ -7,11 +7,11 @@
 get.HTML.tables(x)
 }
 \arguments{
-\item{x}{HTML, HML, XML or CERMXML file or character object with HTML-encoded content.}
+\item{x}{HTML, HML, XML, or CERMXML file or character object with HTML-encoded content.}
 }
 \value{
 Character vector with one HTML-encoded table per cell.
 }
 \description{
-Extracts HTML tables as vector of HTML coded tables from plain HTML code, HTML, HML, XML or CERMXML files.
+Extracts HTML tables as a vector of HTML-coded tables from plain HTML code, HTML, HML, XML, or CERMXML files.
 }

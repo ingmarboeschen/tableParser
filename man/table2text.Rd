@@ -11,42 +11,48 @@ table2text(
   expandAbbreviations = TRUE,
   superscript2bracket = TRUE,
   standardPcoding = FALSE,
-  addDF = TRUE,
+  noSign2p = FALSE,
+  addDF = FALSE,
   rotate = FALSE,
   correctComma = FALSE,
+  na.rm = TRUE,
   addDescription = TRUE,
   unlist = FALSE,
   addTableName = TRUE
 )
 }
 \arguments{
-\item{x}{A vector with HTML tables or a single file path to an HTML, XML, CERMXML, HML, PDF or DOCX file.}
+\item{x}{A vector with HTML tables, or a single file path to an HTML, XML, CERMXML, HML, PDF, or DOCX file.}
 
-\item{unifyMatrix}{Logical. If TRUE, matrix cells are unified for better post processing.}
+\item{unifyMatrix}{Logical. If TRUE, matrix cells are unified for better post-processing.}
 
-\item{unifyStats}{Logical. If TRUE, output is unified for better post processing (e.g.: "p-value"->"p").}
+\item{unifyStats}{Logical. If TRUE, output is unified for better post-processing (e.g., "p-value"->"p").}
 
 \item{expandAbbreviations}{Logical. If TRUE, detected abbreviations are expanded to label from table caption/footer.}
 
 \item{superscript2bracket}{Logical. If TRUE, detected superscript codings are inserted inside parentheses.}
 
-\item{standardPcoding}{Logical. If TRUE, and no other detection of coding is detected, standard coding of p-values is assumed to be * p<.05, ** p<.01 and ***p<.001.}
+\item{standardPcoding}{Logical. If TRUE, and no other detection of coding is detected, standard coding of p-values is assumed to be * p<.05, ** p<.01, and ***p<.001.}
 
-\item{addDF}{Logical. If TRUE, detected sample size N in caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom.}
+\item{noSign2p}{Logical. If TRUE, imputes 'p>maximum of coded p-values' to cells that are not coded to be significant.}
+
+\item{addDF}{Logical. If TRUE, detected sample size N in the caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom.}
 
 \item{rotate}{Logical. If TRUE, matrix content is parsed by column.}
 
 \item{correctComma}{Logical. If TRUE and unifyMatrix=TRUE, decimal sign commas are converted to dots.}
 
-\item{addDescription}{Logical. If TRUE, table caption and footer are added before the extracted table content for better readability.}
+\item{na.rm}{Logical. If TRUE, NA cells are set to empty cells.}
 
-\item{unlist}{Logical. If TRUE, output is returned as vector.}
+\item{addDescription}{Logical. If TRUE, the table caption and footer are added before the extracted table content for better readability.}
 
-\item{addTableName}{Logical. If TRUE and unlist=TRUE, table number is added in front of unlisted text lines.}
+\item{unlist}{Logical. If TRUE, output is returned as a vector.}
+
+\item{addTableName}{Logical. If TRUE and unlist=TRUE, the table number is added in front of unlisted text lines.}
 }
 \value{
-List with parsed tabled content as elements. The text vector in each list element can be further processed with JATSdecoder::standardStats() to extract and structure the statistical standard test results.
+A list with text vectors of the parsed table content by table. The text vector in each list element can be further processed with JATSdecoder::standardStats() to extract and structure the statistical standard test results.
 }
 \description{
-Parses tabled content from HTML coded content or HTML, DOCX or PDF file to human readable text vector. Before parsing, header lines are collapsed and connected cells are broken up.
+Parses tabled content from HTML-coded content, or HTML, DOCX, or PDF file to human-readable text vector. Before parsing, header lines are collapsed and connected cells are broken up.
 }

@@ -18,31 +18,31 @@ table2matrix(
 )
 }
 \arguments{
-\item{x}{File path to a DOCX, PDF or HTML-encoded file, or text with HTML code.}
+\item{x}{File path to a DOCX, PDF, or HTML-encoded file, or text with HTML code.}
 
-\item{unifyMatrix}{Logical. If TRUE, matrix cells are unified for better post processing (see: unifyMatrixContent()).}
+\item{unifyMatrix}{Logical. If TRUE, matrix cells are unified for better post-processing (see unifyMatrixContent()).}
 
-\item{letter.convert}{Logical. If TRUE hex codes will be unified and converted to Unicode with JATSdecoder::letter.convert().}
+\item{letter.convert}{Logical. If TRUE, hex codes will be unified and converted to Unicode with JATSdecoder::letter.convert().}
 
-\item{greek2text}{Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text based form (e.g. 'alpha', 'beta').}
+\item{greek2text}{Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text-based form (e.g.: 'alpha', 'beta').}
 
-\item{replicate}{Logical. If TRUE the content of cells with row/col span > 1 are replicated in all connected cells, if FALSE, the value will only be placed to the first of the connected cell.}
+\item{replicate}{Logical. If TRUE, the content of cells with row/col span > 1 is replicated in all connected cells; if FALSE, the value will only be placed in the first of the connected cells.}
 
-\item{repNums}{Logical. If TRUE cells with numbers, that have row/col span > 1 are replicated in every connected cell.}
+\item{repNums}{Logical. If TRUE, cells with numbers that have row/col span > 1 are replicated in every connected cell.}
 
-\item{rm.html}{Logical. If TRUE all HTML tags are removed, except <sub> and <sup> , </break> is converted to space.}
+\item{rm.html}{Logical. If TRUE, all HTML tags are removed, except <sub> and <sup>, and </break> is converted to space.}
 
-\item{rm.empty.row.col}{Logical. If TRUE empty rows/columns are removed from output.}
+\item{rm.empty.row.col}{Logical. If TRUE, empty rows/columns are removed from output.}
 
-\item{collapseHeader}{Logical. If TRUE header cells are collapsed for each column if header has 2 or more lines.}
+\item{collapseHeader}{Logical. If TRUE, header cells are collapsed for each column if the header has 2 or more lines.}
 
-\item{header2colnames}{Logical. If TRUE and 'collapseHeader=TRUE' first table row is used for column names and removed from table.}
+\item{header2colnames}{Logical. If TRUE and 'collapseHeader=TRUE', the first table row is used for column names and removed from the table.}
 }
 \value{
 List with detected tables as character matrices.
 }
 \description{
-Extracts tables from HTML, HML, XML, CERMXML, DOCX, PDF files or plain HTML code to a list of character matrices.
+Extracts tables from HTML, HML, XML, CERMXML, DOCX, PDF files, or plain HTML code to a list of character matrices.
 }
 \examples{
 x<-readLines("https://en.wikipedia.org/wiki/R_(programming_language)",warn=FALSE)

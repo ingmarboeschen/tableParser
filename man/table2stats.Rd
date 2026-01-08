@@ -7,6 +7,7 @@
 table2stats(
   x,
   standardPcoding = FALSE,
+  noSign2p = TRUE,
   correctComma = FALSE,
   rotate = FALSE,
   expandAbbreviations = TRUE,
@@ -18,14 +19,18 @@ table2stats(
   alternative = "undirected",
   estimateZ = FALSE,
   T2t = FALSE,
-  addTableName = TRUE,
+  addDF = TRUE,
+  collapse = TRUE,
+  addTableName = FALSE,
   rm.na.col = TRUE
 )
 }
 \arguments{
-\item{x}{Input. Either a file path to an XML, HTML, HML, DOCX or PDF file or matrix object or vector of plain HTML coded tables.}
+\item{x}{Input. Either a file path to an XML, HTML, HML, DOCX, or PDF file; or a matrix object; or a vector of plain HTML-coded tables.}
 
-\item{standardPcoding}{Logical. If TRUE, and no other detection of coding is detected, then standard coding of p-values is assumed to be * p<.05, ** p<.01 and ***p<.001.}
+\item{standardPcoding}{Logical. If TRUE, and no other detection of coding is detected, then standard coding of p-values is assumed to be * p<.05, ** p<.01, and ***p<.001.}
+
+\item{noSign2p}{Logical. If TRUE, imputes 'p>maximum of coded p-values' to cells that are not coded to be significant.}
 
 \item{correctComma}{Logical. If TRUE, decimal sign commas are converted to dots.}
 
@@ -43,13 +48,17 @@ table2stats(
 
 \item{criticalDif}{Numeric. Sets the absolute maximum difference in reported and recalculated p-values for error detection.}
 
-\item{alternative}{Character. Select test sidedness for recomputation of p-values from t-, r- and beta-values. One of c("undirected", "directed"). If "directed" is specified, p-values for directed null-hypothesis are added to the table but still require a manual inspection on consistency of the direction.}
+\item{alternative}{Character. Select test sidedness for recomputation of p-values from t-, r-, and beta-values. One of c("undirected", "directed"). If "directed" is specified, p-values for directed null hypotheses are added to the table but still require a manual inspection of the consistency of the direction.}
 
-\item{estimateZ}{Logical. If TRUE, detected beta-/d-values are divided by the reported standard error "SE" to estimate Z-values ("Zest") for observed beta/d and computation of p-values. Note: This is only valid, if Gauss-Marcov assumptions are met and a sufficiently large sample size is used. If a Z- or t-value is detected in a report of a beta-/d-coefficient with SE, no estimation will be performed, although set to TRUE.}
+\item{estimateZ}{Logical. If TRUE, detected beta-/d-values are divided by the reported standard error "SE" to estimate Z-values ("Zest") for observed beta/d and computation of p-values. Note: This is only valid if Gauss-Markov assumptions are met and a sufficiently large sample size is used. If a Z- or t-value is detected in a report of a beta-/d-coefficient with SE, no estimation will be performed, although set to TRUE.}
 
-\item{T2t}{Logical. If TRUE, capital letter T is treated as t-statistic.}
+\item{T2t}{Logical. If TRUE, capital letter T is treated as a t-statistic.}
 
-\item{addTableName}{Logical. If TRUE, table number is added in front of the eaxtracted results.}
+\item{addDF}{Logical. If TRUE, detected sample size N in the caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom.}
+
+\item{collapse}{Logical. If TRUE, the result is collapsed to a single data frame object. Else, a list of data frames with length = n matrices is returned.}
+
+\item{addTableName}{Logical. If TRUE, the table number is added in front of the extracted results.}
 
 \item{rm.na.col}{Logical. If TRUE, removes all columns with only NA.}
 }
@@ -57,5 +66,5 @@ table2stats(
 A data.frame object with the extracted statistical standard results, recalculated p-values and a rudimentary, optional consistency check for reported p-values (if 'checkP=TRUE').
 }
 \description{
-Extracts tabulated statistical results from documents in XML, HTML, HML, DOCX or PDF format.
+Extracts tabulated statistical results from documents in XML, HTML, HML, DOCX, or PDF format.
 }

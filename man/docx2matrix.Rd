@@ -15,5 +15,5 @@ docx2matrix(x, replicate = TRUE)
 List with extracted tables as character matrices.
 }
 \description{
-Extracts tables from DOCX documents and returns list of character matrices.
+Extracts tables from DOCX documents and returns a list of character matrices.
 }

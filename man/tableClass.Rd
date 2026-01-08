@@ -9,11 +9,11 @@ tableClass(x, legend = NULL)
 \arguments{
 \item{x}{A character matrix}
 
-\item{legend}{A text vector with tables caption and/or footer.}
+\item{legend}{A text vector with the tables caption and/or footer.}
 }
 \value{
-A character object of length=1 with the tables class.
+A character object of length=1 with the table's class.
 }
 \description{
-Classifies matrix content to either 'tabled results', 'correlation', 'matrix', 'text', 'vector', 'model with model statistics', 'multi model with model statistics'.
+Classifies matrix content to either 'tabled results', 'correlation', 'matrix', 'text', 'vector', 'model with model statistics', or 'multi model with model statistics'.
 }

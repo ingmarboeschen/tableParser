@@ -7,17 +7,17 @@
 get.footer(x, rm.html = TRUE, sentences = FALSE, letter.convert = TRUE)
 }
 \arguments{
-\item{x}{A vector with HTML coded tables.}
+\item{x}{A vector with HTML-coded tables.}
 
-\item{rm.html}{logical. If TRUE, all HTML tags are removed, <sub> converts to '_', <sup> to '^'.}
+\item{rm.html}{logical. If TRUE, all HTML tags are removed, <sub> converts to '_', and <sup> to '^'.}
 
 \item{sentences}{logical. If TRUE, a sentence vector is returned.}
 
-\item{letter.convert}{logical. If TRUE, hexadecimal letters are converted to Unicode und unified with JATSdecoder::letter.convert.}
+\item{letter.convert}{logical. If TRUE, hexadecimal letters are converted to Unicode and unified with JATSdecoder::letter.convert.}
 }
 \value{
-A character vector with the extracted footer text and NULL for no footer text
+A character vector with the extracted footer text and NULL for no footer text.
 }
 \description{
-Extracts the content of <table-wrap-foot>-tag/s.
+Extracts the content of HTML <table-wrap-foot>-tag/s.
 }
