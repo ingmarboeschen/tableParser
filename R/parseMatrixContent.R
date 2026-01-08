@@ -1,14 +1,14 @@
 #' parseMatrixContent
 #' 
-#' Parses character matrix content into a text vector. This is the basic function of tableParser, which is implemented in matrix2text(), table2text() and table2stats(). Row and column names are parsed to cell content with operators, that depend on the cell content. Numeric cells are parsed with "=", text cells with ":". Cells that start with an operator ('<', '=' or '>') are parsed without a seperator. Detected codings for (e.g. p-values, abbreviations) from tables legend text can be used to extend the tabled content to a fully written out form.
+#' Parses character matrix content into a text vector. This is the basic function of tableParser, which is implemented in matrix2text(), table2text(), and table2stats(). Row and column names are parsed to cell content with operators that depend on the cell content. Numeric cells are parsed with "=", and textual cell content with ":". Cells that start with an operator ('<', '=' or '>') are parsed without a separator. Detected codings for (e.g., p-values, abbreviations) from table legend text can be used to extend the tabled content to a fully written-out form.
 #' @param x A character matrix or list with a character matrix as first and only element.
-#' @param legend The tables caption/footer notes as character vector.
-#' @param standardPcoding Logical. If TRUE, and no other detection of p-value coding is detected, standard coding of p-values is assumed to be: * p<.05, ** p<.01 and *** p<.001.
+#' @param legend The table's caption/footer notes as a character vector.
+#' @param standardPcoding Logical. If TRUE, and no other detection of p-value coding is detected, standard coding of p-values is assumed to be: * p<.05, ** p<.01, and *** p<.001.
 #' @param noSign2p Logical. If TRUE, imputes 'p>maximum of coded p-values' to cells that are not coded to be significant.
-#' @param forceClass Character. Set a fixed table class for extraction heuristic. One of c("tabled result","correlation","matrix","text").
+#' @param forceClass Character. Set a fixed table class for extraction heuristic. One of c("tabled result", "correlation", "matrix", "text").
 #' @param expandAbbreviations Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footer with tableParser::legendCodings().
 #' @param superscript2bracket Logical. If TRUE, detected superscript codings are inserted inside parentheses.
-#' @param addDF Logical. If TRUE, detected sample size N in caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom. 
+#' @param addDF Logical. If TRUE, detected sample size N in the caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom. 
 #' @returns A text vector with the parsed matrix content.
 #' @export
 

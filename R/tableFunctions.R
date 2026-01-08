@@ -1458,7 +1458,7 @@ anovaHandler<-function(x){
       
       # extract and add df2 to df1, if i has multiple sequences  
       if(!is.single.sequence(i)){
-        s<-sequence.split(i)
+        s<-sequenceSplit(i)
         df2<-(as.numeric((gsub(".*df2=([0-9][0-9\\.]*).*","\\1",x[j]))))
         
         # try to correct sequence if s and df2 are not of same length
@@ -1507,8 +1507,11 @@ is.single.sequence<-function(x){
   for(j in 1:(length(x)-1)) temp[j]<-x[j]+1==x[j+1]
   return(ifelse(sum(!temp)==0,TRUE,FALSE))
 }
-# function to split to list of sequences
-sequence.split<-function(x){
+
+
+
+## function to split to list of sequences
+sequenceSplit<-function(x){
   if(is.single.sequence(x)) return(list(x))
   temp<-TRUE
   for(j in 2:(length(x)))

@@ -1,22 +1,22 @@
 #' table2text
 #'
-#' Parses tabled content from HTML coded content or HTML, DOCX or PDF file to human readable text vector. Before parsing, header lines are collapsed and connected cells are broken up.
-#' @param x A vector with HTML tables or a single file path to an HTML, XML, CERMXML, HML, PDF or DOCX file.
-#' @param unifyMatrix Logical. If TRUE, matrix cells are unified for better post processing.
-#' @param unifyStats Logical. If TRUE, output is unified for better post processing (e.g.: "p-value"->"p").
+#' Parses tabled content from HTML-coded content, or HTML, DOCX, or PDF file to human-readable text vector. Before parsing, header lines are collapsed and connected cells are broken up.
+#' @param x A vector with HTML tables, or a single file path to an HTML, XML, HML, PDF, or DOCX file.
+#' @param unifyMatrix Logical. If TRUE, matrix cells are unified for better post-processing.
+#' @param unifyStats Logical. If TRUE, output is unified for better post-processing (e.g., "p-value"->"p").
 #' @param expandAbbreviations Logical. If TRUE, detected abbreviations are expanded to label from table caption/footer.
 #' @param superscript2bracket Logical. If TRUE, detected superscript codings are inserted inside parentheses.
-#' @param addDF Logical. If TRUE, detected sample size N in caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom. 
-#' @param standardPcoding Logical. If TRUE, and no other detection of coding is detected, standard coding of p-values is assumed to be * p<.05, ** p<.01 and ***p<.001.
+#' @param addDF Logical. If TRUE, detected sample size N in the caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom. 
+#' @param standardPcoding Logical. If TRUE, and no other detection of coding is detected, standard coding of p-values is assumed to be * p<.05, ** p<.01, and ***p<.001.
 #' @param noSign2p Logical. If TRUE, imputes 'p>maximum of coded p-values' to cells that are not coded to be significant.
 #' @param rotate Logical. If TRUE, matrix content is parsed by column.
 #' @param correctComma Logical. If TRUE and unifyMatrix=TRUE, decimal sign commas are converted to dots. 
 #' @param na.rm Logical. If TRUE, NA cells are set to empty cells.
-#' @param addDescription Logical. If TRUE, table caption and footer are added before the extracted table content for better readability.
-#' @param unlist Logical. If TRUE, output is returned as vector.
-#' @param addTableName Logical. If TRUE and unlist=TRUE, table number is added in front of unlisted text lines.
+#' @param addDescription Logical. If TRUE, the table caption and footer are added before the extracted table content for better readability.
+#' @param unlist Logical. If TRUE, output is returned as a vector.
+#' @param addTableName Logical. If TRUE and unlist=TRUE, the table number is added in front of unlisted text lines.
 #' @importFrom JATSdecoder letter.convert
-#' @return List with parsed tabled content as elements. The text vector in each list element can be further processed with JATSdecoder::standardStats() to extract and structure the statistical standard test results.
+#' @return A list with text vectors of the parsed table content by table. The text vector in each list element can be further processed with JATSdecoder::standardStats() to extract and structure the statistical standard test results.
 #' @export
 
 table2text<-function(x,
@@ -36,7 +36,7 @@ table2text<-function(x,
   
   # preparation/escapes
   if(is.list(x)|is.matrix(x))
-    stop("x must be a vector of HTML tables or a single file path to an HTML, XML, CERMXML, HML, PDF or DOCX file.")
+    stop("x must be a vector of HTML tables, or a single file path to an HTML, XML, HML, PDF, or DOCX file.")
   if(length(x)==0)  return(NULL)
 
   caption<-NULL;footer<-NULL;legend<-list();m<-NULL;file<-FALSE
@@ -47,8 +47,8 @@ table2text<-function(x,
     # get file type
     type<-tolower(gsub(".*\\.([A-z][A-z]*)$","\\1",x))
     # escape
-    if(!is.element(type,c("cermxml","xml","html","hml","pdf","docx"))){
-      stop("Input file format must be either HTML, XML, CERMXML, HML, PDF or DOCX.")
+    if(!is.element(type,c("cermxml","xml","nxml","html","hml","pdf","docx"))){
+      stop("Input file format must be either HTML, XML, HML, PDF, or DOCX.")
     }
     # docx 
     if(is.element(type,c("docx"))){
@@ -71,7 +71,7 @@ table2text<-function(x,
       m<-lapply(x,as.matrix)
     }
     # HTML 
-    if(is.element(type,c("cermxml","xml","html","hml"))){
+    if(is.element(type,c("cermxml","xml","nxml","html","hml"))){
       x<-get.HTML.tables(x)
       
     }
@@ -97,7 +97,7 @@ table2text<-function(x,
   
   }else{
     if(!file.exists(x[1])) 
-      stop("x must be a vector of HTML tables or a single file path to an HTML, XML, CERMXML, HML, PDF or DOCX file.")
+      stop("x must be a vector of HTML tables, or a single file path to an HTML, XML, HML, PDF, or DOCX file.")
   }
   }
   

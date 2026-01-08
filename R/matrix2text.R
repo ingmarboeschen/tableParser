@@ -1,22 +1,22 @@
 #' matrix2text
 #'
-#' Converts character matrix content to a screen reader alike readable character string. The parsing is performed row-wise in standard mode. 
+#' Converts character matrix content to a screen reader-like readable character string. The parsing is performed row-wise in standard mode. 
 #' @param x A character matrix or list of character matrices.
 #' @param legend A list with table legend codes extracted from table caption and/or footer with tableParser::legendCodings(). 
-#' @param unifyMatrix Logical. If TRUE, matrix cells are unified for better post processing.
+#' @param unifyMatrix Logical. If TRUE, matrix cells are unified for better post-processing.
 #' @param correctComma Logical. If TRUE and unifyMatrix=TRUE, decimal sign commas are converted to dots. 
 #' @param na.rm Logical. If TRUE, NA cells are set to empty cells.
-#' @param forceClass character. Set matrix specific handling to one of c("tabled result","correlation","matrix","text").
+#' @param forceClass character. Set matrix-specific handling to one of c("tabled result", "correlation", "matrix", "text").
 #' @param expandAbbreviations Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footer with tableParser::legendCodings().
 #' @param superscript2bracket Logical. If TRUE, detected superscript codings are inserted inside parentheses.
-#' @param addDF Logical. If TRUE, detected sample size N in caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom. 
-#' @param standardPcoding Logical. If TRUE, and no other detection of p-value coding is detected, standard coding of p-values is assumed to be: * p<.05, ** p<.01 and *** p<.001.
+#' @param addDF Logical. If TRUE, detected sample size N in the caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom. 
+#' @param standardPcoding Logical. If TRUE, and no other detection of p-value coding is detected, standard coding of p-values is assumed to be: * p<.05, ** p<.01, and *** p<.001.
 #' @param noSign2p Logical. If TRUE, imputes 'p>maximum of coded p-values' to cells that are not coded to be significant.
 #' @param rotate Logical. If TRUE, matrix content is parsed by column.
-#' @param unlist Logical. If TRUE, output is returned as vector with parsed text fromm all listed matrices, else a list with parsed text from each matrix is returned as list. 
-#' @param addTableName Logical. If TRUE and unlist=TRUE, table number is added in front of unlisted text lines.
-#' @param split Logical. If TRUE, matrix/matrices are split for multi-model tables.
-#' @return Character vector with a parsed and human readable form of the input table. The result vector can be further processed with standardStats() to extract and structure the statistical standard test results only.
+#' @param unlist Logical. If TRUE, output is returned as a vector with parsed text from all listed matrices; else, a list with parsed text from each matrix is returned as a list. 
+#' @param addTableName Logical. If TRUE and unlist=TRUE, the table number is added in front of unlisted text lines.
+#' @param split Logical. If TRUE, multi-model tables are split before being processed.
+#' @return Character vector with a parsed and human-readable form of the input table. The result vector can be further processed with standardStats() to extract and structure the statistical standard test results only.
 #' @examples 
 #' # some random data
 #' x<-rnorm(100)

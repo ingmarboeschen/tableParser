@@ -1,15 +1,18 @@
 #' get.HTML.tables
 #'
-#' Extracts HTML tables as vector of HTML coded tables from plain HTML code, HTML, HML, XML or CERMXML files.
-#' @param x HTML, HML, XML or CERMXML file or character object with HTML-encoded content.
+#' Extracts HTML tables as a vector of HTML-coded tables from plain HTML code, HTML, HML, or XML files. If tables are nested within tables, only the inner tables are extracted.
+#' @param x HTML, HML, or XML file; or character object with HTML-encoded content.
 #' @return Character vector with one HTML-encoded table per cell.
+#' @examples 
+#' x<-readLines("https://en.wikipedia.org/wiki/R_(programming_language)",warn=FALSE)
+#' get.HTML.tables(x)
 #' @export
 
 get.HTML.tables<-function(x){
   # escapes for bad file formats
   if(length(grep("<[A-z][^>]*>.*</[^>]*>",x))==0 & length(x==1))
-    if(file.exists(x) &  !is.element(toupper(gsub(".*\\.([A-z][A-z]*)$","\\1",x)),c("HTML","HML","XML","CERMXML")))
-    stop("File input must be of either HTML, HML, XML or CERMXML format.")
+    if(file.exists(x) &  !is.element(toupper(gsub(".*\\.([A-z][A-z]*)$","\\1",x)),c("HTML","HML","XML","NXML","CERMXML")))
+    stop("File input must be of either HTML, HML, or XML format.")
   
   ## run prechecks then readLines(x) if x is file
   # check if x is of length 0
@@ -35,10 +38,14 @@ get.HTML.tables<-function(x){
     if(sum(grep("</table-wrap[> ]",x))==0){
       # split collapsed lines at <table
       tables<-paste(x,collapse=" ")
+      # split in front of <table>
       tables<-unlist(strsplit2(tables,"<table>|<table [a-z]","before"))
+      # select lines with </table>
+      tables<-grep("</table>|</table [a-z]",tables,value=TRUE)
+      # split behind </table>
       tables<-unlist(strsplit2(tables,"</table>","after"))
       # select lines with <table>
-      tables<-grep("<table>|<table [a-z]|</table>",tables,value=TRUE)
+      tables<-grep("<table>|<table [a-z]",tables,value=TRUE)
     }
     
     # with table wrap

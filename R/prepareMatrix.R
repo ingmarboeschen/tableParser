@@ -2,10 +2,10 @@
 #' 
 #' Prepares character matrix content for parsing.
 #' @param x character matrix
-#' @param split logical. If TRUE multi model matrices are split to a list of single model matrices.
-#' @param forceClass character. Set matrix specific handling to one of c("tabled result","correlation","matrix,"text").
+#' @param split logical. If TRUE, multi-model matrices are split into a list of single-model matrices.
+#' @param forceClass character. Set matrix-specific handling to one of c("tabled result", "correlation", "matrix, "text").
 #' @param na.rm Logical. If TRUE, NA cells are set to empty cells.
-#' @returns character matrix
+#' @returns A character matrix
 #' @export
 
 prepareMatrix<-function(x,split=FALSE,forceClass=NULL,na.rm=TRUE){

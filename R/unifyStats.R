@@ -1,7 +1,7 @@
 #' unifyStats
 #' 
-#' Unifies many textual representations of statistical results in text vectors created with table2text(). This uniformisation is needed for a more precise extraction of standard results with JATSdecoder::standardStats().
-#' @param x A text string with parsed tabled results.
+#' Unifies many textual representations of statistical results in text vectors created with table2text(). This uniformization is needed for a more precise extraction of standard results with the function standardStats() from the JATSdecoder package.
+#' @param x A text vector with the parsed table content.
 #' @importFrom JATSdecoder letter.convert
 #' @returns A unified text string.
 #' @export

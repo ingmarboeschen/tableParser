@@ -1,16 +1,16 @@
 #' table2matrix
 #'
-#' Extracts tables from HTML, HML, XML, CERMXML, DOCX, PDF files or plain HTML code to a list of character matrices.
-#' @param x File path to a DOCX, PDF or HTML-encoded file, or text with HTML code.
-#' @param unifyMatrix Logical. If TRUE, matrix cells are unified for better post processing (see: unifyMatrixContent()).
-#' @param letter.convert Logical. If TRUE hex codes will be unified and converted to Unicode with JATSdecoder::letter.convert().
-#' @param greek2text Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text based form (e.g. 'alpha', 'beta'). 
-#' @param replicate Logical. If TRUE the content of cells with row/col span > 1 are replicated in all connected cells, if FALSE, the value will only be placed to the first of the connected cell.
-#' @param repNums Logical. If TRUE cells with numbers, that have row/col span > 1 are replicated in every connected cell.
-#' @param rm.empty.row.col Logical. If TRUE empty rows/columns are removed from output.
-#' @param rm.html Logical. If TRUE all HTML tags are removed, except <sub> and <sup> , </break> is converted to space.
-#' @param collapseHeader Logical. If TRUE header cells are collapsed for each column if header has 2 or more lines.
-#' @param header2colnames Logical. If TRUE and 'collapseHeader=TRUE' first table row is used for column names and removed from table.
+#' Extracts tables from HTML, HML, XML, DOCX, PDF files, or plain HTML code to a list of character matrices.
+#' @param x File path to a DOCX, PDF, or HTML-encoded file, or text with HTML code.
+#' @param unifyMatrix Logical. If TRUE, matrix cells are unified for better post-processing (see unifyMatrixContent()).
+#' @param letter.convert Logical. If TRUE, hex codes will be unified and converted to Unicode with JATSdecoder::letter.convert().
+#' @param greek2text Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text-based form (e.g.: 'alpha', 'beta'). 
+#' @param replicate Logical. If TRUE, the content of cells with row/col span > 1 is replicated in all connected cells; if FALSE, the value will only be placed in the first of the connected cells.
+#' @param repNums Logical. If TRUE, cells with numbers that have row/col span > 1 are replicated in every connected cell.
+#' @param rm.empty.row.col Logical. If TRUE, empty rows/columns are removed from output.
+#' @param rm.html Logical. If TRUE, all HTML tags are removed, except <sub> and <sup>, and </break> is converted to space.
+#' @param collapseHeader Logical. If TRUE, header cells are collapsed for each column if the header has 2 or more lines.
+#' @param header2colnames Logical. If TRUE and 'collapseHeader=TRUE', the first table row is used for column names and removed from the table.
 #' @examples 
 #' x<-readLines("https://en.wikipedia.org/wiki/R_(programming_language)",warn=FALSE)
 #' table2matrix(x,rm.html=TRUE)
@@ -35,8 +35,8 @@ table2matrix<-function(x,unifyMatrix=FALSE,
   
   # escapes for bad file formats
   if(length(grep("^<table",x))==0 & length(x)==1)
-     if(file.exists(x) &  !is.element(toupper(gsub(".*\\.([A-z][A-z]*)$","\\1",x)),c("HTML","HML","XML","CERMXML","DOCX","PDF")))
-    stop("File input format must be of either DOCX, PDF, HTML, HML, XML or CERMXML format.")
+     if(file.exists(x) &  !is.element(toupper(gsub(".*\\.([A-z][A-z]*)$","\\1",x)),c("HTML","HML","XML","NXML","CERMXML","DOCX","PDF")))
+    stop("File input format must be of either DOCX, PDF, HTML, HML, or XML format.")
   
   # get file type
   type<-tolower(gsub(".*\\.([A-z][A-z]*)$","\\1",x[1]))
@@ -187,7 +187,7 @@ table2matrix<-function(x,unifyMatrix=FALSE,
 # function for single table
 singleTable2matrix<-function(x,letter.convert=TRUE,# Logical. If TRUE hex codes will be unified and converted to utf-8
                              greek2text=FALSE,
-                             replicate=TRUE, # Logical. If TRUE the content of cells with row/col span is replicated in all connected cells, if FALSE disconnected cells will be empty,
+                             replicate=TRUE, # Logical. If TRUE the content of cells with row/col span is replicated in all connected cells; if FALSE disconnected cells will be empty,
                              rm.empty.row.col=TRUE,
                              rm.html=FALSE,
                              collapseHeader=TRUE, # Logical. If TRUE header cells are collapsed for each column if header has 2 or more lines

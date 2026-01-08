@@ -1,12 +1,12 @@
 #' unifyMatrixContent
 #' 
-#' Unifies textual and numerical content of character matrices. Unifies hyphens, spaces, hexadecimal and greek letters and performs space and comma corrections. Big marks in numbers are removed. HTML tags <sup> and <sub> are converted to '^' and '_' respectively. All other HTML tags are removed. 
+#' Unifies textual and numerical content of character matrices. Unifies hyphens, spaces, hexadecimal and Greek letters, and performs space and comma corrections. Big marks in numbers are removed. HTML tags <sup> and <sub> are converted to '^' and '_' respectively. All other HTML tags are removed. 
 #' @param x a character matrix.
-#' @param letter.convert Logical. If TRUE hexadecimal coded letters will be unified and converted to Unicode with JATSdecoder::letter.convert().
-#' @param greek2text Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text based form (e.g. 'alpha', 'beta'). 
+#' @param letter.convert Logical. If TRUE, hexadecimal-coded letters will be unified and converted to Unicode with JATSdecoder::letter.convert().
+#' @param greek2text Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text-based form (e.g., 'alpha', 'beta'). 
 #' @param text2num Logical. If TRUE, textual representations of numbers (words, exponents, fractions) are converted to digit numbers. 
-#' @param correctComma Logical. If TRUE, commas used as numeric separator are converted to dots. 
-#' @param na.rm Logical. If TRUE, NA cells are set to empty cells.
+#' @param correctComma Logical. If TRUE, commas used as numeric separators are converted to dots. 
+#' @param na.rm Logical. If TRUE, cells with NA, or only minus, hyphen, slash, or dot are set to empty cells.
 #' @importFrom JATSdecoder letter.convert
 #' @importFrom JATSdecoder text2num
 #' @export
@@ -107,10 +107,10 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,
     
     ## clean up empty cells
     if(isTRUE(na.rm)){
-      # set only minus or / sign to NA
-      x<-gsub("^ *[\\.-] *$","NA",x)
+      # set only dot, minus, or slash to NA
+      x<-gsub("^ *[\\.-/] *$","NA",x)
       # remove NA
-      x<-gsub("^[:punct:]*[Nn]/*[Aa][:punct:]*$","",x)
+      x<-gsub("^[:punct:]*[Nn][Aa][:punct:]*$","",x)
     }
     # clean up and unify
     x<-gsub("^- ([0-9\\.])","-\\1",x)

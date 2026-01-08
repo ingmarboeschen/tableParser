@@ -1,9 +1,9 @@
 #' tableClass
 #' 
-#' Classifies matrix content to either 'tabled results', 'correlation', 'matrix', 'text', 'vector', 'model with model statistics', 'multi model with model statistics'. 
+#' Classifies matrix content to either 'tabled results', 'correlation', 'matrix', 'text', 'vector', 'model with model statistics', or 'multi model with model statistics'. 
 #' @param x A character matrix
-#' @param legend A text vector with tables caption and/or footer.
-#' @returns A character object of length=1 with the tables class.
+#' @param legend A text vector with the tables caption and/or footer.
+#' @returns A character object of length=1 with the table's class.
 #' @export
 #' 
 tableClass<-function(x,legend=NULL){

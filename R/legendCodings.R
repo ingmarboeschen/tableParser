@@ -1,8 +1,8 @@
 #' legendCodings
 #' 
-#' Extracts the coding of p-values, brackets, abbreviations, superscripts, diagonal content and the reported sample size/s with 'N=number' from tables caption and footer notes/text. 
-#' @param x An HTML coded table or plain textual input of table caption and/or footer text.
-#' @returns A list with detected p-value and superscript codings, abbreviations and reported sample size/s.
+#' Extracts the coding of p-values, brackets, abbreviations, superscripts, diagonal content, and the reported sample size/s with 'N=number' from table captions and footer notes/text. 
+#' @param x An HTML-coded table or plain textual input of table caption and/or footer text.
+#' @returns A list with detected p-value and superscript codings, abbreviations, and reported sample size/s.
 #' @importFrom JATSdecoder grep2
 #' @importFrom JATSdecoder strsplit2
 #' @importFrom JATSdecoder text2num
@@ -810,7 +810,7 @@ get.abbr<-function(text=NULL,footer=NULL){
     if(length(full)==0) abb<-NULL
     
     # remove abb and full from x
-    for(i in abb) x<-gsub(paste0(i,"[,:] "),"",x)
+    for(i in abb) x<-gsub(paste0(specialChars(i),"[,:] "),"",x)
     for(i in full){ 
       x<-gsub(specialChars(i),"",x)
     }
@@ -839,8 +839,8 @@ get.abbr<-function(text=NULL,footer=NULL){
     if(length(abb)==0) full<-NULL
     if(length(full)==0) abb<-NULL
     # remove abb and full
-    for(i in abb) x<-gsub(paste0(i," *[=] "),"",x)
-    #for(i in full) x<-gsub(paste0(i,"[,:] "),"",x)
+    for(i in abb) x<-gsub(paste0(specialChars(i)," *[=] "),"",x)
+    #for(i in full) x<-gsub(paste0(specialChars(i),"[,:] "),"",x)
   }
 
   
@@ -947,8 +947,8 @@ get.abbr<-function(text=NULL,footer=NULL){
     if(length(abb)==0) full<-NULL
     if(length(full)==0) abb<-NULL
     # remove abb and full from input
-    for(i in abb) x<-gsub(paste0(i," *[=,] "),"",x)
-    #for(i in full) x<-gsub(paste0(i,"[,:] "),"",x)
+    for(i in abb) x<-gsub(paste0(specialChars(i)," *[=,] "),"",x)
+    #for(i in full) x<-gsub(paste0(specialChars(i),"[,:] "),"",x)
   }
   
   

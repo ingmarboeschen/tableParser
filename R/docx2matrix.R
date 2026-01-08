@@ -1,6 +1,6 @@
 #' docx2matrix
 #'
-#' Extracts tables from DOCX documents and returns list of character matrices.
+#' Extracts tables from DOCX documents and returns a list of character matrices.
 #' @param x File path to a DOCX input file with tables.
 #' @param replicate Logical. If TRUE, replicates content when splitting connected cells.
 #' @return List with extracted tables as character matrices.

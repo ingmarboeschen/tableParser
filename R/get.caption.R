@@ -1,10 +1,10 @@
 #' get.caption
 #' 
-#' Extracts the content of <caption>-tag/s.
-#' @param x A vector with HTML coded tables.
-#' @param rm.html logical. If TRUE, all HTML tags are removed, <sub> converts to '_', <sup> to '^'.
+#' Extracts the content of HTML <caption>-tags.
+#' @param x A vector with HTML-coded tables.
+#' @param rm.html logical. If TRUE, all HTML tags are removed, <sub> converts to '_', and <sup> to '^'.
 #' @param sentences logical. If TRUE, a sentence vector is returned.
-#' @param letter.convert logical. If TRUE, hexadecimal letters are converted to Unicode und unified with JATSdecoder::letter.convert.
+#' @param letter.convert logical. If TRUE, hexadecimal letters are converted to Unicode and unified with JATSdecoder::letter.convert.
 #' @returns A character vector with the extracted caption text and NULL for no caption text 
 #' @importFrom JATSdecoder strsplit2
 #' @importFrom JATSdecoder text2sentences

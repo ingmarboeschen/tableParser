@@ -1,8 +1,8 @@
 #' guessCaptionFooterDOCX
-#' Extracts text blocks around tables within docx files, in order to return the tables caption/footer.
+#' Extracts text blocks around tables within DOCX files in order to return the tables caption/footer.
 #' @param x character. A file path to a DOCX file.
-#' @param MaxCaptionLength numeric. The maximum number of sentences within a text block, that shall be treated as caption. Text blocks that contain more sentences than this threshold are not extracted at all.
-#' @param MaxFooterLength numeric. The maximum number of sentences within a text block, that shall be treated as footer. Text blocks that contain more sentences than this threshold are not extracted at all.
+#' @param MaxCaptionLength numeric. The maximum number of sentences within a text block that shall be treated as a caption. Text blocks that contain more sentences than this threshold are not extracted at all.
+#' @param MaxFooterLength numeric. The maximum number of sentences within a text block that shall be treated as a footer. Text blocks that contain more sentences than this threshold are not extracted at all.
 #' @return A list with the extracted table captions and footers as vectors of length=number of tables.
 #' @importFrom JATSdecoder strsplit2
 #' @importFrom JATSdecoder text2sentences

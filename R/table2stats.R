@@ -1,8 +1,8 @@
 #' table2stats
 #' 
-#' Extracts tabulated statistical results from documents in XML, HTML, HML, DOCX or PDF format.
-#' @param x Input. Either a file path to an XML, HTML, HML, DOCX or PDF file or matrix object or vector of plain HTML coded tables.
-#' @param standardPcoding Logical. If TRUE, and no other detection of coding is detected, then standard coding of p-values is assumed to be * p<.05, ** p<.01 and ***p<.001.
+#' Extracts tabulated statistical results from documents in XML, HTML, HML, DOCX, or PDF format.
+#' @param x Input. Either a file path to an XML, HTML, HML, DOCX, or PDF file; or a matrix object; or a vector of plain HTML-coded tables.
+#' @param standardPcoding Logical. If TRUE, and no other detection of coding is detected, then standard coding of p-values is assumed to be * p<.05, ** p<.01, and ***p<.001.
 #' @param noSign2p Logical. If TRUE, imputes 'p>maximum of coded p-values' to cells that are not coded to be significant.
 #' @param correctComma Logical. If TRUE, decimal sign commas are converted to dots. 
 #' @param rotate Logical. If TRUE, matrix content is parsed by column.
@@ -12,13 +12,13 @@
 #' @param checkP Logical. If TRUE, detected p-values and recalculated p-values will be checked for consistency.
 #' @param alpha Numeric. Defines the alpha level to be used for error assignment.
 #' @param criticalDif Numeric. Sets the absolute maximum difference in reported and recalculated p-values for error detection.
-#' @param alternative Character. Select test sidedness for recomputation of p-values from t-, r- and beta-values. One of c("undirected", "directed"). If "directed" is specified, p-values for directed null-hypothesis are added to the table but still require a manual inspection on consistency of the direction.
-#' @param estimateZ Logical. If TRUE, detected beta-/d-values are divided by the reported standard error "SE" to estimate Z-values ("Zest") for observed beta/d and computation of p-values. Note: This is only valid, if Gauss-Marcov assumptions are met and a sufficiently large sample size is used. If a Z- or t-value is detected in a report of a beta-/d-coefficient with SE, no estimation will be performed, although set to TRUE.
-#' @param T2t Logical. If TRUE, capital letter T is treated as t-statistic.
-#' @param addDF Logical. If TRUE, detected sample size N in caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom. 
+#' @param alternative Character. Select test sidedness for recomputation of p-values from t-, r-, and beta-values. One of c("undirected", "directed"). If "directed" is specified, p-values for directed null hypotheses are added to the table but still require a manual inspection of the consistency of the direction.
+#' @param estimateZ Logical. If TRUE, detected beta-/d-values are divided by the reported standard error "SE" to estimate Z-values ("Zest") for observed beta/d and computation of p-values. Note: This is only valid if Gauss-Markov assumptions are met and a sufficiently large sample size is used. If a Z- or t-value is detected in a report of a beta-/d-coefficient with SE, no estimation will be performed, although set to TRUE.
+#' @param T2t Logical. If TRUE, capital letter T is treated as a t-statistic.
+#' @param addDF Logical. If TRUE, detected sample size N in the caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom. 
 #' @param rm.na.col Logical. If TRUE, removes all columns with only NA.
-#' @param collapse Logical. If TRUE, the result is collapsed to a single data.frame object. Else, a list of data.frames with length = n matrices is returned.
-#' @param addTableName Logical. If TRUE, table number is added in front of the eaxtracted results. 
+#' @param collapse Logical. If TRUE, the result is collapsed to a single data frame object. Else, a list of data frames with length = n matrices is returned.
+#' @param addTableName Logical. If TRUE, the table number is added in front of the extracted results. 
 #' @importFrom tabulapdf extract_tables
 #' @importFrom JATSdecoder letter.convert
 #' @importFrom JATSdecoder standardStats
@@ -59,12 +59,12 @@ table2stats<-function(x,
     type<-tolower(gsub(".*\\.([A-z][A-z]*)$","\\1",x))
     
     # escape
-    if(!is.element(type,c("cermxml","xml","html","hml","pdf","docx"))){
-      stop("Input file format must be either HTML, XML, CERMXML, HML, PDF or DOCX.")
+    if(!is.element(type,c("cermxml","nxml","xml","html","hml","pdf","docx"))){
+      stop("Input file format must be either HTML, XML, HML, PDF, or DOCX.")
     }  
   
   # HTML 
-    if(is.element(type,c("cermxml","xml","html","hml"))){
+    if(is.element(type,c("cermxml","nxml","xml","html","hml"))){
       tabs<-get.HTML.tables(x)
       
       text<-uniqueWarnings(table2text(tabs,unifyMatrix=TRUE,na.rm=TRUE,
@@ -211,7 +211,7 @@ table2stats<-function(x,
                        T2t=T2t,
                        rm.na.col=rm.na.col)
 #  return(list(parsedStats=raw,standardStats=stats))
-  # remove lines with only beta or d values
+  # remove lines with only beta, or d values
   if(length(stats)>0){
     if(sum(!is.na(stats$beta))>0){
       beta<-!is.na(stats$beta)
