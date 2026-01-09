@@ -38,7 +38,8 @@ table2text(paste0(tempdir(),"/","tableExamples.docx"))
 table2text(paste0(tempdir(),"/","tableExamples.html"))
 table2text(paste0(tempdir(),"/","tableExamples.pdf"))
 
-## Extract the detected statistical standard results and validate the reported and coded p-values with the recaluclated p-values
+## Extract the detected statistical standard results and validate the reported and coded p-values
+#ä with the recaluclated p-values
 table2stats(paste0(tempdir(),"/","tableExamples.docx"),check=TRUE,estimateZ=T)
 table2stats(paste0(tempdir(),"/","tableExamples.html"),check=TRUE,estimateZ=T)
 table2stats(paste0(tempdir(),"/","tableExamples.pdf"),check=TRUE,estimateZ=T,standardPcoding=TRUE)
