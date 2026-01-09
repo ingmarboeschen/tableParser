@@ -29,7 +29,9 @@ download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main
 table2matrix(paste0(tempdir(),"/","tableExamples.docx"))
 table2matrix(paste0(tempdir(),"/","tableExamples.html"),rm.html=TRUE)
 table2matrix(paste0(tempdir(),"/","tableExamples.pdf"))
-# Note: The extraction of tables with tablulapdf does not work properly here. Also, the table's caption and footnotes cannot be used for decoding (e.g., p-values). This affects all further processes and results.
+# Note: The extraction of tables with the tablulapdf package does not work properly here.
+# Also, the table's caption and footnotes cannot be used for decoding (e.g., p-values).
+# This affects all further processes and results.
 
 ## Parse tabled content from example files
 table2text(paste0(tempdir(),"/","tableExamples.docx"))
