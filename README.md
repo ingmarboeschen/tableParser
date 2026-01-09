@@ -17,28 +17,26 @@ devtools::install_github("ingmarboeschen/tableParser")
 ## Examples
 ```R
 library(tableParser)
-## Download example files with tables from this repo
-download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.docx","tableExamples.docx")
-download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.html","tableExamples.html")
-download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.pdf","tableExamples.pdf")
+## Download example files with tables from this repo to temp directory 
+download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.docx",paste0(tempdir(),"/","tableExamples.docx"))
+download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.html",paste0(tempdir(),"/","tableExamples.html"))
+download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.pdf",paste0(tempdir(),"/","tableExamples.pdf"))
 
 # extract tables from HTML, HML, DOCX, PDF documents
-table2matrix("tableExamples.docx")
-table2matrix("tableExamples.html",rm.html=TRUE)
-table2matrix("tableExamples.pdf")
+table2matrix(paste0(tempdir(),"/","tableExamples.docx"))
+table2matrix(paste0(tempdir(),"/","tableExamples.html"),rm.html=TRUE)
+table2matrix(paste0(tempdir(),"/","tableExamples.pdf"))
+# Note: The extraction of tables with tablulapdf does not work properly. Also the table's caption and footnotes cannot be used for decoding. This affects all further processing.
 
 # parse tabled content in HTML, HML, DOCX, PDF documents to text vector 
-table2text("tableExamples.docx")
-table2text("tableExamples.html")
-table2text("tableExamples.pdf")
+table2text(paste0(tempdir(),"/","tableExamples.docx"))
+table2text(paste0(tempdir(),"/","tableExamples.html"))
+table2text(paste0(tempdir(),"/","tableExamples.pdf"))
 
 # extract and check statistical standard results
-table2stats("tableExamples.docx",check=TRUE,estimateZ=T)
-table2stats("tableExamples.html",check=TRUE,estimateZ=T)
-table2stats("tableExamples.pdf",check=TRUE,estimateZ=T)
-
-# activate next line to remove downloaded files
-# file.remove("tableExamples.docx"); file.remove("tableExamples.html") file.remove("tableExamples.pdf")
+table2stats(paste0(tempdir(),"/","tableExamples.docx"),check=TRUE,estimateZ=T)
+table2stats(paste0(tempdir(),"/","tableExamples.html"),check=TRUE,estimateZ=T)
+table2stats(paste0(tempdir(),"/","tableExamples.pdf"),check=TRUE,estimateZ=T,standardPcoding=TRUE)
  
 ```
 
