@@ -22,18 +22,18 @@ download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main
 download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.html",paste0(tempdir(),"/","tableExamples.html"))
 download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.pdf",paste0(tempdir(),"/","tableExamples.pdf"))
 
-# extract tables from HTML, HML, DOCX, PDF documents
+# extract tables from example files
 table2matrix(paste0(tempdir(),"/","tableExamples.docx"))
 table2matrix(paste0(tempdir(),"/","tableExamples.html"),rm.html=TRUE)
 table2matrix(paste0(tempdir(),"/","tableExamples.pdf"))
-# Note: The extraction of tables with tablulapdf does not work properly. Also the table's caption and footnotes cannot be used for decoding. This affects all further processing.
+# Note: The extraction of tables with tablulapdf does not work properly here. Also, the table's caption and footnotes cannot be used for decoding (e.g., p-values). This affects all further processes and results.
 
-# parse tabled content in HTML, HML, DOCX, PDF documents to text vector 
+# parse tabled content from example files
 table2text(paste0(tempdir(),"/","tableExamples.docx"))
 table2text(paste0(tempdir(),"/","tableExamples.html"))
 table2text(paste0(tempdir(),"/","tableExamples.pdf"))
 
-# extract and check statistical standard results
+# extract and check the detected statistical standard results
 table2stats(paste0(tempdir(),"/","tableExamples.docx"),check=TRUE,estimateZ=T)
 table2stats(paste0(tempdir(),"/","tableExamples.html"),check=TRUE,estimateZ=T)
 table2stats(paste0(tempdir(),"/","tableExamples.pdf"),check=TRUE,estimateZ=T,standardPcoding=TRUE)
