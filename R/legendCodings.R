@@ -1,7 +1,7 @@
 #' legendCodings
 #' 
-#' Extracts the coding of p-values, brackets, abbreviations, superscripts, diagonal content, and the reported sample size/s with 'N=number' from table captions and footer notes/text. 
-#' @param x An HTML-coded table or plain textual input of table caption and/or footer text.
+#' Extracts the coding of p-values, brackets, abbreviations, superscripts, diagonal content, and the reported sample size/s with 'N=number' from table captions and footnote text. 
+#' @param x An HTML-coded table or plain textual input of table caption and/or footnote text.
 #' @returns A list with detected p-value and superscript codings, abbreviations, and reported sample size/s.
 #' @importFrom JATSdecoder grep2
 #' @importFrom JATSdecoder strsplit2
@@ -20,7 +20,7 @@ legendCodings<-function(x){
   if(length(x)==0|is.matrix(x)) return(NULL)
   if(is.list(x)) x<-unlist(x)
   cap<-NULL;foot<-NULL
-  if(length(grep("^<table",x))==0) x<-text2sentences(x)
+  if(length(grep("^<table",x))==0) x<-JATSdecoder::text2sentences(x)
   # get caption and footer if input is html table
   if(length(grep("^<table",x))>0){
     cap<-get.caption(x,sentences=TRUE)
@@ -28,7 +28,8 @@ legendCodings<-function(x){
     x<-c(foot,cap)
   }
   if(length(x)==0) return(NULL)
-  #x<-gsub("\\.([[:punct:]])",". \\1",x)
+  # remove \n
+  x<-gsub(" *\\n *"," ",x)
   
   out<-c(
     get.pCodes(x),
@@ -78,9 +79,9 @@ get.sup<-function(x){
   x<-gsub("\\^\\(*([A-z])\\) *([A-z])","^\\1 \\2",x)
   # get superscript and label
   if(length(grep("\\^1$|\\^1[^0-9]",x))==0) 
-    sup<-grep("\\^[^0-9]",unlist(strsplit2(x,"\\^[^0-9]","before")),value=T)
+    sup<-grep("\\^[^0-9]",unlist(JATSdecoder::strsplit2(x,"\\^[^0-9]","before")),value=T)
   if(length(grep("\\^1$|\\^1[^0-9]",x))>0) 
-    sup<-grep("\\^[^ ]",unlist(strsplit2(x,"\\^[^ ]","before")),value=T)
+    sup<-grep("\\^[^ ]",unlist(JATSdecoder::strsplit2(x,"\\^[^ ]","before")),value=T)
   label<-gsub("^ |\\. *$","",gsub(".*\\^[^ ]*|.*\\^[A-z][A-z]* ","",sup))
   label<-gsub("^\\**","",label)
   #remove text behind opening bracket if has no closing bracket
@@ -101,7 +102,7 @@ get.sup<-function(x){
   label<-label[i]
   sup<-sup[i]
   
-  i<-grep("[Ss]ign.* 0*\\.[10][105]*[01]*|\\.[10][105]*[01]*.*level|level.*\\.[10][105]*[01]*",text2num(label),invert=TRUE)
+  i<-grep("[Ss]ign.* 0*\\.[10][105]*[01]*|\\.[10][105]*[01]*.*level|level.*\\.[10][105]*[01]*",JATSdecoder::text2num(label),invert=TRUE)
   label<-label[i]
   sup<-sup[i]
   
@@ -165,7 +166,7 @@ get.pCodes<-function(x){
   x<-gsub("([0-9])(, [0-9][.0-9]*%)","\\1%\\2",x)
   x<-gsub("([0-9])(, [0-9][.0-9]*%)","\\1%\\2",x)
   # unify numbers
-  x<-text2num(x)
+  x<-JATSdecoder::text2num(x)
   # remove space between operators
   x<-gsub("([<=>]) ([<=>])","\\1\\2",x)
   x<-gsub(" *([<=>][<=>]*) *","\\1",x)
@@ -221,7 +222,7 @@ get.pCodes<-function(x){
   x<-gsub("([0-9])(-[0-9])","\\1*10^\\2",x)
   
   # unify numbers
-  x<-text2num(x,percentage=FALSE)
+  x<-JATSdecoder::text2num(x,percentage=FALSE)
   x
   # remove sign behind "*" or dagger if is followed by "p<"
   x<-gsub("(\\*)[^\\*]( *p[<=>])","\\1\\2",x)
@@ -248,7 +249,7 @@ get.pCodes<-function(x){
   
   
   # add "p<" in lines with "signific" and "level" and "number" without "p<=>"
-  i<-grep2(c("[sS]ignific","level","\\.[0-9]"),x,value=FALSE)
+  i<-JATSdecoder::grep2(c("[sS]ignific","level","\\.[0-9]"),x,value=FALSE)
   j<-grep("[pP] *[<=>][<=>]* *[\\.0]",x,invert=TRUE)
   i<-i[is.element(i,j)]
   x[i]<-gsub("  *"," ",gsub("(0*\\.[0-9][0-9]*)"," p<\\1",x[i]))
@@ -261,7 +262,7 @@ get.pCodes<-function(x){
   x[i]<-gsub("[,;]( p[<=>])","\\1",x[i])
   
   # clean up in lines with stars and p-values
-  #i<-grep2(c("signific","level","\\.[0-9]"),x,value=FALSE)
+  #i<-JATSdecoder::grep2(c("signific","level","\\.[0-9]"),x,value=FALSE)
   #stars<-gsub("[^\\*]*(\\*\\**)[^\\*]*","\\1",x[i])
   #stars
   #values<-gsub(".*(p[<=>][<=>]*[0\\.][0-9\\.]*)[^0-9]*.*","\\1",x[i])
@@ -270,7 +271,7 @@ get.pCodes<-function(x){
   
   # add p-value in lines with "significant at"
   x<-gsub(" the "," ",x)
-  i<-grep2(c("[Ss]ignific[a-z]* [ao][tf] [^pP]","\\.[0-9]"),x,value=FALSE)
+  i<-JATSdecoder::grep2(c("[Ss]ignific[a-z]* [ao][tf] [^pP]","\\.[0-9]"),x,value=FALSE)
   x[i]<-gsub("[Ss]ignific[a-z]* [ao][tf][^0-9\\.pP]*([0-9\\.][0-9\\.]*)[^0-9]*","p<\\1",x[i])
   x
   
@@ -294,7 +295,7 @@ get.pCodes<-function(x){
   # escape
   if(length(pCodes)==0) return(list(psign=NULL,pval=NULL))
   # split sentences
-  pCodes <- unlist(strsplit(pCodes,"[,;\\.] | and ",pCodes))
+  pCodes <- unlist(strsplit(pCodes,"[,;\\.] | and "))
   pCodes <- grep(pattern,pCodes,value=TRUE)
   
   ###########################################
@@ -308,8 +309,6 @@ get.pCodes<-function(x){
   pCodes <- gsub("[\\.\\)\"]*$","",pCodes)
   
   pCodes <- grep(pattern,pCodes,value=TRUE)
-  
-  pCodes
   
   # escape
   if(length(pCodes)==0) return(list(psign=NULL,pval=NULL))
@@ -486,7 +485,7 @@ get.N<-function(x){
   # remove brackets
   x<-gsub("[\\(\\)]|\\[|\\]","",x)
   
-  x<-unlist(strsplit2(x," [Nn]=",type="before"))
+  x<-unlist(JATSdecoder::strsplit2(x," [Nn]=",type="before"))
   x<-gsub("^[[:punct:]]*([Nn]=)","\\1",x)
   # select lines
   x<-grep("[^a-z][Nn]=[1-9]|^[Nn]=[1-9]",x,value=TRUE)
@@ -517,7 +516,7 @@ get.HTMLcodes<-function(x){
   # remove brackets
   x<-gsub("\\(\\)","",x)
   # text 2 number
-  x<-text2num(x)
+  x<-JATSdecoder::text2num(x)
   # alpha-level to p-value in lines with 
   i<-grep("level.*signific|[Ss]ignif.*level",x)
   x[i]<-gsub("\u03B1 *= *|\u1D6FC *= *|&#945 *= *","p<",x[i])
@@ -556,7 +555,7 @@ get.HTMLcodes<-function(x){
   if(length(x)==0) return(list(boldP=boldP,italicP=italicP))
   
   # unify numbers
-  x<-text2num(x, percentage=FALSE)
+  x<-JATSdecoder::text2num(x, percentage=FALSE)
   
   # extract p-values
   bold<-grep("p[<=>][<=>]* *0*\\.[0-9]",grep("[Bb]old",x,value=TRUE),value=TRUE)
@@ -583,7 +582,7 @@ get.bracketCodes<-function(x){
   ## extract lines with parentheses and brackets 
   paren <- grep("[Pp]arenthe",x,value=TRUE)
   brack <- grep("[Bb]racket",x,value=TRUE)
-  x<-letter.convert(x,greek2text=TRUE)
+  x<-JATSdecoder::letter.convert(x,greek2text=TRUE)
   
   # and reduce to targeted terms to extract
   patterns<-"HDI|SD|SE|CI|[eE]rror|[dD]eviation|[iI]nterval|[pP]ercent|[Vv]alue|[Ss]tatistic|[Cc]ronbach'*s* alpha|consisten"
@@ -675,7 +674,7 @@ get.CronbachAlpha<-function(x){
   x<-unlist(strsplit(x,"[;,] | and |\\. "))
   # select lines with diagonal
   x<-grep("[Cc]ronbach",x,value=TRUE)
-  x<-letter.convert(x,greek2text=TRUE)
+  x<-JATSdecoder::letter.convert(x,greek2text=TRUE)
   x<-grep("[Aa]lpha|[iI]ntern.*consisten|[Rr]eliabili",x,value=TRUE)
   
   alpha<-NULL
@@ -695,7 +694,7 @@ get.diagonal<-function(x){
   # escape
   if(length(x)==0) return(list(diagonal=NULL))
 
-  x<-letter.convert(x,greek2text=TRUE)
+  x<-JATSdecoder::letter.convert(x,greek2text=TRUE)
   
   alpha<-NULL;omega<-NULL;AVE<-NULL;SD<-NULL;M<-NULL;accuracy<-NULL;CI<-NULL;out<-NULL  
   
@@ -742,7 +741,7 @@ get.abbr<-function(text=NULL,footer=NULL){
   # split at sentences
   x<-unlist(strsplit(x,"\\. |\\n"))
   
-  x<-gsub("^[,;] and ","",unlist(strsplit2(x,"[,;] and ",type="before")))
+  x<-gsub("^[,;] and ","",unlist(JATSdecoder::strsplit2(x,"[,;] and ",type="before")))
   # remove space around -
   x<-gsub(" *- *","-",x)
   # ", and " to
@@ -758,13 +757,13 @@ get.abbr<-function(text=NULL,footer=NULL){
   x<-grep("[A-Z][-a-z_0-9]*[A-Z]|[A-Z][-0-9A-Z_]|[A-Z][a-z]*\\.[,;:=] ",x,value=TRUE)
   x
   # split at "and" after abbreviation 
-  x<-gsub(" and $","",unlist(strsplit2(x,"[A-Z][-0-9A-Z_] and ",type="after")))
+  x<-gsub(" and $","",unlist(JATSdecoder::strsplit2(x,"[A-Z][-0-9A-Z_] and ",type="after")))
   
   # escape
   if(length(x)==0) return(list(abbreviation=NULL,label=NULL))
   
   # unify letters
-  x<-letter.convert(x)
+  x<-JATSdecoder::letter.convert(x)
   # remove dot at end
   x<-gsub("\\.$","",x)
   # remove citations

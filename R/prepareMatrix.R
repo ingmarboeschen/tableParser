@@ -1,11 +1,20 @@
 #' prepareMatrix
 #' 
-#' Prepares character matrix content for parsing.
+#' Prepares character matrix content for parsing. Removes empty rows and columns, extends content from plausible grouping cells to sparse cells, collapses multiple header rows, and splits multiple model tables to a list of single model tables.
 #' @param x character matrix
 #' @param split logical. If TRUE, multi-model matrices are split into a list of single-model matrices.
 #' @param forceClass character. Set matrix-specific handling to one of c("tabled result", "correlation", "matrix, "text").
 #' @param na.rm Logical. If TRUE, NA cells are set to empty cells.
 #' @returns A character matrix
+#' @examples
+#' # example matrix
+#' x<-cbind(c("","","name","","",""), 
+#'          c("group","name","A","B","","C"), 
+#'          c("value","","1","2","","3"))
+#' x
+#' 
+#' # apply function
+#' prepareMatrix(x)
 #' @export
 
 prepareMatrix<-function(x,split=FALSE,forceClass=NULL,na.rm=TRUE){

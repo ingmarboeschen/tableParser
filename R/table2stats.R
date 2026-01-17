@@ -15,10 +15,37 @@
 #' @param alternative Character. Select test sidedness for recomputation of p-values from t-, r-, and beta-values. One of c("undirected", "directed"). If "directed" is specified, p-values for directed null hypotheses are added to the table but still require a manual inspection of the consistency of the direction.
 #' @param estimateZ Logical. If TRUE, detected beta-/d-values are divided by the reported standard error "SE" to estimate Z-values ("Zest") for observed beta/d and computation of p-values. Note: This is only valid if Gauss-Markov assumptions are met and a sufficiently large sample size is used. If a Z- or t-value is detected in a report of a beta-/d-coefficient with SE, no estimation will be performed, although set to TRUE.
 #' @param T2t Logical. If TRUE, capital letter T is treated as a t-statistic.
-#' @param addDF Logical. If TRUE, detected sample size N in the caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom. 
+#' @param dfHandling Logical. If TRUE, detected sample size N in the caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom. 
 #' @param rm.na.col Logical. If TRUE, removes all columns with only NA.
 #' @param collapse Logical. If TRUE, the result is collapsed to a single data frame object. Else, a list of data frames with length = n matrices is returned.
 #' @param addTableName Logical. If TRUE, the table number is added in front of the extracted results. 
+#' @examples 
+#' ## - Download example DOCX file
+#' d<-'https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.docx'
+#' download.file(d,paste0(tempdir(),"/","tableExamples.docx"))
+#' 
+#' # Extract the detected statistical standard results and validate the reported and coded 
+#' # p-values with the recalculated p-values.
+#' table2stats(paste0(tempdir(),"/","tableExamples.docx"), checkP=TRUE, estimateZ=TRUE)
+#' 
+#' ## - Download example HTML file
+#' h<-'https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.html'
+#' download.file(h,paste0(tempdir(),"/","tableExamples.html"))
+
+#' # Extract the detected statistical standard results and validate the reported and coded 
+#' # p-values with the recalculated p-values.
+#' table2stats(paste0(tempdir(),"/","tableExamples.html"), checkP=TRUE, estimateZ=TRUE)
+
+#' # - Download example PDF file
+#' \donttest{
+#' p<-'https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.pdf'
+#' download.file(p,paste0(tempdir(),"/","tableExamples.pdf"))
+#' 
+#' # Extract the detected statistical standard results and validate the reported and  
+#' # standard coded as well as not coded p-values with the recalculated p-values.
+#' table2stats(paste0(tempdir(),"/","tableExamples.pdf"), checkP=TRUE, estimateZ=TRUE, 
+#' standardPcoding=TRUE, noSign2p=FALSE)
+#' }
 #' @importFrom tabulapdf extract_tables
 #' @importFrom JATSdecoder letter.convert
 #' @importFrom JATSdecoder standardStats
@@ -40,7 +67,7 @@ table2stats<-function(x,
                       alternative="undirected",
                       estimateZ=FALSE,
                       T2t=FALSE,
-                      addDF=TRUE,
+                      dfHandling=TRUE,
                       collapse=TRUE,
                       addTableName=FALSE,
                       rm.na.col=TRUE
@@ -50,94 +77,17 @@ table2stats<-function(x,
   if(!is.element(stats.mode,c("all", "checkable", "computable", "uncomputable"))) stop('Argument "stats.mode" must be either "all", "checkable", "computable", or "uncomputable".')
   if(!is.element(alternative,c("undirected", "directed"))) stop('Argument "alternative" must be either "undirected", or "directed".')
   # prepare objects
-  raw<-NULL;stats<-NULL;type<-NULL;legend<-list()
+  raw<-NULL;stats<-NULL;type<-NULL
   if(length(x)==0) return(NULL)
-  # if x is one file
-  if(!is.matrix(x)&!is.list(x))
-    if(length(x)==1 & sum(file.exists(x[1]))>0){
-    # get file type
-    type<-tolower(gsub(".*\\.([A-z][A-z]*)$","\\1",x))
-    
-    # escape
-    if(!is.element(type,c("cermxml","nxml","xml","html","hml","pdf","docx"))){
-      stop("Input file format must be either HTML, XML, HML, PDF, or DOCX.")
-    }  
   
-  # HTML 
-    if(is.element(type,c("cermxml","nxml","xml","html","hml"))){
-      tabs<-get.HTML.tables(x)
-      
-      text<-uniqueWarnings(table2text(tabs,unifyMatrix=TRUE,na.rm=TRUE,
-                       expandAbbreviations=expandAbbreviations,correctComma=correctComma,
-                       superscript2bracket=superscript2bracket,rotate=rotate,noSign2p=noSign2p,
-                       standardPcoding=standardPcoding,addDescription=FALSE,addDF=addDF))
-    }
-
-    # PDF 
-      if(type=="pdf"){
-        tabs<-tabulapdf::extract_tables(x,output="matrix")
-        tabs<-lapply(tabs,as.matrix)
-        text<-uniqueWarnings(lapply(tabs,matrix2text,
-                     unifyMatrix=TRUE,noSign2p=noSign2p,na.rm=TRUE,
-                     expandAbbreviations=expandAbbreviations,correctComma=correctComma,
-                     superscript2bracket=superscript2bracket,
-                     standardPcoding=standardPcoding,rotate=rotate,unlist=TRUE,addTableName=FALSE,addDF=addDF))
-      }
-  # DOCX 
-      if(type=="docx"){
-
-        text<-uniqueWarnings(table2text(x,unifyMatrix=TRUE,na.rm=TRUE,
-                         expandAbbreviations=expandAbbreviations,correctComma=correctComma,
-                         superscript2bracket=superscript2bracket,rotate=rotate,noSign2p=noSign2p,
-                         standardPcoding=standardPcoding,addDescription=FALSE,addDF=addDF))
-        # or
-        #tabs<-docx2matrix(x,replicate=TRUE)
-        # text<-lapply(tabs,matrix2text,
-      #               unifyMatrix=TRUE,noSign2p=noSign2p,
-      #               expandAbbreviations=expandAbbreviations,correctComma=correctComma,
-      #               superscript2bracket=superscript2bracket,
-      #               standardPcoding=standardPcoding,rotate=rotate,
-      #               unlist=TRUE,addTableName=FALSE)
-      }
-  }# end if(file.exist)
+  ### convert tables to text
+  text<-uniqueWarnings(table2text(x, decodeP=TRUE,noSign2p=noSign2p,na.rm=TRUE,
+                              unifyMatrix=TRUE,correctComma=correctComma,
+                              expandAbbreviations=expandAbbreviations,
+                              superscript2bracket=superscript2bracket,bracketHandling=TRUE,
+                              standardPcoding=standardPcoding,rotate=rotate,
+                              unlist=TRUE,addTableName=FALSE,dfHandling=dfHandling,addDescription=FALSE))
   
-  #######################
-  ## if x is not a file
-  if(is.null(type)){  
-    # for lists
-    if(is.list(x)){
-       if(is.matrix(x[[1]])) text<-uniqueWarnings(lapply(x,matrix2text, noSign2p=noSign2p,na.rm=TRUE,
-                                          unifyMatrix=TRUE,correctComma=correctComma,
-                                          expandAbbreviations=expandAbbreviations,
-                                          superscript2bracket=superscript2bracket,
-                                          standardPcoding=standardPcoding,rotate=rotate,
-                                          unlist=TRUE,addTableName=FALSE,addDF=addDF))
-       if(is.vector(x[[1]])){
-         tabs<-get.HTML.tables(unlist(x))
-         text<-uniqueWarnings(table2text(tabs,
-                          unifyMatrix=TRUE,noSign2p=noSign2p,na.rm=TRUE,
-                          expandAbbreviations=expandAbbreviations,correctComma=correctComma,
-                          superscript2bracket=superscript2bracket,rotate=rotate,
-                          standardPcoding=standardPcoding,addDescription=FALSE,addDF=addDF))
-       }
-    } 
-    # for matrices
-    if(is.matrix(x)) text<-uniqueWarnings(matrix2text(x,
-                                       unifyMatrix=TRUE,noSign2p=noSign2p,na.rm=TRUE,
-                                       expandAbbreviations=expandAbbreviations,correctComma=correctComma,
-                                       superscript2bracket=superscript2bracket,rotate=rotate,
-                                       standardPcoding=standardPcoding,addDF=addDF))
-    # vector with HTML tables
-    if(is.vector(x)&!is.matrix(x)&!is.list(x)){
-      tabs<-get.HTML.tables(x)
-      text<-uniqueWarnings(table2text(tabs,
-                       unifyMatrix=TRUE,noSign2p=noSign2p,na.rm=TRUE,
-                       expandAbbreviations=expandAbbreviations,correctComma=correctComma,
-                       superscript2bracket=superscript2bracket,rotate=rotate,
-                       standardPcoding=standardPcoding,addDescription=FALSE,addDF=addDF))
-    }
-  } # end if is no file
-
   # name the output
   if(length(text)>0&is.list(text)) names(text)<-paste("Unified standard stats in Table",1:length(text))
   # add table name to result text
@@ -147,7 +97,8 @@ table2stats<-function(x,
   }
   
   
-###########  
+  ########### 
+  ## extract statistics
   fun<-function(text){
   # get copy with results for output
   raw<-unname(unlist(text))
@@ -171,11 +122,11 @@ table2stats<-function(x,
   text<-gsub(" \\[([A-z][^]]*)\\]([^<=>])"," \\1\\2",text)
   
   # handle df1 and df2 in ANOVAs
-  if(isTRUE(addDF))
+  if(isTRUE(dfHandling))
     text<-unname(unlist(lapply(text,anovaHandler)))
   
   ###########################
-  text<-letter.convert(text,greek2text=TRUE)
+  text<-JATSdecoder::letter.convert(text,greek2text=TRUE)
   
   # replace codedP-p-codedP -> p-codedP
   # if has not p-codedP-p-codedP
@@ -199,9 +150,8 @@ table2stats<-function(x,
   
   #text<-splitTFZB(text)
 
-
   # extract standard results
-  stats<-standardStats(text,
+  stats<-JATSdecoder::standardStats(text,
                        stats.mode=stats.mode,
                        checkP=checkP,
                        alpha=alpha,
@@ -210,7 +160,7 @@ table2stats<-function(x,
                        estimateZ=estimateZ,
                        T2t=T2t,
                        rm.na.col=rm.na.col)
-#  return(list(parsedStats=raw,standardStats=stats))
+  
   # remove lines with only beta, or d values
   if(length(stats)>0){
     if(sum(!is.na(stats$beta))>0){
@@ -243,7 +193,7 @@ table2stats<-function(x,
     return(stats)
   }
 
-  # apply fun 
+  # apply fun to extract statistics
   if(isTRUE(collapse)) out<-uniqueWarnings(fun(text))
   if(!isTRUE(collapse)) out<-uniqueWarnings(lapply(text,fun))
   # output

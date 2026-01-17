@@ -1,24 +1,38 @@
 #' parseMatrixContent
-#' 
+#'
 #' Parses character matrix content into a text vector. This is the basic function of tableParser, which is implemented in matrix2text(), table2text(), and table2stats(). Row and column names are parsed to cell content with operators that depend on the cell content. Numeric cells are parsed with "=", and textual cell content with ":". Cells that start with an operator ('<', '=' or '>') are parsed without a separator. Detected codings for (e.g., p-values, abbreviations) from table legend text can be used to extend the tabled content to a fully written-out form.
 #' @param x A character matrix or list with a character matrix as first and only element.
-#' @param legend The table's caption/footer notes as a character vector.
+#' @param legend The table's caption/footnote as a character vector.
+#' @param decodeP Logical. If TRUE, imputes the converts the detected p-value codings to text with seperator ';;' (e.g., '1.23*' -> '1.23;; p<.01')
 #' @param standardPcoding Logical. If TRUE, and no other detection of p-value coding is detected, standard coding of p-values is assumed to be: * p<.05, ** p<.01, and *** p<.001.
-#' @param noSign2p Logical. If TRUE, imputes 'p>maximum of coded p-values' to cells that are not coded to be significant.
+#' @param noSign2p Logical. If TRUE, imputes 'p>maximum of the detected p-value codes to cells that do have a coding sign.
+#' @param bracketHandling Logical. If TRUE and if possible, decodes numbers in brackets.
 #' @param forceClass Character. Set a fixed table class for extraction heuristic. One of c("tabled result", "correlation", "matrix", "text").
-#' @param expandAbbreviations Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footer with tableParser::legendCodings().
+#' @param expandAbbreviations Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footnotes with tableParser::legendCodings().
 #' @param superscript2bracket Logical. If TRUE, detected superscript codings are inserted inside parentheses.
-#' @param addDF Logical. If TRUE, detected sample size N in the caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom. 
+#' @param dfHandling Logical. If TRUE, detected sample size N in the caption/footnotes is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom. 
 #' @returns A text vector with the parsed matrix content.
+#' @examples
+#' # Example matrix
+#' m<-rbind(c("","ß","Standard Error","Pr(>|t|)"),
+#'          c("(Intercept)","1,234.5","123.4","1.3e-4"),
+#'          c("Variable 1","1,2",".04","2.4*10^-5"),
+#'          c("R^2",".23","*","-"))
+#' m
+#' 
+#' # apply function
+#' parseMatrixContent(m)
 #' @export
 
 parseMatrixContent<-function(x,legend=NULL,
+                             decodeP=TRUE,
                              standardPcoding=TRUE,
                              noSign2p=TRUE,
+                             bracketHandling=TRUE,
                              forceClass=NULL,
                              expandAbbreviations=TRUE,
                              superscript2bracket=FALSE,
-                             addDF=TRUE){
+                             dfHandling=TRUE){
   # escapes and preparation
   if(length(x)==0) return(NULL)
   if(is.list(x)&length(x)==1) x<-x[[1]]
@@ -84,7 +98,7 @@ parseMatrixContent<-function(x,legend=NULL,
   if(ncol(x)==1|nrow(x)==1){
     x<-parseContent(x)
     # add degrees of freedom
-    if(isTRUE(addDF)){
+    if(isTRUE(dfHandling)){
       # add df=max(n)-2 for t and r values if has N= in legend
       if(!is.null(N)){
         # get highest N
@@ -142,7 +156,7 @@ parseMatrixContent<-function(x,legend=NULL,
   if(tableClass(m)=="vector"){
     m<-parseContent(m)
     # add degrees of freedom
-    if(isTRUE(addDF)){
+    if(isTRUE(dfHandling)){
       # add df=max(n)-2 for t and r values if has N= in legend
       if(!is.null(N)){
         # get highest N
@@ -188,10 +202,11 @@ parseMatrixContent<-function(x,legend=NULL,
   
   if(class!="text"&class!="vector"){
     # create new columns for brackets and percent
-    m<-newColumnBracket(m)
-    m<-newColumnCI(m)
-    m<-percentHandler(m)
-    
+    if(isTRUE(bracketHandling)){
+      m<-newColumnBracket(m)
+      m<-newColumnCI(m)
+      m<-percentHandler(m)
+    }
     # Re-classify table
     #class<-tableClass(m,legend=legend)
   }
@@ -213,10 +228,12 @@ parseMatrixContent<-function(x,legend=NULL,
   if(!is.matrix(m)) m<-as.matrix(m)
   
   # convert numbers in brackets in inner matrix
+  if(isTRUE(bracketHandling)){
   if(length(parentheses)>0) m[-1,-1]<-bracket2value(m[-1,-1],parentheses,"parentheses",sep=";;")
   if(length(brackets)>0) m[-1,-1]<-bracket2value(m[-1,-1],brackets,"brackets",sep=";;")
   if(length(brackets)>0&length(parentheses)==0) m[-1,-1]<-bracket2value(m[-1,-1],brackets,"parentheses",sep=";;")
   if(length(brackets)==0&length(parentheses)>0) m[-1,-1]<-bracket2value(m[-1,-1],brackets,"brackets",sep=";;")
+  }
   
   # add standard p-coding
   if(standardPcoding==TRUE&length(pval)==0){
@@ -224,7 +241,8 @@ parseMatrixContent<-function(x,legend=NULL,
     pval<-c("p<.001","p<.01","p<.05")
   }
   
-  # convert p signs in inner matrix
+  # decode p values in inner matrix
+  if(isTRUE(decodeP)){
   if(length(pval)>0) 
     m[-1,-1]<-sign2p(m[-1,-1],psign,pval,sep=";;")
   
@@ -246,10 +264,11 @@ parseMatrixContent<-function(x,legend=NULL,
 #  if(length(grep("p[<=>]",italic))>0){
 #      m[-1,-1]<-gsub("(-*[\\.0-9][\\.0-9]*)\\^italic",paste("\\1;;",italic),m[-1,-1])
 #    }
-  
+  } # end
   # remove superscripted bold and italic text
   m<-gsub("\\^italic","",m)
   m<-gsub("\\^bold","",m)
+
   
   # convert abbreviations in first row and col
   if(expandAbbreviations=="TRUE"){
@@ -288,7 +307,7 @@ parseMatrixContent<-function(x,legend=NULL,
   if(class=="text"|class=="vector"){
     m<-parseContent(m,forceClass=forceClass)
     # add degrees of freedom
-    if(isTRUE(addDF)){
+    if(isTRUE(dfHandling)){
       # add df=max(n)-2 for t and r values if has N= in legend
       if(!is.null(N)){
         # get highest N
@@ -326,11 +345,15 @@ parseMatrixContent<-function(x,legend=NULL,
   correlations<-NULL
   if(class=="correlation"|class=="matrix"){
     # extract correlations as vector
-    if(class=="correlation") correlations<-extractCorrelations(m,legendCodes=legend,remove=FALSE,noSign2p=noSign2p,standardPcoding=standardPcoding)
-    if(class=="matrix") correlations<-extractMatrix(m,legendCodes=legend,remove=FALSE,noSign2p=noSign2p,standardPcoding=standardPcoding)
+    if(class=="correlation") correlations<-extractCorrelations(m,legendCodes=legend,remove=FALSE,
+                                                               decodeP=decodeP,noSign2p=noSign2p,addNasDF=dfHandling,standardPcoding=standardPcoding)
+    if(class=="matrix") correlations<-extractMatrix(m,legendCodes=legend,remove=FALSE,
+                                                    decodeP=decodeP,noSign2p=noSign2p,standardPcoding=standardPcoding)
     # table without correlations
-    if(class=="correlation") m<-extractCorrelations(m,legendCodes=legend,remove=TRUE,noSign2p=noSign2p,standardPcoding=standardPcoding)
-    if(class=="matrix") m<-extractMatrix(m,legendCodes=legend,remove=TRUE,noSign2p=noSign2p,standardPcoding=standardPcoding)
+    if(class=="correlation") m<-extractCorrelations(m,legendCodes=legend,remove=TRUE,
+                                                    decodeP=decodeP,noSign2p=noSign2p,addNasDF=dfHandling,standardPcoding=standardPcoding)
+    if(class=="matrix") m<-extractMatrix(m,legendCodes=legend,remove=TRUE,
+                                         decodeP=decodeP,noSign2p=noSign2p,standardPcoding=standardPcoding)
     
     # set first cell to ""
     if(length(m)>0) m[1,1]<-""
@@ -341,7 +364,7 @@ parseMatrixContent<-function(x,legend=NULL,
         m<-t(m)
     # add df to extracted correlations
     if(class=="correlation")
-      if(isTRUE(addDF)){
+      if(isTRUE(dfHandling)){
       # add df=max(n)-2 if has N in legend
       if(!is.null(N)){
       # get highest N
@@ -435,7 +458,7 @@ parseMatrixContent<-function(x,legend=NULL,
   #output<-unifyStats(output)
   
   # add degrees of freedom
-  if(isTRUE(addDF)){
+  if(isTRUE(dfHandling)){
     # add df=max(n)-2 for t and r values if has N= in legend
     if(!is.null(N)){
       # get highest N

@@ -1,8 +1,8 @@
 #' tableClass
-#' 
+#'
 #' Classifies matrix content to either 'tabled results', 'correlation', 'matrix', 'text', 'vector', 'model with model statistics', or 'multi model with model statistics'. 
 #' @param x A character matrix
-#' @param legend A text vector with the tables caption and/or footer.
+#' @param legend A text vector with the tables caption and/or footnote.
 #' @returns A character object of length=1 with the table's class.
 #' @export
 #' 

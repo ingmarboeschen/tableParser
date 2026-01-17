@@ -1,11 +1,12 @@
 #' get.HTML.tables
-#'
+#' 
 #' Extracts HTML tables as a vector of HTML-coded tables from plain HTML code, HTML, HML, or XML files. If tables are nested within tables, only the inner tables are extracted.
 #' @param x HTML, HML, or XML file; or character object with HTML-encoded content.
 #' @return Character vector with one HTML-encoded table per cell.
 #' @examples 
 #' x<-readLines("https://en.wikipedia.org/wiki/R_(programming_language)",warn=FALSE)
 #' get.HTML.tables(x)
+#' @importFrom JATSdecoder strsplit2
 #' @export
 
 get.HTML.tables<-function(x){
@@ -39,11 +40,11 @@ get.HTML.tables<-function(x){
       # split collapsed lines at <table
       tables<-paste(x,collapse=" ")
       # split in front of <table>
-      tables<-unlist(strsplit2(tables,"<table>|<table [a-z]","before"))
+      tables<-unlist(JATSdecoder::strsplit2(tables,"<table>|<table [a-z]","before"))
       # select lines with </table>
       tables<-grep("</table>|</table [a-z]",tables,value=TRUE)
       # split behind </table>
-      tables<-unlist(strsplit2(tables,"</table>","after"))
+      tables<-unlist(JATSdecoder::strsplit2(tables,"</table>","after"))
       # select lines with <table>
       tables<-grep("<table>|<table [a-z]",tables,value=TRUE)
     }
@@ -52,8 +53,8 @@ get.HTML.tables<-function(x){
     if(sum(grep("<table-wrap[> ]",x))>0){
       # split collapsed lines at <table-wrap
       tables<-paste(x,collapse=" ")
-      tables<-unlist(strsplit2(tables,"<table-wrap[> ]","before"))
-      tables<-unlist(strsplit2(tables,"</table-wrap>","after"))
+      tables<-unlist(JATSdecoder::strsplit2(tables,"<table-wrap[> ]","before"))
+      tables<-unlist(JATSdecoder::strsplit2(tables,"</table-wrap>","after"))
       # select lines with table wrap
       tables<-grep("<table-wrap[> ]",tables,value=TRUE)
     }

@@ -3,6 +3,20 @@
 #' Unifies many textual representations of statistical results in text vectors created with table2text(). This uniformization is needed for a more precise extraction of standard results with the function standardStats() from the JATSdecoder package.
 #' @param x A text vector with the parsed table content.
 #' @importFrom JATSdecoder letter.convert
+#' @examples
+#' # Example matrix
+#' m<-rbind(c("","ß","Standard Error","Pr(>|t|)"),
+#' c("(Intercept)","1,234.5","123.4","1.3e-4"),
+#' c("Variable 1","1,2",".04","2.4*10^-5"),
+#' c("R^2",".23","*","-"))
+#' m
+#' 
+#' # parsed content
+#' text<-parseMatrixContent(unifyMatrixContent(m, correctComma = TRUE))
+#' text
+#' 
+#' # unified stats
+#' unifyStats(text)
 #' @returns A unified text string.
 #' @export
 unifyStats<-function(x){
@@ -10,6 +24,9 @@ unifyStats<-function(x){
   x<-letter.convert(x,greek2text=TRUE)
   # unify minus/hyphen sign
   x<-gsub("\u2212|\u02D7|\u002D|\u2013","-",x)
+  # superscripted 2
+  x<-gsub("\u00b3","^2",x)
+  
   # unify beta 
   x<-gsub("\u00DF|\u03b2","b",x)
   # text to number

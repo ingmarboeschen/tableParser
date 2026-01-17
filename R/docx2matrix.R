@@ -1,37 +1,49 @@
 #' docx2matrix
-#'
+#' 
 #' Extracts tables from DOCX documents and returns a list of character matrices.
 #' @param x File path to a DOCX input file with tables.
+#' @param unifyMatrix Logical. If TRUE, matrix cells are unified for better post-processing (see unifyMatrixContent()).
 #' @param replicate Logical. If TRUE, replicates content when splitting connected cells.
+#' @examples
+#' ## Download an example DOCX file from tableParser's github repo to temp directory 
+#' d<-'https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.docx'
+#' download.file(d,paste0(tempdir(),"/","tableExamples.docx"),method="wget")
+#' 
+#' # Extract tables as character matrices
+#' docx2matrix(paste0(tempdir(),"/","tableExamples.docx"))
 #' @return List with extracted tables as character matrices.
 #' @export
 
-docx2matrix<-function(x,replicate=TRUE){
-  if(gsub(".*\\.docx$","docx",tolower(x))!="docx") stop("x must be a file path to a DOCX file.")
-  if(!file.exists(x[1])) readLines(con=x[1])
-  tempZip<-paste0(tempdir(),"/temp.zip")
-  file.copy(x, tempZip,overwrite=TRUE)
-  a<-utils::unzip(tempZip,"word/document.xml",exdir=tempdir())
+docx2matrix<-function(x,unifyMatrix=TRUE,replicate=TRUE){
+  # escapes
+  if(gsub(".*\\.docx$","docx",tolower(x[1]))!="docx") stop("Input must be a file path to a DOCX file.")
+  if(length(x)>1) stop("Input must be a single DOCX file.")
+  if(!file.exists(x[1])) stop("File does not exist.")
   
-  d<-paste(readLines(a,warn = FALSE),collapse=" ")
-  # extract tables as vector
-  t<-unlist(strsplit(d,"<w:tbl>"))[-1]
-  # escape
-  if(length(t)==0) return(NULL)
+  tempZip <- file.path(tempdir(), "temp.zip")
+  # copy
+  file.copy(
+    from=normalizePath(x, winslash="/", mustWork=TRUE),
+    to=tempZip,overwrite = TRUE,copy.mode=FALSE,copy.date=FALSE)
+  
+    tempZip <- normalizePath(tempZip, winslash="/", mustWork=TRUE)
+    
+    # unzip
+    a <- utils::unzip(tempZip, exdir = tempdir())
+    a <- file.path(tempdir(), "word", "document.xml")
+    
+    # read xml file
+    d<-paste(readLines(a,warn = FALSE),collapse=" ")
+    
+    # extract tables as vector
+    t<-unlist(strsplit(d,"<w:tbl>"))[-1]
+    # escape
+    if(length(t)==0) return(NULL)
 
   t<-paste0("<w:tbl>",t)
   t<-grep("<w:tbl>",unlist(strsplit(t,"</w:tbl>")),value=T)
   y<-paste0(t,"</w:tbl>")
   
-  #doc<-xml2::read_xml(a)
-  # extract namespace
-  #ns<-xml2::xml_ns(doc)
-  
-  # get tables
-  #tbls<-xml2::xml_find_all(doc,".//w:tbl",ns=ns)
-  # as character
-  #y<-as.character(tbls)
-
   # function to convert single table
   tempFun<-function(y,replicate=FALSE){
   if(length(grep("<w:tr>",y))==0) return(NULL)
@@ -71,19 +83,30 @@ docx2matrix<-function(x,replicate=TRUE){
    y[cell,col]<-y[cell-1,col]
   }
 
+  # unify sub and superscript
+  y<-gsub("(<w[^>]*val=\"subscript\"/><[^>]*><[^>]*>)([A-z0-9])","\\1_\\2",y)
+  y<-gsub("(<w[^>]*val=\"subscript\"/><[^>]*>)([A-z0-9])","\\1_\\2",y)
+  y<-gsub("(<w[^>]*val=\"subscript\"/>)([A-z0-9])","\\1_\\2",y)
+  
+  y<-gsub("(<w[^>]*val=\"superscript\"/><[^>]*><[^>]*>)([A-z0-9])","\\1^\\2",y)
+  y<-gsub("(<w[^>]*val=\"superscript\"/><[^>]*>)([A-z0-9])","\\1^\\2",y)
+  y<-gsub("(<w[^>]*val=\"superscript\"/>)([A-z0-9])","\\1^\\2",y)
+  
   # add ^bold/^italic to cells with <w:b/<w:i
   y[grep("<w:b */",y)]<-  paste0(y[grep("<w:b */",y)],"^bold")
   y[grep("<w:i */",y)]<-  paste0(y[grep("<w:i */",y)],"^italic")
   
+  # clean up
+  y<-gsub("</w:t>[^<]*<w:t>","",y)
+  y<-gsub("<[^>]*>| *\\n *","",y)
+  #y<-gsub("  *"," ",y)
+  #y<-gsub("^ | $","",y)
+  }
   
-# clean up
-y<-gsub("</w:t>[^<]*<w:t>","",y)
-y<-gsub("<[^>]*>| *\\n *","",y)
-#y<-gsub("  *"," ",y)
-#y<-gsub("^ | $","",y)
-}
-
-y<-lapply(y,tempFun,replicate=replicate)
-return(y)
+  # apply functions
+  y<-lapply(y,tempFun,replicate=replicate)
+  if(isTRUE(unifyMatrix)) y<-lapply(y,unifyMatrixContent) 
+  
+  return(y)
 }
 

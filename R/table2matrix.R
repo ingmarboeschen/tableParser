@@ -1,9 +1,9 @@
-#' table2matrix
+#' table2matrix 
 #'
 #' Extracts tables from HTML, HML, XML, DOCX, PDF files, or plain HTML code to a list of character matrices.
-#' @param x File path to a DOCX, PDF, or HTML-encoded file, or text with HTML code.
+#' @param x A file path to a DOCX, PDF, or HTML encoded file, or text with HTML code.
 #' @param unifyMatrix Logical. If TRUE, matrix cells are unified for better post-processing (see unifyMatrixContent()).
-#' @param letter.convert Logical. If TRUE, hex codes will be unified and converted to Unicode with JATSdecoder::letter.convert().
+#' @param letter.convert Logical. If TRUE, html and hexadecimal encoded letters will be unified and converted to Unicode with html2unicode() and JATSdecoder::letter.convert().
 #' @param greek2text Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text-based form (e.g.: 'alpha', 'beta'). 
 #' @param replicate Logical. If TRUE, the content of cells with row/col span > 1 is replicated in all connected cells; if FALSE, the value will only be placed in the first of the connected cells.
 #' @param repNums Logical. If TRUE, cells with numbers that have row/col span > 1 are replicated in every connected cell.
@@ -12,8 +12,45 @@
 #' @param collapseHeader Logical. If TRUE, header cells are collapsed for each column if the header has 2 or more lines.
 #' @param header2colnames Logical. If TRUE and 'collapseHeader=TRUE', the first table row is used for column names and removed from the table.
 #' @examples 
+#' ## - Download example DOCX file
+#' d<-'https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.docx'
+#' download.file(d,paste0(tempdir(),"/","tableExamples.docx"))
+#' 
+#' # Extract tables from example file as matrices
+#' table2matrix(paste0(tempdir(),"/","tableExamples.docx"))
+#' 
+#' ## - Download example HTML file
+#' h<-'https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.html'
+#' download.file(h,paste0(tempdir(),"/","tableExamples.html"))
+#' 
+#' # Extract tables from example file as matrices
+#' table2matrix(paste0(tempdir(),"/","tableExamples.html"),rm.html=TRUE)
+#' 
+#' ## - Download example PDF file
+#' p<-'https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.pdf'
+#' download.file(p,paste0(tempdir(),"/","tableExamples.pdf"))
+#'
+#' # Extract tables from example file as matrices
+#' \donttest{
+#' table2matrix(paste0(tempdir(),"/","tableExamples.pdf"))
+#' 
+#' # Note: The extraction of tables within PDF documents with tabulapdf::extract_tables()  
+#' # does not work properly here. 
+#' # Also, the table captions and footnotes cannot be used for decoding (e.g., p-values). 
+#'
+#' tabulapdf::extract_tables(paste0(tempdir(),"/","tableExamples.pdf"))
+#' }
+#' 
+#' ## Another example with a website that contains simple and nested HTML-tables
+#' 
+#' # download file
 #' x<-readLines("https://en.wikipedia.org/wiki/R_(programming_language)",warn=FALSE)
-#' table2matrix(x,rm.html=TRUE)
+#' 
+#' # apply function
+#' table2matrix(x,rm.html=TRUE,unifyMatrix=TRUE)
+#' @importFrom tabulapdf extract_tables
+#' @importFrom JATSdecoder letter.convert
+#' @importFrom JATSdecoder strsplit2
 #' @return List with detected tables as character matrices.
 #' @export
 
@@ -29,6 +66,7 @@ table2matrix<-function(x,unifyMatrix=FALSE,
                        collapseHeader=TRUE,
                        header2colnames=FALSE
 ){
+  legendText<-NULL
   # escapes
   if(length(x)==0) return(NULL)
   if(is.list(x)|is.matrix(x)) stop("Input must be a file path or plain HTML code.")
@@ -36,32 +74,55 @@ table2matrix<-function(x,unifyMatrix=FALSE,
   # escapes for bad file formats
   if(length(grep("^<table",x))==0 & length(x)==1)
      if(file.exists(x) &  !is.element(toupper(gsub(".*\\.([A-z][A-z]*)$","\\1",x)),c("HTML","HML","XML","NXML","CERMXML","DOCX","PDF")))
-    stop("File input format must be of either DOCX, PDF, HTML, HML, or XML format.")
+    stop("File input format must be of either DOCX, PDF, HTML, HML, NXML, or XML format.")
   
   # get file type
   type<-tolower(gsub(".*\\.([A-z][A-z]*)$","\\1",x[1]))
+  isFile<-file.exists(x[1])
+  
   if(nchar(type)>2&nchar(type)<8) 
     if(!file.exists(x)) stop("Input file does not exist.")
        
+  # take a copy of file path for guessing the table legend text in html files
+  if(is.element(type,c("html","hlm","xml","nxml","cermxml"))){
+    file<-x[1]
+  }
+  
   # get matrix from DOCX or PDF
   if(is.element(type,c("docx","pdf"))){
   # docx 
   if(is.element(type,c("docx"))){
     m<-docx2matrix(x,replicate=replicate)
-    # convert letters
+    # get captions and footer
+    legendText<-guessCaptionFootnote(x)
+    if(length(legendText)==2){
+      caption<-gsub("([^[:punct:]])$","\\1.",legendText$caption)
+      footer<-legendText$footer
+      legendText<-paste(gsub("([^[:punct:]])$","\\1.",legendText$caption),legendText$footer)
+      legendText<-JATSdecoder::letter.convert(legendText,greek2text=greek2text)
+    }
+    
+    # add as attribute
+    if(length(m)==length(caption)){
+      for(i in 1:length(m)){
+        attributes(m[[i]])$caption <- caption[i]
+        attributes(m[[i]])$footer <- footer[i]
+      }
+    }
+    
+    # convert letters in matrix
     if(letter.convert==TRUE) m<-lapply(m,JATSdecoder::letter.convert,greek2text=greek2text)
   }
   # pdf
   if(type=="pdf"){
     x<-tabulapdf::extract_tables(x,output="matrix")
     m<-lapply(x,as.matrix)
-    # convert letters with cermine=TRUE
+    # convert letters in matrix with cermine=TRUE
     if(letter.convert==TRUE) m<-lapply(m,JATSdecoder::letter.convert,greek2text=greek2text,cermine=TRUE)
-   
   }
     
   # apply options
-  # html
+  # remove html
     if(rm.html==TRUE){
       # convert </break> to space, <sub> to _, <sup> to ^ 
       m<-lapply(m,function(x) gsub("</*break/*>"," ",x))
@@ -76,12 +137,19 @@ table2matrix<-function(x,unifyMatrix=FALSE,
       m<-lapply(m,function(x) gsub("</it*a*l*i*c*>([\\.,; ]*)<it*a*l*i*c*>","\\1",x))
       m<-lapply(m,function(x) gsub("([0-9])</bold>","\\1^bold",gsub("[0-9]</italic>","\\1^italic",x)))
       m<-lapply(m,function(x) gsub("([0-9])</b>","\\1^bold",gsub("[0-9]</i>","\\1^italic",x)))
+      # remove styles
+      m<-lapply(m,function(x) gsub(">[\\.@][a-z][^\\{]*\\{[a-z].*\\}\\}",">",x))
+      m<-lapply(m,function(x) gsub(">[\\.@][a-z][^\\{]*\\{[a-z][^\\{]*\\}",">",x))
       # remove all other html-tags
       m<-lapply(m,function(x) gsub("</*[a-z][^>]*/*>|</*[a-z]/*>","",x))
       m<-lapply(m,function(x) gsub("</*inline[^>]*/*>|</*inline[^>]*/*>","",x))
       # space reduction
       m<-lapply(m,function(x) gsub("  *"," ",x))
       m<-lapply(m,function(x) gsub("^ $","",x))
+      # remove styles
+      m<-lapply(m,function(x) gsub("[\\.@][a-z][^\\{]*\\{[a-z].*\\}\\}","",x))
+      m<-lapply(m,function(x) gsub("[\\.@][a-z][^\\{]*\\{[a-z][^\\{]*\\}","",x))
+      
     }
     
     if(header2colnames==TRUE) {
@@ -106,14 +174,15 @@ table2matrix<-function(x,unifyMatrix=FALSE,
     # add table class as attribute
     if(length(m)>0) 
       for(i in 1:length(m)){
-        attributes(m[[i]])$class<-tableClass(m[[i]])
+        attributes(m[[i]])$class<-tableClass(m[[i]],legend = legendText[i])
       }
     # copy for output
     out<-m
     
   }else{
+    
   # for all other inputs
-  # run prechecks or readLines(x) if x is file
+  # run pre checks or readLines(x) if x is file
 
     # check if x is of length 0
     if(length(x)==0) return(NULL)
@@ -129,51 +198,81 @@ table2matrix<-function(x,unifyMatrix=FALSE,
       x<-readLines(x,warn=FALSE,encoding="UTF-8")
     }
     
-    # extract HTML tables if is not already a vector with <tables>
+  # extract HTML tables if is not already a vector with <tables>
   if(length(grep("<table",substr(x[1],1,7)))==0) 
     x<-get.HTML.tables(x)
-  # remove newline sign
-  x<-gsub("\\n"," ",x)
- 
-  # split multiple tables inside of one <table-wrap>-tag
-  x<-multiTable(x)
-  
-  # apply function singleTable2matrix
-  out<-list() 
-
-  if(length(x)==1) out[[1]]<-singleTable2matrix(x,letter.convert=letter.convert,
-                                                greek2text=greek2text,
-                                                replicate=replicate,
-                                                repNums=repNums,
-                                                rm.empty.row.col=rm.empty.row.col,
-                                                rm.html=rm.html,
-                                                collapseHeader=collapseHeader,
+    # remove newline sign
+    x<-gsub("\\n"," ",x)
+    # split multiple tables inside of one <table-wrap>-tag
+    x<-multiTable(x)
+    # apply function singleTable2matrix
+    out<-list() 
+    if(length(x)==1) out[[1]]<-singleTable2matrix(x,letter.convert=letter.convert,
+                                                greek2text=greek2text,replicate=replicate,
+                                                repNums=repNums,rm.empty.row.col=rm.empty.row.col,
+                                                rm.html=rm.html,collapseHeader=collapseHeader,
                                                 header2colnames=header2colnames)
-  if(length(x)>1) out<-lapply(x,singleTable2matrix,letter.convert=letter.convert,
-                              replicate=replicate,
-                              repNums=repNums,
-                              greek2text=greek2text,
-                              rm.empty.row.col=rm.empty.row.col,
-                              rm.html=rm.html,
-                              collapseHeader=collapseHeader,
+    if(length(x)>1) out<-lapply(x,singleTable2matrix,letter.convert=letter.convert,
+                              replicate=replicate,repNums=repNums,
+                              greek2text=greek2text,rm.empty.row.col=rm.empty.row.col,
+                              rm.html=rm.html,collapseHeader=collapseHeader,
                               header2colnames=header2colnames)
-  if(length(out)==0) return(NULL)
+    if(length(out)==0) return(NULL)
   
-  # remove empty lists
-  if(length(out)>0){
-    out<-out[which(unlist(lapply(out,length))!=0)]
-    if(length(out)>0&!is.list(out)){
-      temp<-out
-      out<
-        out[[1]]<-out
+    out
+    # classify table with legend text
+    caption<-lapply(x,get.caption)
+    footer<-lapply(x,get.footer)
+    caption<-unlist(lapply(caption,paste,collapse=" "))
+    footer<-unlist(lapply(footer,paste,collapse=" "))
+    
+    legendText<-gsub("^ *| *$","",paste(caption,footer))
+  
+    # if something was found add as attribute
+    if(sum(nchar(legendText),na.rm=TRUE)>0){
+    if(length(out)==length(caption))
+      for(i in 1:length(out)){
+        attributes(out[[i]])$caption <- caption[i]
+        attributes(out[[i]])$footer <- footer[i]
+      }
+    }
+    
+    # if nothing was found -> guess legend text
+    if(sum(nchar(legendText),na.rm=TRUE)==0 & isFile){
+      legendText<-guessCaptionFootnote(file)
+      if(length(legendText)==2){
+        caption<-JATSdecoder::letter.convert(gsub("([^[:punct:]])$","\\1.",legendText$caption),greek2text=greek2text)
+        footer<-JATSdecoder::letter.convert(legendText$footer,greek2text=greek2text)
+      }
+      # add as attribute
+      if(length(out)==length(caption))
+        for(i in 1:length(out)){
+          attributes(out[[i]])$caption <- caption[i]
+          attributes(out[[i]])$footer <- footer[i]
+          }
+      # and re-classify tables
+      if(length(out)==length(legendText) & isFile)
+        for(i in 1:length(out))
+          attributes(out[[i]])$class <- tableClass(out[[i]],legend=legendText[i])
+    }
+    
+    # remove empty lists
+    if(length(out)>0){
+      out<-out[which(unlist(lapply(out,length))!=0)]
+      if(length(out)>0&!is.list(out)){
+        temp<-out
+        out<-list()
+        out[[1]]<-temp
     }
   }
   
   }# end of all other file formats
-  
-  # apply options
-  if(unifyMatrix==TRUE) out<-lapply(out,unifyMatrixContent,letter.convert=letter.convert,greek2text=greek2text,text2num=TRUE)
 
+  # apply options
+  if(unifyMatrix==TRUE) 
+    for(i in 1:length(out))
+        out[[i]]<-unifyMatrixContent(out[[i]],letter.convert=letter.convert,greek2text=greek2text,text2num=TRUE)
+  
   # name list elements  
   if(is.list(out))
    if(length(out)>0)
@@ -198,13 +297,13 @@ singleTable2matrix<-function(x,letter.convert=TRUE,# Logical. If TRUE hex codes 
   # escape if x is empty
   if(length(x)==0) return(NULL)
   # table rows
-  rows<-unlist(strsplit2(x,"</tr>",type="after"))
+  rows<-unlist(JATSdecoder::strsplit2(x,"</tr>",type="after"))
   # remove last row
   rows<-rows[-length(rows)]
   
   #############
   # rows to cells
-  cells<-strsplit2(rows,"<t[dh][ >]|<t[dh]/>","before")
+  cells<-JATSdecoder::strsplit2(rows,"<t[dh][ >]|<t[dh]/>","before")
   # remove first row
   cells<-lapply(cells,"[",-1)
   
@@ -351,7 +450,7 @@ singleTable2matrix<-function(x,letter.convert=TRUE,# Logical. If TRUE hex codes 
   cells<-lapply(cells,function(x) gsub("<[/]*th>| *<th/>|<th [^>]*>","",x))
   cells<-lapply(cells,function(x) gsub("</t[dr]>|</t[dr]>|<t[dr]/*>|<t[dr] [^>]*>","",x))
   # remove html  
-  if(rm.html==TRUE){
+  if(isTRUE(rm.html)){
     # convert </break> to space, <sub> to _, <sup> to ^ and remove all other html-tags
     cells<-lapply(cells,function(x) gsub("</*break/*>"," ",x))
     cells<-lapply(cells,function(x) gsub(" *<sub> *","_",x))
@@ -359,12 +458,22 @@ singleTable2matrix<-function(x,letter.convert=TRUE,# Logical. If TRUE hex codes 
     # convert bold and italic numbers to number^bold/number^italic
     cells<-lapply(cells,function(x) gsub("</bo*l*d*>([\\.,; ]*)<bo*l*d*>","\\1",x))
     cells<-lapply(cells,function(x) gsub("</it*a*l*i*c*>([\\.,; ]*)<it*a*l*i*c*>","\\1",x))
-    cells<-lapply(cells,function(x) gsub("([0-9])</bold>","\\1^bold",gsub("[0-9]</italic>","\\1^italic",x)))
-    cells<-lapply(cells,function(x) gsub("([0-9])</b>","\\1^bold",gsub("[0-9]</i>","\\1^italic",x)))
-    
+    cells<-lapply(cells,function(x) gsub("([0-9])</bold>","\\1^bold",gsub("([0-9])</italic>","\\1^italic",x)))
+    cells<-lapply(cells,function(x) gsub("([0-9])</b>","\\1^bold",gsub("([0-9])</i>","\\1^italic",x)))
+    # remove styles
+    cells<-lapply(cells,function(x) gsub(">[\\.@][a-z][^\\{]*\\{[a-z].*\\}\\}",">",x))
+    cells<-lapply(cells,function(x) gsub(">[\\.@][a-z][^\\{]*\\{[a-z][^\\{]*\\}",">",x))
+    # remove all other tags
     cells<-lapply(cells,function(x) gsub("</*[a-z][^>]*/*>|</*[a-z]/*>","",x))
     cells<-lapply(cells,function(x) gsub("</*inline[^>]*/*>|</*inline[^>]*/*>","",x))
-    }
+    # space reduction
+    cells<-lapply(cells,function(x) gsub("  *"," ",x))
+    cells<-lapply(cells,function(x) gsub("^ $","",x))
+    # remove styles
+    cells<-lapply(cells,function(x) gsub("[\\.@][a-z][^\\{]*\\{[a-z].*\\}\\}","",x))
+    cells<-lapply(cells,function(x) gsub("[\\.@][a-z][^\\{]*\\{[a-z][^\\{]*\\}","",x))
+  }
+  # escape
   if(length(cells)==0) return(NULL)
   # convert special characters
   if(letter.convert==TRUE) cells<-lapply(cells,JATSdecoder::letter.convert,greek2text=greek2text)
@@ -386,8 +495,9 @@ singleTable2matrix<-function(x,letter.convert=TRUE,# Logical. If TRUE hex codes 
   # remove empty cols/rows
   if(rm.empty.row.col==TRUE) m<-rm.empty(m)
   
-  # get caption and footer for classification
-  leg<-c(get.footer(x),get.caption(x))
+  # get caption and footer for classification from html table-wrap
+  leg<-c(gsub("[^[:punct:]]$","\\1.",get.caption(x)),get.footer(x))
+
   # classify table
   attributes(m)$class <- tableClass(m,legend=leg)
   # output

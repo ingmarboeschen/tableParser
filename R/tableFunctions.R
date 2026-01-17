@@ -291,9 +291,10 @@ headerHandling<-function(m){
   # if has many characters, skip processing headers
   if(sum(unlist(lapply(m,nchar))>100)>0) return(m)
   
-  #collapse first two lines if first two cells in first column are empty 
+  # collapse first two lines if first two cells in first column are empty 
+  # and second line has no numbers with digit
   loop<-TRUE
-  while(loop==TRUE & m[1,1]==""&m[2,1]==""){
+  while(loop==TRUE & m[1,1]==""&m[2,1]=="" & length(grep("\\.[0-9]",m[2,-1]))==0){
   if(nrow(m)>2) 
     if(m[1,1]==""&m[2,1]==""){
     m[1,m[1,]!=m[2,]]<-paste0(m[1,m[1,]!=m[2,]]," ",m[2,m[1,]!=m[2,]])
@@ -308,7 +309,7 @@ headerHandling<-function(m){
   m
   #collapse first two lines if second cell in first column is empty 
   loop<-TRUE
-  while(loop==TRUE & m[1,1]!=""&m[2,1]==""){
+  while(loop==TRUE & m[1,1]!=""&m[2,1]==""& length(grep("\\.[0-9]",m[2,-1]))==0){
     if(nrow(m)>2) if(m[1,1]!=""&m[2,1]==""){
       m[1,m[1,]!=m[2,]]<-paste0(m[1,m[1,]!=m[2,]]," ",m[2,m[1,]!=m[2,]])
       # remove duplicated text in first row
@@ -536,8 +537,9 @@ return(m)
 ## Function to handle correlation tables
 extractCorrelations<-function(x,
                               legendCodes=NULL,
-                              remove=FALSE,noSign2p=TRUE,
-                              standardPcoding=TRUE){
+                              remove=FALSE,decodeP=TRUE,noSign2p=TRUE,
+                              standardPcoding=TRUE,addNasDF=TRUE){
+  if(!isTRUE(decodeP)) noSign2p<-FALSE
   # prepare legend codings
   parentheses<-NULL;brackets<-NULL;psign<-NULL;pval<-NULL;italic<-NULL;bold<-NULL;N<-NULL;diagonal<-NULL
   # get legend codings
@@ -550,7 +552,7 @@ extractCorrelations<-function(x,
     N<-gsub("[Nn]=","",legendCodes$N)
     diagonal<-legendCodes$diagonal
   }
-  
+  if(!isTRUE(addNasDF)) N<-NULL
   # take a copy of unified matrix
   x<-unifyMatrixContent(x)
   m<-x
@@ -590,9 +592,8 @@ extractCorrelations<-function(x,
   
   nCol<-ncol(m)     
   # convert signs to p-values
-  m[-1,-1]<-sign2p(m[-1,-1],sign=psign,val=pval)
+  if(isTRUE(decodeP)) m[-1,-1]<-sign2p(m[-1,-1],sign=psign,val=pval)
   
-m
   # unify numbering at beginning of first column/row to "number."
   m[,1]<-gsub("^\\(*0*([1-9][0-9]*)[\\),;:] ","\\1. ",m[,1])
   m[1,]<-gsub("^\\(*0*([1-9][0-9]*)[\\),;:] ","\\1. ",m[1,])
@@ -652,13 +653,14 @@ m
 #  corTab[which(cors)]<-gsub("^([-\\.0-9][\\.0-9][\\.0-9[:punct:]]*)","r=\\1",corTab[which(cors)])
 
   # stars2p if still has star and standardPcoding==TRUE
-  if(standardPcoding==TRUE){
+  if(isTRUE(standardPcoding)){
   if(length(grep("\\*$",corTab))>0){
     #corTab[which(cors)]<-gsub("([0-9])$","\\1;; p>.05",corTab[which(cors)])
     corTab[which(cors)]<-gsub("\\^*\\*\\*\\*$",";; p<.001",corTab[which(cors)])
     corTab[which(cors)]<-gsub("\\^*\\*\\*$",";; p<.01",corTab[which(cors)])
     corTab[which(cors)]<-gsub("\\^*\\*$",";; p<.05",corTab[which(cors)])
-  }}
+     }
+    }
   
   corTab<-gsub("r=([<>])","r\\1",corTab)
 
@@ -768,8 +770,11 @@ extractMatrix<-function(x,
                         legendCodes=NULL,
                         statistic="VALUE",      
                         range=NULL,
-                        remove=FALSE,noSign2p=TRUE,
+                        remove=FALSE,
+                        decodeP=TRUE,
+                        noSign2p=TRUE,
                         standardPcoding=TRUE){
+  if(!isTRUE(decodeP)) noSign2p<-FALSE
   # prepare legend codings
   parentheses<-NULL;brackets<-NULL;psign<-NULL;pval<-NULL;italic<-NULL;bold<-NULL;N<-NULL;diagonal<-NULL
   # get legend codings
@@ -822,7 +827,7 @@ extractMatrix<-function(x,
   
   nCol<-ncol(m)     
   # convert signs to p-values
-  m[-1,-1]<-sign2p(m[-1,-1],sign=psign,val=pval)
+  if(isTRUE(decodeP)) m[-1,-1]<-sign2p(m[-1,-1],sign=psign,val=pval)
   
   m
   # unify numbering at beginning of first column/row to "number."
@@ -883,7 +888,7 @@ extractMatrix<-function(x,
   # add STATISTIC= to cells with correlations
   valueTab[which(values)]<-gsub("^([-\\.]*[\\.0-9][\\.0-9[:punct:]]*)","STATISTIC=\\1",valueTab[which(values)])
   # stars2p if still has star and standardPcoding==TRUE
-  if(standardPcoding==TRUE){
+  if(isTRUE(standardPcoding)&isTRUE(decodeP)){
     if(length(grep("\\*$",valueTab))>0){
       #valueTab[which(values)]<-gsub("([0-9])$","\\1;; p>.05",valueTab[which(values)])
       valueTab[which(values)]<-gsub("\\^*\\*\\*\\*$",";; p<.001",valueTab[which(values)])
@@ -908,6 +913,7 @@ extractMatrix<-function(x,
   }
   
   # add "p < min(p>x)" if has added p-value or coding in legend
+  if(isTRUE(decodeP))
   if(length(grep(";; p>",valueTab))>0|length(grep("p>",pval))>0){
     if(length(grep("p>",pval))>0) 
       Pmin<-suppressWarnings(min(as.numeric(
@@ -1003,7 +1009,7 @@ sign2p<-function(x,sign,val,sep=";;"){
              # p value with seperator     
              paste(sep,val[i]),gsub("^n\\.*s\\.*$|( )n\\.*s\\.*$","\\1ns",x))
     # convert sign to pval if NOT at end 
-    incl<-grep(paste0(". *",sign[i]," *."),x)#,invert=TRUE)
+    incl<-grep(paste0(". *",sign[i]," *[^0-9]"),x)#,invert=TRUE)
     x[incl]<-gsub(paste0("\\^*",sign[i],"[,; ]*"),
             # p value with seperator     
             paste0(sep," ",val[i],", "),x[incl])

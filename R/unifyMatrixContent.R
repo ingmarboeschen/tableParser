@@ -2,11 +2,21 @@
 #' 
 #' Unifies textual and numerical content of character matrices. Unifies hyphens, spaces, hexadecimal and Greek letters, and performs space and comma corrections. Big marks in numbers are removed. HTML tags <sup> and <sub> are converted to '^' and '_' respectively. All other HTML tags are removed. 
 #' @param x a character matrix.
-#' @param letter.convert Logical. If TRUE, hexadecimal-coded letters will be unified and converted to Unicode with JATSdecoder::letter.convert().
+#' @param letter.convert Logical. If TRUE, hexadecimal- and html-encoded letters will be unified and converted to Unicode with JATSdecoder::letter.convert().
 #' @param greek2text Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text-based form (e.g., 'alpha', 'beta'). 
 #' @param text2num Logical. If TRUE, textual representations of numbers (words, exponents, fractions) are converted to digit numbers. 
 #' @param correctComma Logical. If TRUE, commas used as numeric separators are converted to dots. 
 #' @param na.rm Logical. If TRUE, cells with NA, or only minus, hyphen, slash, or dot are set to empty cells.
+#' @examples
+#' # Example matrix
+#' m<-rbind(c("","ß","Standard Error","Pr(>|t|)"),
+#'          c("(Intercept)","1,234.5","123.4","1.3e-4"),
+#'          c("Variable 1","1,2",".04","2.4*10^-5"),
+#'          c("R^2",".23","*","-"))
+#' m
+#' 
+#' # apply function
+#' unifyMatrixContent(m, correctComma = TRUE)
 #' @importFrom JATSdecoder letter.convert
 #' @importFrom JATSdecoder text2num
 #' @export
@@ -16,6 +26,9 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,
   
   fun<-function(x,letter.convert=TRUE,greek2text=TRUE,text2num=TRUE,correctComma=FALSE,na.rm=TRUE){
     if(!is.matrix(x)) return(x)
+    # get attributes
+    attribs<-attributes(x)
+    
     # number of columns
     nCol<-ncol(x)
     
@@ -36,6 +49,17 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,
       x[ind]<-gsub("([0-9]\\.[0-9][0-9]*),(-*[0-9][0-9]*\\.[0-9])","\\1, \\2",x[ind])
     }
     
+    # if has potential big mark Comma remove it
+    patBM<-"[0-9],[0-9]{3}$|[0-9],[0-9]{3}[^0-9]"
+    if(length(grep(patBM,x))>0){
+      # except df in F-values
+      patDF<-"F *\\([0-9][0-9]*,[0-9][0-9]*\\)"
+      i<-grep(patDF,x,invert=TRUE)
+      if(length(i)>0){
+        warning("One or more detected big mark comma signs were removed from numeric content.",call.=FALSE)
+        x[i]<-gsub("([0-9]),([0-9]{3})","\\1\\2",x[i])
+      }
+    }
     
     ## comma to dot correction
     # in "F(num, num,3num)" -> "F(num, num.3num)"
@@ -48,6 +72,7 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,
                        "' were converted to dots. This may infere with numeric values above 999, that have comma as big mark (e.g.: 1,000)."),call.=FALSE)
         }
       }
+    
     
     # has Comma as decimal (obviously cases: 1,2,4 or more decimals, 0,number)
     patComma<-"[0-9],[0-9][^0-9]|[0-9],[0-9]$|[0-9],[0-9]{2}[^0-9]|[0-9],[0-9]{2}$|[0-9],[0-9][0-9][0-9][0-9][^0-9][0-9]*|[0-9],[0-9][0-9][0-9][0-9][0-9]*$|^[^0-9]*0*,[0-9]{3}|[^0-9,]0*,[0-9]{3}$"
@@ -70,20 +95,6 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,
       ifelse(!isTRUE(correctComma), "'\nYou may consider to set the argument correctComma=TRUE to unify the decimal sign to dots.","")),call.=FALSE)
     }
 
-    # if has potential big mark Comma remove it
-    patBM<-"[0-9],[0-9]{3}"
-    if(length(grep(patBM,x))>0){
-      # except df in F-values
-      patDF<-"F *\\([0-9][0-9]*,[0-9][0-9]*\\)"
-      i<-grep(patDF,x,invert=TRUE)
-      if(length(i)>0){
-        warning("One or more detected big mark comma signs were removed from numeric content.",call.=FALSE)
-        x[i]<-gsub("([0-9]),([0-9]{3})","\\1\\2",x[i])
-      }
-    }
-    
-
-
     # x as vector
     x<-as.vector(x)
     
@@ -104,13 +115,15 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,
     x<-gsub("\\*\\^\\*","**",gsub("\\*\\^\\*","**",x))
     # unify minus/hyphen sign
     x<-gsub("\u2212|\u02D7|\u002D|\u2013","-",x)
+    # superscripted 2
+    x<-gsub("\u00b3","^2",x)
     
     ## clean up empty cells
     if(isTRUE(na.rm)){
       # set only dot, minus, or slash to NA
-      x<-gsub("^ *[\\.-/] *$","NA",x)
+      x<-gsub("^[-\\./ ]*$","NA",x)
       # remove NA
-      x<-gsub("^[:punct:]*[Nn][Aa][:punct:]*$","",x)
+      x<-gsub("^[:punct:]*[Nn][:punct:]*[Aa][:punct:]*$","",x)
     }
     # clean up and unify
     x<-gsub("^- ([0-9\\.])","-\\1",x)
@@ -121,18 +134,19 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,
     x<-gsub("([0-9])  *\\%","\\1%",x)
     x<-gsub("  *"," ",x)
     
-    # sparse cells to empty
-    #x<-gsub("^ *[-\\.][-\\.]* *$","",x)
     # remove space around operator number
     x<-gsub("([A-z2]) *([<=>][<=>]*) *(-*[0-9\\.-])","\\1\\2\\3",x)
     # remove space between operator number at start
     x<-gsub("^ *([<=>][<=>]*) *(-*[0-9\\.-])","\\1\\2",x)
     # add Comma between number/star-letter-operator
     x<-gsub("([0-9\\*])( [A-z][A-z]*[<=>][<=>]*[-0-9\\.])","\\1,\\2",x)
-    if(letter.convert==TRUE) x<-letter.convert(x,greek2text=greek2text)
-    # convert exponents with *10^-num
+    if(letter.convert==TRUE) {
+      x<-html2unicode(x)
+      x<-JATSdecoder::letter.convert(x,greek2text=greek2text)
+      }
+    # convert exponents with *10^-num and products
     i<-grep("[0-9] *\\* *10\\^[- ]*[0-9]",x)
-    x[i]<-text2num(x[i],exponent = TRUE,percentage = FALSE,fraction = FALSE,product = FALSE, words=FALSE)
+    x[i]<-JATSdecoder::text2num(x[i],exponent = TRUE,percentage = FALSE,fraction = FALSE, product = TRUE, words=FALSE)
     # remove tailoring spaces
     x<-gsub("  *$","",x)
     x<-gsub("^  *","",x)
@@ -140,8 +154,19 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,
     # remove space in front of ^
     x<-gsub(" \\^","^",x)
     
+    # remove html @ references
+    x<-gsub("@[a-z][^\\{]*\\{[^\\]*\\} *","",x)
+    
     # vector to matrix
     m<-matrix(x,ncol=nCol)
+    
+    # add lost attributes
+    if(length(grep("caption|footer",names(unlist(attribs))))==2){
+      attributes(m)$caption<-attribs$caption
+      attributes(m)$footer<-attribs$footer
+      attributes(m)$class<-attribs$class
+    }
+    
     
     # remove empty rows/cols
     row.rm<-which(rowSums(m=="",na.rm=TRUE)==ncol(m))
@@ -156,12 +181,20 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,
     if(!is.matrix(m)){
       if(length(m)==0) return(NULL)
       return(matrix(m,ncol=1))
-      }
+    }
+    
     # output
     return(m)
   }
   
   # apply function
-  if(!is.list(x)) return(fun(x,letter.convert=letter.convert,greek2text=greek2text,text2num=text2num,correctComma=correctComma,na.rm=na.rm))
-  if(is.list(x)) return(lapply(x,fun,letter.convert=letter.convert,greek2text=greek2text,text2num=text2num,correctComma=correctComma,na.rm=na.rm))
+  if(!is.list(x)){
+    out<-fun(x,letter.convert=letter.convert,greek2text=greek2text,text2num=text2num,correctComma=correctComma,na.rm=na.rm)
+    return(out)
+    }
+  
+  if(is.list(x)){
+    out<-lapply(x,fun,letter.convert=letter.convert,greek2text=greek2text,text2num=text2num,correctComma=correctComma,na.rm=na.rm)
+    return(out)
+    }
 }

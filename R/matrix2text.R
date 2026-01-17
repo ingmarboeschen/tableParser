@@ -2,16 +2,18 @@
 #'
 #' Converts character matrix content to a screen reader-like readable character string. The parsing is performed row-wise in standard mode. 
 #' @param x A character matrix or list of character matrices.
-#' @param legend A list with table legend codes extracted from table caption and/or footer with tableParser::legendCodings(). 
+#' @param legend A list with table legend codes extracted from table caption and/or footnote with tableParser::legendCodings(). 
 #' @param unifyMatrix Logical. If TRUE, matrix cells are unified for better post-processing.
 #' @param correctComma Logical. If TRUE and unifyMatrix=TRUE, decimal sign commas are converted to dots. 
 #' @param na.rm Logical. If TRUE, NA cells are set to empty cells.
 #' @param forceClass character. Set matrix-specific handling to one of c("tabled result", "correlation", "matrix", "text").
-#' @param expandAbbreviations Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footer with tableParser::legendCodings().
+#' @param expandAbbreviations Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footnote with tableParser::legendCodings().
 #' @param superscript2bracket Logical. If TRUE, detected superscript codings are inserted inside parentheses.
-#' @param addDF Logical. If TRUE, detected sample size N in the caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom. 
+#' @param dfHandling Logical. If TRUE, detected sample size N in the caption/footnote is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom. 
+#' @param decodeP Logical. If TRUE, imputes the converts the detected p-value codings to text with seperator ';;' (e.g., '1.23*' -> '1.23;; p<.01')
 #' @param standardPcoding Logical. If TRUE, and no other detection of p-value coding is detected, standard coding of p-values is assumed to be: * p<.05, ** p<.01, and *** p<.001.
 #' @param noSign2p Logical. If TRUE, imputes 'p>maximum of coded p-values' to cells that are not coded to be significant.
+#' @param bracketHandling Logical. If TRUE and if possible, decodes numbers in brackets.
 #' @param rotate Logical. If TRUE, matrix content is parsed by column.
 #' @param unlist Logical. If TRUE, output is returned as a vector with parsed text from all listed matrices; else, a list with parsed text from each matrix is returned as a list. 
 #' @param addTableName Logical. If TRUE and unlist=TRUE, the table number is added in front of unlisted text lines.
@@ -21,37 +23,46 @@
 #' # some random data
 #' x<-rnorm(100)
 #' y<-x+rnorm(100)
+#' 
 #' # a model result table...
 #' mod<-round(summary(lm(y~x))$coefficients,3)
 #' rnames<-c("",rownames(mod))
 #' cnames<-colnames(mod)
 #' mod<-rbind(cnames,mod)
 #' mod<-cbind(rnames,mod)
+#' 
 #' # ...as character result matrix
-#' x<-unname(mod);x
+#' x<-unname(mod)
+#' x
+#' 
 #' ## parse matrix to text vector
-#' # -as is
+#' # - as is
 #' matrix2text(x,unifyMatrix=FALSE)
-#' # -with unified content
+#' # - with unified content
 #' matrix2text(x,unifyMatrix=TRUE)
+#' 
 #' ## processing of a matrix with two header lines
-#' x<-rbind(c("","A","A","B","B"),x);x
+#' x<-rbind(c("","A","A","B","B"),x)
+#' x
 #' matrix2text(x,unifyMatrix=FALSE)
-#' ## processing of a matrix with two header lines and naming columns 
-#' x<-cbind(c("","","C","D"),x);x
+#' 
+#' ## processing of a matrix with two header lines and grouping column [,1]
+#' x<-cbind(c("","","C","D"),x)
+#' x
 #' matrix2text(x,unifyMatrix=FALSE)
 
 #' @export
 
-matrix2text<-function(x,
-                      legend=NULL,
+matrix2text<-function(x,legend=NULL,
                       unifyMatrix=TRUE,correctComma=FALSE,
                       na.rm=TRUE,forceClass=NULL,
                       expandAbbreviations=TRUE,
                       superscript2bracket=TRUE,
+                      decodeP=FALSE,
                       standardPcoding=FALSE,
                       noSign2p=FALSE,
-                      addDF=TRUE,
+                      bracketHandling=FALSE,
+                      dfHandling=TRUE,
                       rotate=FALSE,unlist=FALSE,addTableName=TRUE,
                       split=FALSE
 ){
@@ -59,6 +70,8 @@ matrix2text<-function(x,
   # escapes
   if(length(x)==0) return(NULL)
   if(length(unlist(x))==0) return(NULL)
+  
+  if(!isTRUE(decodeP)) noSign2p<-FALSE
 
   # single matrix to list
   if(is.matrix(x)) x<-list(x)
@@ -72,8 +85,8 @@ matrix2text<-function(x,
   # remove html but convert sub and sup, bold and italic numbers
   x<-lapply(x,function(x) gsub("<sub>","_",gsub("<sup>","^",x)))
   
-  x<-lapply(x,function(x) gsub("([0-9])</bold>","\\1^bold",gsub("[0-9]</italic>","\\1^italic",x)))
-  x<-lapply(x,function(x) gsub("([0-9])</b>","\\1^bold",gsub("[0-9]</i>","\\1^italic",x)))
+  x<-lapply(x,function(x) gsub("([0-9])</bold>","\\1^bold",gsub("([0-9])</italic>","\\1^italic",x)))
+  x<-lapply(x,function(x) gsub("([0-9])</b>","\\1^bold",gsub("([0-9])</i>","\\1^italic",x)))
   
   x<-lapply(x,function(x) gsub("</*[A-z][^>]*>","",x))
   
@@ -88,9 +101,9 @@ matrix2text<-function(x,
   
   if(is.matrix(x)) x<-list(x)
   
-
+  # prepare
   x<-lapply(x,prepareMatrix,forceClass=forceClass,na.rm=na.rm)
-  x
+  
   fun<-function(x,rotate=FALSE,unifyMatrix=TRUE,correctComma=FALSE,na.rm=TRUE){
   # escapes
   if(length(x)==0) return(NULL)
@@ -112,7 +125,8 @@ matrix2text<-function(x,
   return(x)
   }
   
-  x<-lapply(x,fun,rotate=rotate,unifyMatrix=unifyMatrix,correctComma=correctComma,na.rm=na.rm)
+  x<-lapply(x,fun,rotate=rotate,unifyMatrix=unifyMatrix,correctComma=correctComma,
+            na.rm=na.rm)
   
   # split matrices
   if(split==TRUE){
@@ -128,12 +142,9 @@ matrix2text<-function(x,
   out<-NULL
   
   if(is.list(x)) out<-lapply(x,parseMatrixContent,legend=legend,forceClass=forceClass,
-                                    standardPcoding=standardPcoding,noSign2p=noSign2p,
-                                    expandAbbreviations=expandAbbreviations,
-                             superscript2bracket=superscript2bracket,addDF=addDF)
-  #if(is.matrix(x)|is.vector(x)) out<-unlist(parseMatrixContent(x,legend=legend,noSign2p=noSign2p,
-  #                                                             standardPcoding=standardPcoding,
-  #                                                             expandAbbreviations=expandAbbreviations))
+                                    standardPcoding=standardPcoding,decodeP=decodeP,noSign2p=noSign2p,
+                                    expandAbbreviations=expandAbbreviations,bracketHandling=bracketHandling,
+                             superscript2bracket=superscript2bracket,dfHandling=dfHandling)
 
   # unify output for better readability of get.stats
   if(unifyMatrix==TRUE) out<-lapply(out,unifyOutput)

@@ -16,12 +16,12 @@ get.footer<-function(x,rm.html=TRUE,sentences=FALSE,letter.convert=TRUE){
   ind<-grepl("<table-wrap-foot",x)
   if(sum(ind)>0){
     # select and clean up lines with <table-wrap-foot
-    footer<-lapply(strsplit2(x,"</*table-wrap-foot",type="before"),function(x) grep("^<table-wrap-foot",x,value=TRUE))
+    footer<-lapply(JATSdecoder::strsplit2(x,"</*table-wrap-foot",type="before"),function(x) grep("^<table-wrap-foot",x,value=TRUE))
     footer<-lapply(footer,function(x) gsub("^<table-wrap-foot[^>]*>","",x))
     # split at html <br> or </p>
     footer<-lapply(footer,function(x) unlist(strsplit(x,"<p/>|</p>|</*br/*>|\\\\n")))
     # convert to sentences
-    if(sentences==TRUE) footer<-lapply(footer,text2sentences)
+    if(sentences==TRUE) footer<-lapply(footer,JATSdecoder::text2sentences)
     # remove html tags, and convert sup and sub
     footer<-lapply(footer,function(x) gsub("<sup>","^",gsub("<sub>","_",x)))
     footer<-lapply(footer,function(x) gsub("</*sup/*>"," ",gsub("</*sub/*>"," ",x)))
@@ -31,7 +31,7 @@ get.footer<-function(x,rm.html=TRUE,sentences=FALSE,letter.convert=TRUE){
     footer<-lapply(footer,function(x) gsub("^ | $","",gsub("  *"," ",x)))
     # hex/special letter conversion
     # unify letters
-    if(letter.convert==TRUE)  footer<-lapply(footer,letter.convert)
+    if(letter.convert==TRUE)  footer<-lapply(footer,JATSdecoder::letter.convert)
   }
   footer<-unlist(footer)
   footer<-footer[nchar(footer)>0]
