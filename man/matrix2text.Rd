@@ -13,9 +13,11 @@ matrix2text(
   forceClass = NULL,
   expandAbbreviations = TRUE,
   superscript2bracket = TRUE,
+  decodeP = FALSE,
   standardPcoding = FALSE,
   noSign2p = FALSE,
-  addDF = TRUE,
+  bracketHandling = FALSE,
+  dfHandling = TRUE,
   rotate = FALSE,
   unlist = FALSE,
   addTableName = TRUE,
@@ -25,7 +27,7 @@ matrix2text(
 \arguments{
 \item{x}{A character matrix or list of character matrices.}
 
-\item{legend}{A list with table legend codes extracted from table caption and/or footer with tableParser::legendCodings().}
+\item{legend}{A list with table legend codes extracted from table caption and/or footnote with tableParser::legendCodings().}
 
 \item{unifyMatrix}{Logical. If TRUE, matrix cells are unified for better post-processing.}
 
@@ -35,15 +37,19 @@ matrix2text(
 
 \item{forceClass}{character. Set matrix-specific handling to one of c("tabled result", "correlation", "matrix", "text").}
 
-\item{expandAbbreviations}{Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footer with tableParser::legendCodings().}
+\item{expandAbbreviations}{Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footnote with tableParser::legendCodings().}
 
 \item{superscript2bracket}{Logical. If TRUE, detected superscript codings are inserted inside parentheses.}
+
+\item{decodeP}{Logical. If TRUE, imputes the converts the detected p-value codings to text with seperator ';;' (e.g., '1.23*' -> '1.23;; p<.01')}
 
 \item{standardPcoding}{Logical. If TRUE, and no other detection of p-value coding is detected, standard coding of p-values is assumed to be: * p<.05, ** p<.01, and *** p<.001.}
 
 \item{noSign2p}{Logical. If TRUE, imputes 'p>maximum of coded p-values' to cells that are not coded to be significant.}
 
-\item{addDF}{Logical. If TRUE, detected sample size N in the caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom.}
+\item{bracketHandling}{Logical. If TRUE and if possible, decodes numbers in brackets.}
+
+\item{dfHandling}{Logical. If TRUE, detected sample size N in the caption/footnote is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom.}
 
 \item{rotate}{Logical. If TRUE, matrix content is parsed by column.}
 
@@ -63,23 +69,31 @@ Converts character matrix content to a screen reader-like readable character str
 # some random data
 x<-rnorm(100)
 y<-x+rnorm(100)
+
 # a model result table...
 mod<-round(summary(lm(y~x))$coefficients,3)
 rnames<-c("",rownames(mod))
 cnames<-colnames(mod)
 mod<-rbind(cnames,mod)
 mod<-cbind(rnames,mod)
+
 # ...as character result matrix
-x<-unname(mod);x
+x<-unname(mod)
+x
+
 ## parse matrix to text vector
-# -as is
+# - as is
 matrix2text(x,unifyMatrix=FALSE)
-# -with unified content
+# - with unified content
 matrix2text(x,unifyMatrix=TRUE)
+
 ## processing of a matrix with two header lines
-x<-rbind(c("","A","A","B","B"),x);x
+x<-rbind(c("","A","A","B","B"),x)
+x
 matrix2text(x,unifyMatrix=FALSE)
-## processing of a matrix with two header lines and naming columns 
-x<-cbind(c("","","C","D"),x);x
+
+## processing of a matrix with two header lines and grouping column [,1]
+x<-cbind(c("","","C","D"),x)
+x
 matrix2text(x,unifyMatrix=FALSE)
 }

@@ -16,7 +16,7 @@ unifyMatrixContent(
 \arguments{
 \item{x}{a character matrix.}
 
-\item{letter.convert}{Logical. If TRUE, hexadecimal-coded letters will be unified and converted to Unicode with JATSdecoder::letter.convert().}
+\item{letter.convert}{Logical. If TRUE, hexadecimal- and html-encoded letters will be unified and converted to Unicode with JATSdecoder::letter.convert().}
 
 \item{greek2text}{Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text-based form (e.g., 'alpha', 'beta').}
 
@@ -28,4 +28,15 @@ unifyMatrixContent(
 }
 \description{
 Unifies textual and numerical content of character matrices. Unifies hyphens, spaces, hexadecimal and Greek letters, and performs space and comma corrections. Big marks in numbers are removed. HTML tags <sup> and <sub> are converted to '^' and '_' respectively. All other HTML tags are removed.
+}
+\examples{
+# Example matrix
+m<-rbind(c("","ß","Standard Error","Pr(>|t|)"),
+         c("(Intercept)","1,234.5","123.4","1.3e-4"),
+         c("Variable 1","1,2",".04","2.4*10^-5"),
+         c("R^2",".23","*","-"))
+m
+
+# apply function
+unifyMatrixContent(m, correctComma = TRUE)
 }

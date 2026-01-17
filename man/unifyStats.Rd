@@ -15,3 +15,18 @@ A unified text string.
 \description{
 Unifies many textual representations of statistical results in text vectors created with table2text(). This uniformization is needed for a more precise extraction of standard results with the function standardStats() from the JATSdecoder package.
 }
+\examples{
+# Example matrix
+m<-rbind(c("","ß","Standard Error","Pr(>|t|)"),
+c("(Intercept)","1,234.5","123.4","1.3e-4"),
+c("Variable 1","1,2",".04","2.4*10^-5"),
+c("R^2",".23","*","-"))
+m
+
+# parsed content
+text<-parseMatrixContent(unifyMatrixContent(m, correctComma = TRUE))
+text
+
+# unified stats
+unifyStats(text)
+}

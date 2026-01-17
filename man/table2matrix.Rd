@@ -18,11 +18,11 @@ table2matrix(
 )
 }
 \arguments{
-\item{x}{File path to a DOCX, PDF, or HTML-encoded file, or text with HTML code.}
+\item{x}{A file path to a DOCX, PDF, or HTML encoded file, or text with HTML code.}
 
 \item{unifyMatrix}{Logical. If TRUE, matrix cells are unified for better post-processing (see unifyMatrixContent()).}
 
-\item{letter.convert}{Logical. If TRUE, hex codes will be unified and converted to Unicode with JATSdecoder::letter.convert().}
+\item{letter.convert}{Logical. If TRUE, html and hexadecimal encoded letters will be unified and converted to Unicode with html2unicode() and JATSdecoder::letter.convert().}
 
 \item{greek2text}{Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text-based form (e.g.: 'alpha', 'beta').}
 
@@ -42,9 +42,43 @@ table2matrix(
 List with detected tables as character matrices.
 }
 \description{
-Extracts tables from HTML, HML, XML, CERMXML, DOCX, PDF files, or plain HTML code to a list of character matrices.
+Extracts tables from HTML, HML, XML, DOCX, PDF files, or plain HTML code to a list of character matrices.
 }
 \examples{
+## - Download example DOCX file
+d<-'https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.docx'
+download.file(d,paste0(tempdir(),"/","tableExamples.docx"))
+
+# Extract tables from example file as matrices
+table2matrix(paste0(tempdir(),"/","tableExamples.docx"))
+
+## - Download example HTML file
+h<-'https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.html'
+download.file(h,paste0(tempdir(),"/","tableExamples.html"))
+
+# Extract tables from example file as matrices
+table2matrix(paste0(tempdir(),"/","tableExamples.html"),rm.html=TRUE)
+
+## - Download example PDF file
+p<-'https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.pdf'
+download.file(p,paste0(tempdir(),"/","tableExamples.pdf"))
+
+# Extract tables from example file as matrices
+\donttest{
+table2matrix(paste0(tempdir(),"/","tableExamples.pdf"))
+
+# Note: The extraction of tables within PDF documents with tabulapdf::extract_tables()  
+# does not work properly here. 
+# Also, the table captions and footnotes cannot be used for decoding (e.g., p-values). 
+
+tabulapdf::extract_tables(paste0(tempdir(),"/","tableExamples.pdf"))
+}
+
+## Another example with a website that contains simple and nested HTML-tables
+
+# download file
 x<-readLines("https://en.wikipedia.org/wiki/R_(programming_language)",warn=FALSE)
-table2matrix(x,rm.html=TRUE)
+
+# apply function
+table2matrix(x,rm.html=TRUE,unifyMatrix=TRUE)
 }

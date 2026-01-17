@@ -7,34 +7,51 @@
 parseMatrixContent(
   x,
   legend = NULL,
+  decodeP = TRUE,
   standardPcoding = TRUE,
   noSign2p = TRUE,
+  bracketHandling = TRUE,
   forceClass = NULL,
   expandAbbreviations = TRUE,
   superscript2bracket = FALSE,
-  addDF = TRUE
+  dfHandling = TRUE
 )
 }
 \arguments{
 \item{x}{A character matrix or list with a character matrix as first and only element.}
 
-\item{legend}{The table's caption/footer notes as a character vector.}
+\item{legend}{The table's caption/footnote as a character vector.}
+
+\item{decodeP}{Logical. If TRUE, imputes the converts the detected p-value codings to text with seperator ';;' (e.g., '1.23*' -> '1.23;; p<.01')}
 
 \item{standardPcoding}{Logical. If TRUE, and no other detection of p-value coding is detected, standard coding of p-values is assumed to be: * p<.05, ** p<.01, and *** p<.001.}
 
-\item{noSign2p}{Logical. If TRUE, imputes 'p>maximum of coded p-values' to cells that are not coded to be significant.}
+\item{noSign2p}{Logical. If TRUE, imputes 'p>maximum of the detected p-value codes to cells that do have a coding sign.}
+
+\item{bracketHandling}{Logical. If TRUE and if possible, decodes numbers in brackets.}
 
 \item{forceClass}{Character. Set a fixed table class for extraction heuristic. One of c("tabled result", "correlation", "matrix", "text").}
 
-\item{expandAbbreviations}{Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footer with tableParser::legendCodings().}
+\item{expandAbbreviations}{Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footnotes with tableParser::legendCodings().}
 
 \item{superscript2bracket}{Logical. If TRUE, detected superscript codings are inserted inside parentheses.}
 
-\item{addDF}{Logical. If TRUE, detected sample size N in the caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom.}
+\item{dfHandling}{Logical. If TRUE, detected sample size N in the caption/footnotes is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom.}
 }
 \value{
 A text vector with the parsed matrix content.
 }
 \description{
 Parses character matrix content into a text vector. This is the basic function of tableParser, which is implemented in matrix2text(), table2text(), and table2stats(). Row and column names are parsed to cell content with operators that depend on the cell content. Numeric cells are parsed with "=", and textual cell content with ":". Cells that start with an operator ('<', '=' or '>') are parsed without a separator. Detected codings for (e.g., p-values, abbreviations) from table legend text can be used to extend the tabled content to a fully written-out form.
+}
+\examples{
+# Example matrix
+m<-rbind(c("","ß","Standard Error","Pr(>|t|)"),
+         c("(Intercept)","1,234.5","123.4","1.3e-4"),
+         c("Variable 1","1,2",".04","2.4*10^-5"),
+         c("R^2",".23","*","-"))
+m
+
+# apply function
+parseMatrixContent(m)
 }

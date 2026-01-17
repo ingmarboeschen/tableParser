@@ -7,11 +7,15 @@
 get.HTML.tables(x)
 }
 \arguments{
-\item{x}{HTML, HML, XML, or CERMXML file or character object with HTML-encoded content.}
+\item{x}{HTML, HML, or XML file; or character object with HTML-encoded content.}
 }
 \value{
 Character vector with one HTML-encoded table per cell.
 }
 \description{
-Extracts HTML tables as a vector of HTML-coded tables from plain HTML code, HTML, HML, XML, or CERMXML files.
+Extracts HTML tables as a vector of HTML-coded tables from plain HTML code, HTML, HML, or XML files. If tables are nested within tables, only the inner tables are extracted.
+}
+\examples{
+x<-readLines("https://en.wikipedia.org/wiki/R_(programming_language)",warn=FALSE)
+get.HTML.tables(x)
 }

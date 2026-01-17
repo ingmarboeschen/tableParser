@@ -19,7 +19,7 @@ table2stats(
   alternative = "undirected",
   estimateZ = FALSE,
   T2t = FALSE,
-  addDF = TRUE,
+  dfHandling = TRUE,
   collapse = TRUE,
   addTableName = FALSE,
   rm.na.col = TRUE
@@ -54,7 +54,7 @@ table2stats(
 
 \item{T2t}{Logical. If TRUE, capital letter T is treated as a t-statistic.}
 
-\item{addDF}{Logical. If TRUE, detected sample size N in the caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom.}
+\item{dfHandling}{Logical. If TRUE, detected sample size N in the caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom.}
 
 \item{collapse}{Logical. If TRUE, the result is collapsed to a single data frame object. Else, a list of data frames with length = n matrices is returned.}
 
@@ -67,4 +67,30 @@ A data.frame object with the extracted statistical standard results, recalculate
 }
 \description{
 Extracts tabulated statistical results from documents in XML, HTML, HML, DOCX, or PDF format.
+}
+\examples{
+## - Download example DOCX file
+d<-'https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.docx'
+download.file(d,paste0(tempdir(),"/","tableExamples.docx"))
+
+# Extract the detected statistical standard results and validate the reported and coded 
+# p-values with the recalculated p-values.
+table2stats(paste0(tempdir(),"/","tableExamples.docx"), checkP=TRUE, estimateZ=TRUE)
+
+## - Download example HTML file
+h<-'https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.html'
+download.file(h,paste0(tempdir(),"/","tableExamples.html"))
+# Extract the detected statistical standard results and validate the reported and coded 
+# p-values with the recalculated p-values.
+table2stats(paste0(tempdir(),"/","tableExamples.html"), checkP=TRUE, estimateZ=TRUE)
+# - Download example PDF file
+\donttest{
+p<-'https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.pdf'
+download.file(p,paste0(tempdir(),"/","tableExamples.pdf"))
+
+# Extract the detected statistical standard results and validate the reported and  
+# standard coded as well as not coded p-values with the recalculated p-values.
+table2stats(paste0(tempdir(),"/","tableExamples.pdf"), checkP=TRUE, estimateZ=TRUE, 
+standardPcoding=TRUE, noSign2p=FALSE)
+}
 }

@@ -11,10 +11,12 @@ table2text(
   expandAbbreviations = TRUE,
   superscript2bracket = TRUE,
   standardPcoding = FALSE,
+  decodeP = TRUE,
   noSign2p = FALSE,
-  addDF = FALSE,
+  bracketHandling = TRUE,
+  dfHandling = FALSE,
   rotate = FALSE,
-  correctComma = FALSE,
+  correctComma = TRUE,
   na.rm = TRUE,
   addDescription = TRUE,
   unlist = FALSE,
@@ -22,21 +24,25 @@ table2text(
 )
 }
 \arguments{
-\item{x}{A vector with HTML tables, or a single file path to an HTML, XML, CERMXML, HML, PDF, or DOCX file.}
+\item{x}{A vector with HTML tables, or a single file path to an HTML, XML, HML, PDF, or DOCX file.}
 
 \item{unifyMatrix}{Logical. If TRUE, matrix cells are unified for better post-processing.}
 
 \item{unifyStats}{Logical. If TRUE, output is unified for better post-processing (e.g., "p-value"->"p").}
 
-\item{expandAbbreviations}{Logical. If TRUE, detected abbreviations are expanded to label from table caption/footer.}
+\item{expandAbbreviations}{Logical. If TRUE, detected abbreviations are expanded to label from table caption/footnote.}
 
 \item{superscript2bracket}{Logical. If TRUE, detected superscript codings are inserted inside parentheses.}
 
 \item{standardPcoding}{Logical. If TRUE, and no other detection of coding is detected, standard coding of p-values is assumed to be * p<.05, ** p<.01, and ***p<.001.}
 
+\item{decodeP}{Logical. If TRUE, imputes the converts the detected p-value codings to text with seperator ';;' (e.g., '1.23*' -> '1.23;; p<.01')}
+
 \item{noSign2p}{Logical. If TRUE, imputes 'p>maximum of coded p-values' to cells that are not coded to be significant.}
 
-\item{addDF}{Logical. If TRUE, detected sample size N in the caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom.}
+\item{bracketHandling}{Logical. If TRUE and if possible, decodes numbers in brackets.}
+
+\item{dfHandling}{Logical. If TRUE, the detected sample size N in the caption/footnote is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom.}
 
 \item{rotate}{Logical. If TRUE, matrix content is parsed by column.}
 
@@ -44,7 +50,7 @@ table2text(
 
 \item{na.rm}{Logical. If TRUE, NA cells are set to empty cells.}
 
-\item{addDescription}{Logical. If TRUE, the table caption and footer are added before the extracted table content for better readability.}
+\item{addDescription}{Logical. If TRUE, the attributes table caption and table footnote are added in front of the extracted character content for better readability.}
 
 \item{unlist}{Logical. If TRUE, output is returned as a vector.}
 
@@ -55,4 +61,28 @@ A list with text vectors of the parsed table content by table. The text vector i
 }
 \description{
 Parses tabled content from HTML-coded content, or HTML, DOCX, or PDF file to human-readable text vector. Before parsing, header lines are collapsed and connected cells are broken up.
+}
+\examples{
+## - Download example DOCX file
+d<-'https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.docx'
+download.file(d,paste0(tempdir(),"/","tableExamples.docx"))
+
+# Parse tabled content from example file to text vectors.
+table2text(paste0(tempdir(),"/","tableExamples.docx"))
+
+## - Download example HTML file
+h<-'https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.html'
+download.file(h,paste0(tempdir(),"/","tableExamples.html"))
+
+# Parse tabled content from example file to text vectors.
+table2text(paste0(tempdir(),"/","tableExamples.html"),unlist=TRUE,addDescription=TRUE)
+
+\donttest{
+## - Download example PDF file
+p<-'https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.pdf'
+download.file(p,paste0(tempdir(),"/","tableExamples.pdf"))
+              
+# Parse tabled content from example file to text vectors.
+table2text(paste0(tempdir(),"/","tableExamples.pdf"),decodeP=TRUE,standardPcoding=TRUE)
+}
 }

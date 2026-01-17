@@ -9,7 +9,7 @@ tableClass(x, legend = NULL)
 \arguments{
 \item{x}{A character matrix}
 
-\item{legend}{A text vector with the tables caption and/or footer.}
+\item{legend}{A text vector with the tables caption and/or footnote.}
 }
 \value{
 A character object of length=1 with the table's class.

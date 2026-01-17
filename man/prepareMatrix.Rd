@@ -19,5 +19,15 @@ prepareMatrix(x, split = FALSE, forceClass = NULL, na.rm = TRUE)
 A character matrix
 }
 \description{
-Prepares character matrix content for parsing.
+Prepares character matrix content for parsing. Removes empty rows and columns, extends content from plausible grouping cells to sparse cells, collapses multiple header rows, and splits multiple model tables to a list of single model tables.
+}
+\examples{
+# example matrix
+x<-cbind(c("","","name","","",""), 
+         c("group","name","A","B","","C"), 
+         c("value","","1","2","","3"))
+x
+
+# apply function
+prepareMatrix(x)
 }
