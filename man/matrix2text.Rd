@@ -27,17 +27,17 @@ matrix2text(
 \arguments{
 \item{x}{A character matrix or list of character matrices.}
 
-\item{legend}{A list with table legend codes extracted from table caption and/or footnote with tableParser::legendCodings().}
+\item{legend}{A list with table legend codes extracted from table caption and/or footnote with 'tableParser::legendCodings()'.}
 
 \item{unifyMatrix}{Logical. If TRUE, matrix cells are unified for better post-processing.}
 
-\item{correctComma}{Logical. If TRUE and unifyMatrix=TRUE, decimal sign commas are converted to dots.}
+\item{correctComma}{Logical. If TRUE and 'unifyMatrix=TRUE', decimal sign commas are converted to dots.}
 
 \item{na.rm}{Logical. If TRUE, NA cells are set to empty cells.}
 
 \item{forceClass}{character. Set matrix-specific handling to one of c("tabled result", "correlation", "matrix", "text").}
 
-\item{expandAbbreviations}{Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footnote with tableParser::legendCodings().}
+\item{expandAbbreviations}{Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footnote with 'tableParser::legendCodings()'.}
 
 \item{superscript2bracket}{Logical. If TRUE, detected superscript codings are inserted inside parentheses.}
 

@@ -14,9 +14,9 @@ unifyMatrixContent(
 )
 }
 \arguments{
-\item{x}{a character matrix.}
+\item{x}{A character matrix or list of character matrices.}
 
-\item{letter.convert}{Logical. If TRUE, hexadecimal- and html-encoded letters will be unified and converted to Unicode with JATSdecoder::letter.convert().}
+\item{letter.convert}{Logical. If TRUE, hexadecimal- and html-encoded letters will be unified and converted to Unicode with 'JATSdecoder::letter.convert()'.}
 
 \item{greek2text}{Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text-based form (e.g., 'alpha', 'beta').}
 
@@ -25,6 +25,9 @@ unifyMatrixContent(
 \item{correctComma}{Logical. If TRUE, commas used as numeric separators are converted to dots.}
 
 \item{na.rm}{Logical. If TRUE, cells with NA, or only minus, hyphen, slash, or dot are set to empty cells.}
+}
+\value{
+A unified character matrix or list of character matrices.
 }
 \description{
 Unifies textual and numerical content of character matrices. Unifies hyphens, spaces, hexadecimal and Greek letters, and performs space and comma corrections. Big marks in numbers are removed. HTML tags <sup> and <sub> are converted to '^' and '_' respectively. All other HTML tags are removed.

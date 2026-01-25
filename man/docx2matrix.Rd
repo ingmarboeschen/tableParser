@@ -9,7 +9,7 @@ docx2matrix(x, unifyMatrix = TRUE, replicate = TRUE)
 \arguments{
 \item{x}{File path to a DOCX input file with tables.}
 
-\item{unifyMatrix}{Logical. If TRUE, matrix cells are unified for better post-processing (see unifyMatrixContent()).}
+\item{unifyMatrix}{Logical. If TRUE, matrix cells are unified for better post-processing (see 'unifyMatrixContent()').}
 
 \item{replicate}{Logical. If TRUE, replicates content when splitting connected cells.}
 }

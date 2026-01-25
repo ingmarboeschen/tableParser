@@ -20,9 +20,9 @@ table2matrix(
 \arguments{
 \item{x}{A file path to a DOCX, PDF, or HTML encoded file, or text with HTML code.}
 
-\item{unifyMatrix}{Logical. If TRUE, matrix cells are unified for better post-processing (see unifyMatrixContent()).}
+\item{unifyMatrix}{Logical. If TRUE, matrix cells are unified for better post-processing (see '?unifyMatrixContent').}
 
-\item{letter.convert}{Logical. If TRUE, html and hexadecimal encoded letters will be unified and converted to Unicode with html2unicode() and JATSdecoder::letter.convert().}
+\item{letter.convert}{Logical. If TRUE, html and hexadecimal encoded letters will be unified and converted to Unicode with 'html2unicode()' and 'JATSdecoder::letter.convert()'.}
 
 \item{greek2text}{Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text-based form (e.g.: 'alpha', 'beta').}
 

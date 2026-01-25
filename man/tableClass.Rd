@@ -7,7 +7,7 @@
 tableClass(x, legend = NULL)
 }
 \arguments{
-\item{x}{A character matrix}
+\item{x}{A character matrix.}
 
 \item{legend}{A text vector with the tables caption and/or footnote.}
 }

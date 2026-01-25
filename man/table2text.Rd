@@ -57,7 +57,7 @@ table2text(
 \item{addTableName}{Logical. If TRUE and unlist=TRUE, the table number is added in front of unlisted text lines.}
 }
 \value{
-A list with text vectors of the parsed table content by table. The text vector in each list element can be further processed with JATSdecoder::standardStats() to extract and structure the statistical standard test results.
+A list with text vectors of the parsed table content by table. The text vector in each list element can be further processed with 'JATSdecoder::standardStats()' to extract and structure the statistical standard test results.
 }
 \description{
 Parses tabled content from HTML-coded content, or HTML, DOCX, or PDF file to human-readable text vector. Before parsing, header lines are collapsed and connected cells are broken up.

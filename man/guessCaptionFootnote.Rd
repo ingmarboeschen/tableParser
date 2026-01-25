@@ -17,7 +17,7 @@ guessCaptionFootnote(x, MaxCaptionLength = 1, MaxFootnoteLength = 4)
 A list with the extracted table captions and footers as vectors of length=number of tables.
 }
 \description{
-Extracts text blocks around tables within DOCX or HTML/HML/XML/NXML files in order to return the table captions and footnotes.
+Extracts text blocks around tables within DOCX, HTML, HML, XML, or NXML files in order to return the table captions and footnotes.
 }
 \examples{
 ## Download an example DOCX file from tableParser's github repo to temp directory 
@@ -30,7 +30,7 @@ download.file(h,paste0(tempdir(),"/","tableExamples.html"))
 
 ## Extract table captions and footnotes 
 # DOCX file
-guessCaptionFootnote(paste0(tempdir(),"/","tableExamples.docx"))
+\donttest{guessCaptionFootnote(paste0(tempdir(),"/","tableExamples.docx"))}
 # HTML file
 guessCaptionFootnote(paste0(tempdir(),"/","tableExamples.html"))
 }

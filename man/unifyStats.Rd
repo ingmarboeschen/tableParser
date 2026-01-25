@@ -13,7 +13,7 @@ unifyStats(x)
 A unified text string.
 }
 \description{
-Unifies many textual representations of statistical results in text vectors created with table2text(). This uniformization is needed for a more precise extraction of standard results with the function standardStats() from the JATSdecoder package.
+Unifies many textual representations of statistical results in text vectors created with table2text(). This uniformization is needed for a more precise extraction of standard results with the function standardStats() from the 'JATSdecoder' package.
 }
 \examples{
 # Example matrix

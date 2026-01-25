@@ -28,7 +28,7 @@ table2stats(
 \arguments{
 \item{x}{Input. Either a file path to an XML, HTML, HML, DOCX, or PDF file; or a matrix object; or a vector of plain HTML-coded tables.}
 
-\item{standardPcoding}{Logical. If TRUE, and no other detection of coding is detected, then standard coding of p-values is assumed to be * p<.05, ** p<.01, and ***p<.001.}
+\item{standardPcoding}{Logical. If TRUE, and no other detection of coding is detected, then standard coding of p-values is assumed to be * for p<.05, ** for p<.01, and *** for p<.001.}
 
 \item{noSign2p}{Logical. If TRUE, imputes 'p>maximum of coded p-values' to cells that are not coded to be significant.}
 
@@ -66,7 +66,7 @@ table2stats(
 A data.frame object with the extracted statistical standard results, recalculated p-values and a rudimentary, optional consistency check for reported p-values (if 'checkP=TRUE').
 }
 \description{
-Extracts tabulated statistical results from documents in XML, HTML, HML, DOCX, or PDF format.
+Extracts tabulated statistical results from documents in XML, HTML, HML, DOCX, or PDF format. The tabled content is collapsed into a text string with 'table2text()', which is then processed with 'standardStats()' from the 'JATSdecoder' package. It detects most standard statistics (t, Z, chi^2, F, r, d, beta, SE, r, d, eta^2, omega^2, OR, RR, p-values), decodes encoded p-values to text and recalculates and checks p-values if possible.
 }
 \examples{
 ## - Download example DOCX file
@@ -92,5 +92,10 @@ download.file(p,paste0(tempdir(),"/","tableExamples.pdf"))
 # standard coded as well as not coded p-values with the recalculated p-values.
 table2stats(paste0(tempdir(),"/","tableExamples.pdf"), checkP=TRUE, estimateZ=TRUE, 
 standardPcoding=TRUE, noSign2p=FALSE)
+# Note: Due to the messy table extraction with 'tabulapdf::extract_tables()', the  
+# extraction of the statistical results is less precise here.
 }
+}
+\seealso{
+\code{\link[JATSdecoder]{get.stats}} for extracting statistical results from textual resources.
 }
