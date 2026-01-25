@@ -2,7 +2,7 @@
 #' 
 #' Extracts tables from DOCX documents and returns a list of character matrices.
 #' @param x File path to a DOCX input file with tables.
-#' @param unifyMatrix Logical. If TRUE, matrix cells are unified for better post-processing (see unifyMatrixContent()).
+#' @param unifyMatrix Logical. If TRUE, matrix cells are unified for better post-processing (see 'unifyMatrixContent()').
 #' @param replicate Logical. If TRUE, replicates content when splitting connected cells.
 #' @examples
 #' ## Download an example DOCX file from tableParser's github repo to temp directory 

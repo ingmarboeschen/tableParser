@@ -1,6 +1,6 @@
 #' unifyStats
 #' 
-#' Unifies many textual representations of statistical results in text vectors created with table2text(). This uniformization is needed for a more precise extraction of standard results with the function standardStats() from the JATSdecoder package.
+#' Unifies many textual representations of statistical results in text vectors created with table2text(). This uniformization is needed for a more precise extraction of standard results with the function standardStats() from the 'JATSdecoder' package.
 #' @param x A text vector with the parsed table content.
 #' @importFrom JATSdecoder letter.convert
 #' @examples
@@ -54,16 +54,20 @@ unifyStats<-function(x){
   x<-gsub(", chi\\^*2 ([^,;=<>]*[a-z][a-z])([<=>][<=>]*[\\.0-9])",", \\1 chi2\\2",x)
   x<-gsub(", [b]eta ([^,;=<>]*[a-z][a-z])([<=>][<=>]*[\\.0-9])",", \\1 beta\\2",x)
   
+  # remove bracket around result and add comma
+  x<-gsub("([0-9]),* \\(([A-z][-_A-z]*\\^*2* *= *-*[\\.0-9][\\.0-9]*)\\)","\\1, \\2,",x)
+  # clean up comma
+  x<-gsub(",,",",",x)
+  x<-gsub(", *$","",x)
   
-  # unify CI:[num, num]    
+  # unify CI: [num, num]    
   x<-gsub("[cC]onfidence [iI]ntervall*s*|[Cc]onf\\.*[ -][Ii]nt\\.*e*r*v*a*l*","CI",x)
   x<-gsub("(\\.*[1-9][0-9]\\%*[ -]C\\.*I)[= ]*([-\\.0-9][\\.0-9]*[ ]*[^<=>0-9][ ]*[-\\.0-9][\\.0-9]*)(, [a-zA-Z]|$)","\\1: [\\2]\\3",x)
   x<-gsub("(\\.*[1-9][0-9]\\%*[ -]C\\.*I\\.*)[= ]*([-\\.0-9][\\.0-9]* to [-\\.0-9][\\.0-9]*)","\\1: [\\2]",x)
   x<-gsub("([\\(\\[]-*[\\.0-9][\\.0-9]*) *- (-*[\\.0-9][\\.0-9]*)","\\1; \\2",x)
-  
-  x<-gsub("(C\\.*I.*[:=] *[\\(\\[]-*[\\.0-9][\\.0-9]*) - ([\\.0-9][\\.0-9]*)","\\1; \\2",x)
-  x<-gsub("(C\\.*I.*[:=] *[\\(\\[]-*[\\.0-9][\\.0-9]*)-([\\.0-9][\\.0-9]*)","\\1; \\2",x)
-  
+  x<-gsub("(C\\.*I.*[:=] *-*[\\(\\[]*-*[\\.0-9][\\.0-9]*) *- *([\\.0-9][\\.0-9]*)","\\1; \\2",x)
+
+  x<-gsub("(C\\.*I.*[:=]) *[\\(\\[](*-*[\\.0-9][\\.0-9]*; [\\.0-9][\\.0-9]*)[\\(\\[]*","\\1 [\\2]",x)
   
   # add bracket to "=num-num" in lines with ci
   i<-grep("[0-9]\\% C\\.*I\\.*",x)
@@ -162,19 +166,19 @@ unifyStats<-function(x){
   x<-gsub("( [A-z]) *\\(([dD]\\.*[fF]\\.* *= *[0-9\\.])","\\1(\\2",x)
 
   # beta-anything to anything-beta
-  x<-gsub("([bB]eta)[- ]\\(*([-a-zA-z \\.]*)\\)* *([<=>])","\\2 \\1\\3",x)
+  x<-gsub("([bB]eta)[-_ ]\\(*([-a-zA-z \\.]*)\\)* *([<=>])","\\2 \\1\\3",x)
   # b/t/r/F/Z-anything to anything-b/t...
   x<-gsub(" ([bBtTrFZz]) \\(*([-a-zA-z \\.]*)\\)* *([<=>])"," \\2 \\1\\3",x)
   # SE-anything to anything-SE
-  x<-gsub(" (SE)[- ]([-a-zA-z \\.]*)([<=>])"," \\2 \\1\\3",x)
+  x<-gsub(" (SE)[-_ ]([-a-zA-z \\.]*)([<=>])"," \\2 \\1\\3",x)
   # OR/RR-anything to anything-OR/RR
-  x<-gsub(" ([OR]R)[- ]([-a-zA-z \\.]*)([<=>])"," \\2 \\1\\3",x)
+  x<-gsub(" ([OR]R)[-_ ]([-a-zA-z \\.]*)([<=>])"," \\2 \\1\\3",x)
   # OR/RR-anything to anything-OR/RR
-  x<-gsub("(R\\^2)[- ]([-a-zA-z \\.]*)([<=>])"," \\2 \\1\\3",x)
+  x<-gsub("(R\\^2)[-_ ]([-a-zA-z \\.]*)([<=>])"," \\2 \\1\\3",x)
   
   # add "d=" to effect in lines with SE
-  x<-gsub("( [Ee]ffects*)([<=>][<=>]*-*[\\.0-9][\\.0-9]*[,;][,;]* SE[<=>][<=>]*[\\.0-9])"," \\1 d\\2",x)
-  x<-gsub("( [Ee]ffects*)([<=>][<=>]*-*[\\.0-9][\\.0-9]*[,;][,;]* p[<=>][<=>]*[0-9\\.][0-9\\.]*[,;][,;]* SE[<=>][<=>]*[\\.0-9])"," \\1 d\\2",x)
+  x<-gsub("( [Ee]ffects*)([<=>][<=>]*-*[\\.0-9][\\.0-9]*[,;]*[^<=>]* \\(*SE[<=>][<=>]*[\\.0-9])"," \\1 d\\2",x)
+  x<-gsub("( [Ee]ffects*)([<=>][<=>]*-*[\\.0-9][\\.0-9]*[,;]*[^<=>]* p[<=>][<=>]*[0-9\\.][0-9\\.]*[,;]*[^<=>]* SE[<=>][<=>]*[\\.0-9])"," \\1 d\\2",x)
   
   # remove badly set space in "=. num"
   x<-gsub("([<=>]\\.) ([0-9])","\\1\\2",x)

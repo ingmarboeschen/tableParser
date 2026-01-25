@@ -2,12 +2,12 @@
 #'
 #' Converts character matrix content to a screen reader-like readable character string. The parsing is performed row-wise in standard mode. 
 #' @param x A character matrix or list of character matrices.
-#' @param legend A list with table legend codes extracted from table caption and/or footnote with tableParser::legendCodings(). 
+#' @param legend A list with table legend codes extracted from table caption and/or footnote with 'tableParser::legendCodings()'. 
 #' @param unifyMatrix Logical. If TRUE, matrix cells are unified for better post-processing.
-#' @param correctComma Logical. If TRUE and unifyMatrix=TRUE, decimal sign commas are converted to dots. 
+#' @param correctComma Logical. If TRUE and 'unifyMatrix=TRUE', decimal sign commas are converted to dots. 
 #' @param na.rm Logical. If TRUE, NA cells are set to empty cells.
 #' @param forceClass character. Set matrix-specific handling to one of c("tabled result", "correlation", "matrix", "text").
-#' @param expandAbbreviations Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footnote with tableParser::legendCodings().
+#' @param expandAbbreviations Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footnote with 'tableParser::legendCodings()'.
 #' @param superscript2bracket Logical. If TRUE, detected superscript codings are inserted inside parentheses.
 #' @param dfHandling Logical. If TRUE, detected sample size N in the caption/footnote is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom. 
 #' @param decodeP Logical. If TRUE, imputes the converts the detected p-value codings to text with seperator ';;' (e.g., '1.23*' -> '1.23;; p<.01')
@@ -90,6 +90,8 @@ matrix2text<-function(x,legend=NULL,
   
   x<-lapply(x,function(x) gsub("</*[A-z][^>]*>","",x))
   
+  # escape if no characters left
+  if(sum(nchar(unlist(x)))==0) return(x)
   # collapse header rows
   x<-lapply(x,headerHandling)
   
@@ -129,15 +131,17 @@ matrix2text<-function(x,legend=NULL,
             na.rm=na.rm)
   
   # split matrices
-  if(split==TRUE){
+  if(isTRUE(split)){
   x<-lapply(x,splitter)
   # flatten list of lists with matrices to simple list
   x<-flatten(x)
   }
 
+  # escape if no characters left
+  if(sum(nchar(unlist(x)))==0) return(x)
   
   # rotate
-  if(rotate==TRUE) x<-lapply(x,t)
+  if(isTRUE(rotate)) x<-lapply(x,t)
   
   out<-NULL
   

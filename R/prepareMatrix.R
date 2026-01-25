@@ -28,6 +28,9 @@ prepareMatrix<-function(x,split=FALSE,forceClass=NULL,na.rm=TRUE){
     
   # unify matrix cells
   x<-suppressWarnings(unifyMatrixContent(x,correctComma = FALSE,na.rm=na.rm))
+  if(length(x)==0) return(x)
+  
+  
   # remove duplicated 2nd column
   if(ncol(x)>1){
     if(sum(x[,1]==x[,2])==nrow(x)) x<-x[,-2]
@@ -65,7 +68,7 @@ prepareMatrix<-function(x,split=FALSE,forceClass=NULL,na.rm=TRUE){
   if(is.null(forceClass))  class<-tableClass(x)
   if(!is.null(forceClass)) class<-forceClass
   
-  # no further processing for text matrices
+  # no further processing in text matrices and vectors
   if(class=="text"|class=="vector") return(x)
   
   # replicate cells in first row that are followed by blank cells

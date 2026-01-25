@@ -41,7 +41,7 @@
 #' # Parse tabled content from example file to text vectors.
 #' table2text(paste0(tempdir(),"/","tableExamples.pdf"),decodeP=TRUE,standardPcoding=TRUE)
 #' }
-#' @return A list with text vectors of the parsed table content by table. The text vector in each list element can be further processed with JATSdecoder::standardStats() to extract and structure the statistical standard test results.
+#' @return A list with text vectors of the parsed table content by table. The text vector in each list element can be further processed with 'JATSdecoder::standardStats()' to extract and structure the statistical standard test results.
 #' @export
 
 table2text<-function(x,
@@ -70,10 +70,12 @@ table2text<-function(x,
   # extract matrices and legend (caption and footnotes)
   m<-table2matrix(x,rm.html = TRUE,unifyMatrix = unifyMatrix)
   # get attributes
-  caption<-unlist(unname(lapply(m,function(x) attributes(x)$caption)))
-  footer<-unlist(unname(lapply(m,function(x) attributes(x)$footer)))
+  caption<-unname(lapply(m,function(x) attributes(x)$caption))
+  caption<-unlist(lapply(caption,paste,collapse=" "))
+  footer<-unname(lapply(m,function(x) attributes(x)$footer))
+  footer<-unlist(lapply(footer,paste,collapse=" "))
   # paste caption and footer
-  legend <- paste(gsub("([^[:punct:]])$","\\1.",caption),footer)
+  legend <- gsub("^  *","",paste(gsub("([^[:punct:]])$","\\1.",caption),footer))
   # set legend to empty, if is non existent
   if(length(legend)!=length(m)) legend[1:length(m)]<-""
   
@@ -125,11 +127,12 @@ table2text<-function(x,
   if(length(output)==0) return(NULL)
   
   if(isTRUE(addDescription))
-  for(i in 1:length(output)) 
-    output[[i]]<-grep("caption: $|footer: $",c(
-      paste0("caption: ",paste(caption[i],collapse = " ")),
-      paste0("footer: ",paste(footer[i],collapse = " ")),
-                   output[[i]]),invert=TRUE,value=TRUE)
+    if(length(output)==length(caption))
+      for(i in 1:length(output)) 
+         output[[i]]<-grep("caption: $|footer: $",c(
+                       paste0("caption: ",paste(caption[i],collapse = " ")),
+                       paste0("footer: ",paste(footer[i],collapse = " ")),
+                       output[[i]]),invert=TRUE,value=TRUE)
       
   # set attributes
   if(length(caption)==length(output) & !isTRUE(addDescription)){
@@ -140,8 +143,16 @@ table2text<-function(x,
   }
   
   # name the listed output
-    names(output)<-paste("Table",1:length(output))
-      
+  names(output)<-paste("Table",1:length(output))
+  
+  # remove all but one empty cell
+  #output<-lapply(output,function(x){
+  #  if(sum(nchar(x)==0)>0){
+  #    i<-which(nchar(x)==0)
+  #    if(length(i)==length(x)) return("")
+  #    if(length(i)<length(x)) return(x[x!=""]) 
+  #  }})
+  
   # unlist with table names
   if(isTRUE(unlist)){
     n<-rep(names(output),times=unlist(lapply(output,length)))

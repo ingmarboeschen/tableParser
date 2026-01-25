@@ -1,6 +1,6 @@
 #' guessCaptionFootnote
 #' 
-#' Extracts text blocks around tables within DOCX or HTML/HML/XML/NXML files in order to return the table captions and footnotes.
+#' Extracts text blocks around tables within DOCX, HTML, HML, XML, or NXML files in order to return the table captions and footnotes.
 #' @param x character. A file path.
 #' @param MaxCaptionLength numeric. The maximum number of sentences within a text block that shall be treated as a caption. Text blocks that contain more sentences than this threshold are not extracted.
 #' @param MaxFootnoteLength numeric. The maximum number of sentences within a text block that shall be treated as a footnote. Text blocks that contain more sentences than this threshold are not extracted.
@@ -15,7 +15,7 @@
 #' 
 #' ## Extract table captions and footnotes 
 #' # DOCX file
-#' guessCaptionFootnote(paste0(tempdir(),"/","tableExamples.docx"))
+#' \donttest{guessCaptionFootnote(paste0(tempdir(),"/","tableExamples.docx"))}
 #' # HTML file
 #' guessCaptionFootnote(paste0(tempdir(),"/","tableExamples.html"))
 #' @return A list with the extracted table captions and footers as vectors of length=number of tables.

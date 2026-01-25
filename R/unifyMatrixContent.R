@@ -1,12 +1,13 @@
 #' unifyMatrixContent
 #' 
 #' Unifies textual and numerical content of character matrices. Unifies hyphens, spaces, hexadecimal and Greek letters, and performs space and comma corrections. Big marks in numbers are removed. HTML tags <sup> and <sub> are converted to '^' and '_' respectively. All other HTML tags are removed. 
-#' @param x a character matrix.
-#' @param letter.convert Logical. If TRUE, hexadecimal- and html-encoded letters will be unified and converted to Unicode with JATSdecoder::letter.convert().
+#' @param x A character matrix or list of character matrices.
+#' @param letter.convert Logical. If TRUE, hexadecimal- and html-encoded letters will be unified and converted to Unicode with 'JATSdecoder::letter.convert()'.
 #' @param greek2text Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text-based form (e.g., 'alpha', 'beta'). 
 #' @param text2num Logical. If TRUE, textual representations of numbers (words, exponents, fractions) are converted to digit numbers. 
 #' @param correctComma Logical. If TRUE, commas used as numeric separators are converted to dots. 
 #' @param na.rm Logical. If TRUE, cells with NA, or only minus, hyphen, slash, or dot are set to empty cells.
+#' @returns A unified character matrix or list of character matrices.
 #' @examples
 #' # Example matrix
 #' m<-rbind(c("","ß","Standard Error","Pr(>|t|)"),
@@ -23,6 +24,8 @@
 unifyMatrixContent<-function(x,letter.convert=TRUE,
                              greek2text=TRUE,text2num=TRUE,
                              correctComma=FALSE,na.rm=TRUE){
+  
+  if(sum(nchar(unlist(x)))==0) return(x)
   
   fun<-function(x,letter.convert=TRUE,greek2text=TRUE,text2num=TRUE,correctComma=FALSE,na.rm=TRUE){
     if(!is.matrix(x)) return(x)

@@ -1,6 +1,6 @@
 #' parseMatrixContent
 #'
-#' Parses character matrix content into a text vector. This is the basic function of tableParser, which is implemented in matrix2text(), table2text(), and table2stats(). Row and column names are parsed to cell content with operators that depend on the cell content. Numeric cells are parsed with "=", and textual cell content with ":". Cells that start with an operator ('<', '=' or '>') are parsed without a separator. Detected codings for (e.g., p-values, abbreviations) from table legend text can be used to extend the tabled content to a fully written-out form.
+#' Parses character matrix content into a text vector. This is the basic function of 'tableParser', which is implemented in 'matrix2text()', 'table2text()', and 'table2stats()'. Row and column names are parsed to cell content with operators that depend on the cell content. Numeric cells are parsed with "=", and textual cell content with ":". Cells that start with an operator ('<', '=' or '>') are parsed without a separator. Detected codings for (e.g., p-values, abbreviations) from table legend text can be used to extend the tabled content to a fully written-out form.
 #' @param x A character matrix or list with a character matrix as first and only element.
 #' @param legend The table's caption/footnote as a character vector.
 #' @param decodeP Logical. If TRUE, imputes the converts the detected p-value codings to text with seperator ';;' (e.g., '1.23*' -> '1.23;; p<.01')
@@ -8,7 +8,7 @@
 #' @param noSign2p Logical. If TRUE, imputes 'p>maximum of the detected p-value codes to cells that do have a coding sign.
 #' @param bracketHandling Logical. If TRUE and if possible, decodes numbers in brackets.
 #' @param forceClass Character. Set a fixed table class for extraction heuristic. One of c("tabled result", "correlation", "matrix", "text").
-#' @param expandAbbreviations Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footnotes with tableParser::legendCodings().
+#' @param expandAbbreviations Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footnotes with 'tableParser::legendCodings()'.
 #' @param superscript2bracket Logical. If TRUE, detected superscript codings are inserted inside parentheses.
 #' @param dfHandling Logical. If TRUE, detected sample size N in the caption/footnotes is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom. 
 #' @returns A text vector with the parsed matrix content.
@@ -130,11 +130,9 @@ parseMatrixContent<-function(x,legend=NULL,
     }
   }
   
-  
   # convert Cronbachs alpha values
   if(length(alpha)>0)
     m<-enter.CrAlpha(m,alpha)
-  
   
   # remove empty lines/cols
   #row.rm<-which(rowSums(m=="",na.rm=TRUE)==ncol(m))
@@ -171,13 +169,7 @@ parseMatrixContent<-function(x,legend=NULL,
     return(m) 
   }
   
-  ########################################
-  # remove lines with no values in cor matrices
-#  if(class=="correlation"){
-#    i<-(rowSums(m[,]=="")!=(ncol(m)-1)&!grepl("^[1-9]",m[,1]))
-#    m<-m[i,]
-#  }
-  
+
   # remove categorizing lines in correlation table
   if(class=="correlation"){ 
     if(nrow(m)>2&ncol(m)>2){
@@ -249,29 +241,21 @@ parseMatrixContent<-function(x,legend=NULL,
   # convert p stars in outer matrix with result^**
   if(length(pval)>0) {
     # first column
-    i<-grep("[A-z][<=>][<=>]-*[\\.0-9]*[0-9]\\^*\\*",m[,1])
+    i<-grep("[A-z]\\^*2* *[<=>][<=>]* *-*[\\.0-9][\\.0-9]*\\^*\\*",m[,1])
     if(length(i)>0) m[i,1]<-sign2p(m[i,1],psign,pval,sep=";;")
     # first row
-    i<-grep("[A-z][<=>][<=>]-*[\\.0-9]*[0-9]\\^*\\*",m[1,])
+    i<-grep("[A-z]\\^*2* *[<=>][<=>]* *-*[\\.0-9][\\.0-9]*\\^*\\*",m[1,])
     if(length(i)>0) m[1,i]<-sign2p(m[1,i],psign,pval,sep=";;")
     }
-  
-  # bold p
-#  if(length(grep("p[<=>]",bold))>0){
-#    m[-1,-1]<-gsub("(-*[\\.0-9][\\.0-9]*)\\^bold",paste("\\1;;",bold),m[-1,-1])
-#  }
-#  # italic p
-#  if(length(grep("p[<=>]",italic))>0){
-#      m[-1,-1]<-gsub("(-*[\\.0-9][\\.0-9]*)\\^italic",paste("\\1;;",italic),m[-1,-1])
-#    }
+
   } # end
+  
   # remove superscripted bold and italic text
   m<-gsub("\\^italic","",m)
   m<-gsub("\\^bold","",m)
 
-  
   # convert abbreviations in first row and col
-  if(expandAbbreviations=="TRUE"){
+  if(isTRUE(expandAbbreviations)){
     if(is.matrix(m)){
       m[1,]<-abb2text(m[1,],abbr=abbr,label=label)
       m[,1]<-abb2text(m[,1],abbr=abbr,label=label)
@@ -319,8 +303,6 @@ parseMatrixContent<-function(x,legend=NULL,
         if(maxN!=-Inf) m[i]<-gsub(" T=",paste0(" T(",maxN-2,")="),m[i])
       }
     }
-  
-    
     return(m)
     } 
   
@@ -375,7 +357,6 @@ parseMatrixContent<-function(x,legend=NULL,
   }
 } # results are in updated "m" and object "correlations"
 
-  
   # if first cell contains result create new line and move result to first cell in new line
   if(is.matrix(m)) {
     if(nrow(m)>2){
@@ -385,7 +366,6 @@ parseMatrixContent<-function(x,legend=NULL,
         m[1,1]<-""
       }}
   }
-  
   
   i<-NULL;j<-NULL
   if(length(m)>0&is.matrix(m)){
@@ -417,7 +397,7 @@ parseMatrixContent<-function(x,legend=NULL,
   #if(sum(j)>0) m[i,][j,]<-noSign2p(m[i,][j,],pval=pval)
   
   # expand detected superscripts
-  if(superscript2bracket=="TRUE"){
+  if(isTRUE(superscript2bracket)){
     if(is.matrix(m)){
       m<-sup2text(m,sup=sup,sup_label=sup_label)
     }

@@ -2,8 +2,8 @@
 #'
 #' Extracts tables from HTML, HML, XML, DOCX, PDF files, or plain HTML code to a list of character matrices.
 #' @param x A file path to a DOCX, PDF, or HTML encoded file, or text with HTML code.
-#' @param unifyMatrix Logical. If TRUE, matrix cells are unified for better post-processing (see unifyMatrixContent()).
-#' @param letter.convert Logical. If TRUE, html and hexadecimal encoded letters will be unified and converted to Unicode with html2unicode() and JATSdecoder::letter.convert().
+#' @param unifyMatrix Logical. If TRUE, matrix cells are unified for better post-processing (see '?unifyMatrixContent').
+#' @param letter.convert Logical. If TRUE, html and hexadecimal encoded letters will be unified and converted to Unicode with 'html2unicode()' and 'JATSdecoder::letter.convert()'.
 #' @param greek2text Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text-based form (e.g.: 'alpha', 'beta'). 
 #' @param replicate Logical. If TRUE, the content of cells with row/col span > 1 is replicated in all connected cells; if FALSE, the value will only be placed in the first of the connected cells.
 #' @param repNums Logical. If TRUE, cells with numbers that have row/col span > 1 are replicated in every connected cell.
@@ -217,9 +217,10 @@ table2matrix<-function(x,unifyMatrix=FALSE,
                               greek2text=greek2text,rm.empty.row.col=rm.empty.row.col,
                               rm.html=rm.html,collapseHeader=collapseHeader,
                               header2colnames=header2colnames)
-    if(length(out)==0) return(NULL)
+    
+    # escape if no matrix content is extracted
+    if(length(unlist(out))==0) return(NULL)
   
-    out
     # classify table with legend text
     caption<-lapply(x,get.caption)
     footer<-lapply(x,get.footer)
@@ -268,15 +269,20 @@ table2matrix<-function(x,unifyMatrix=FALSE,
   
   }# end of all other file formats
 
+  # escape if no content is left
+  if(length(unlist(out))==0) return(NULL)
+  
   # apply options
   if(unifyMatrix==TRUE) 
-    for(i in 1:length(out))
-        out[[i]]<-unifyMatrixContent(out[[i]],letter.convert=letter.convert,greek2text=greek2text,text2num=TRUE)
+      for(i in 1:length(out))
+        if(length(out[[i]])>1)
+           out[[i]]<-unifyMatrixContent(out[[i]],letter.convert=letter.convert,greek2text=greek2text,text2num=TRUE)
   
   # name list elements  
   if(is.list(out))
    if(length(out)>0)
      names(out)<-paste("Table",1:length(out))
+  
   # output
     return(out)
 }
