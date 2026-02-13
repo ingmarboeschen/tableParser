@@ -21,32 +21,36 @@ devtools::install_github("ingmarboeschen/tableParser")
 ## Examples
 ```R
 library(tableParser)
-## Download example files with tables from this repo to temp directory 
+## Download example files with tables from this repo to temp directory
+docxFilePath<-paste0(tempdir(),"/","tableExamples.docx")
+htmlFilePath<-paste0(tempdir(),"/","tableExamples.html")
+pdfFilePath<-paste0(tempdir(),"/","tableExamples.pdf")
+
 download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.docx",
-              paste0(tempdir(),"/","tableExamples.docx"))
+              docxFilePath)
 download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.html",
-              paste0(tempdir(),"/","tableExamples.html"))
+              htmlFilePath)
 download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.pdf",
-              paste0(tempdir(),"/","tableExamples.pdf"))
+              pdfFilePath)
 
 ## Extract tables from example files
-table2matrix(paste0(tempdir(),"/","tableExamples.docx"))
-table2matrix(paste0(tempdir(),"/","tableExamples.html"),rm.html=TRUE)
-table2matrix(paste0(tempdir(),"/","tableExamples.pdf"))
+table2matrix(docxFilePath)
+table2matrix(htmlFilePath,rm.html=TRUE)
+table2matrix(pdfFilePath)
 # Note: The extraction of tables with the tablulapdf package does not work properly here.
 # Also, the table's caption and footnotes cannot be used for decoding (e.g., p-values).
 # This affects all further processes and results.
 
 ## Parse tabled content from example files
-table2text(paste0(tempdir(),"/","tableExamples.docx"))
-table2text(paste0(tempdir(),"/","tableExamples.html"))
-table2text(paste0(tempdir(),"/","tableExamples.pdf"))
+table2text(docxFilePath)
+table2text(htmlFilePath)
+table2text(pdfFilePath)
 
 ## Extract the detected statistical standard results and validate the reported and coded p-values
 #ä with the recaluclated p-values
-table2stats(paste0(tempdir(),"/","tableExamples.docx"),checkP=TRUE,estimateZ=T)
-table2stats(paste0(tempdir(),"/","tableExamples.html"),checkP=TRUE,estimateZ=T)
-table2stats(paste0(tempdir(),"/","tableExamples.pdf"),checkP=TRUE,estimateZ=T,standardPcoding=TRUE)
+table2stats(docxFilePath,checkP=TRUE,estimateZ=T)
+table2stats(htmlFilePath,checkP=TRUE,estimateZ=T)
+table2stats(pdfFilePath,checkP=TRUE,estimateZ=T,standardPcoding=TRUE)
  
 ```
 
