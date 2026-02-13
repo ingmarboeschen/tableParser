@@ -1,4 +1,4 @@
-# tableParser (prototype)
+# tableParser (1.0.3)
 Converts HTML-tables and character matrices into a text vector and extracts and checks statistical standard test results.
 
 The package contains several functions to extract, unify and parse content from scientific tables into a human readable text format by simulating the experience of a screen reader for visually impaired users. It can process HTML-encoded tables, as well as native R character matrices. The functions *table2matrix()*, *table2text()* and *table2stats()* can be applied on documents in HTML, HML, XML, CERMXML, as well as DOCX and PDF file format. The table extraction from DOCX files is performed with the function *docx2matrix()*, tables in PDF documents are extracted with the 'tabulapdf' package. 
@@ -8,8 +8,12 @@ The textual representation of characters in matrix content can be unified with *
 Important note: Due to the great variability in table structures and complexity, parsing accuracy may vary. For best results, it is recommended to work with simple, accessible, and barrier-free table structures to minimize parsing errors. 
 
 
-## Installation with the devtools package
+## Installation 
 ```R
+# latest CRAN release
+install.packages("tableParser")
+
+# latest github version
 if(require(devtools)!=TRUE) install.packages("devtools")
 devtools::install_github("ingmarboeschen/tableParser")
 ```
