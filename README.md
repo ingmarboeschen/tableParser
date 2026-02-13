@@ -18,20 +18,20 @@ if(require(devtools)!=TRUE) install.packages("devtools")
 devtools::install_github("ingmarboeschen/tableParser")
 ```
 
-## Examples
+## Examples for table processing in docx, html and pdf documents
 ```R
+# Load the package
 library(tableParser)
-## Download example files with tables from this repo to temp directory
+
+# prepare temporary file path
 docxFilePath<-paste0(tempdir(),"/","tableExamples.docx")
 htmlFilePath<-paste0(tempdir(),"/","tableExamples.html")
 pdfFilePath<-paste0(tempdir(),"/","tableExamples.pdf")
 
-download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.docx",
-              docxFilePath)
-download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.html",
-              htmlFilePath)
-download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.pdf",
-              pdfFilePath)
+# Download example files with tables from this repo to temp directory
+download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.docx",docxFilePath)
+download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.html",htmlFilePath)
+download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.pdf",pdfFilePath)
 
 ## Extract tables from example files
 table2matrix(docxFilePath)
