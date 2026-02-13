@@ -9,6 +9,7 @@ table2matrix(
   unifyMatrix = FALSE,
   letter.convert = TRUE,
   greek2text = FALSE,
+  correctComma = FALSE,
   replicate = FALSE,
   repNums = FALSE,
   rm.html = FALSE,
@@ -22,9 +23,11 @@ table2matrix(
 
 \item{unifyMatrix}{Logical. If TRUE, matrix cells are unified for better post-processing (see '?unifyMatrixContent').}
 
-\item{letter.convert}{Logical. If TRUE, html and hexadecimal encoded letters will be unified and converted to Unicode with 'html2unicode()' and 'JATSdecoder::letter.convert()'.}
+\item{letter.convert}{Logical. If TRUE, html and hexadecimal encoded letters will be unified and converted to Unicode with html2unicode() and JATSdecoder::letter.convert().}
 
 \item{greek2text}{Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text-based form (e.g.: 'alpha', 'beta').}
+
+\item{correctComma}{Logical. If TRUE, commas used as decimal are converted to dots, big mark commas are removed.}
 
 \item{replicate}{Logical. If TRUE, the content of cells with row/col span > 1 is replicated in all connected cells; if FALSE, the value will only be placed in the first of the connected cells.}
 

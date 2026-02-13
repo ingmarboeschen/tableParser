@@ -7,21 +7,21 @@
 table2stats(
   x,
   standardPcoding = FALSE,
-  noSign2p = TRUE,
-  correctComma = FALSE,
-  rotate = FALSE,
-  expandAbbreviations = TRUE,
-  superscript2bracket = TRUE,
-  stats.mode = "all",
   checkP = FALSE,
-  alpha = 0.05,
+  noSign2p = FALSE,
   criticalDif = 0.02,
   alternative = "undirected",
   estimateZ = FALSE,
   T2t = FALSE,
+  correctComma = TRUE,
+  stats.mode = "all",
+  alpha = "auto",
   dfHandling = TRUE,
   collapse = TRUE,
-  addTableName = FALSE,
+  addTableName = TRUE,
+  rotate = FALSE,
+  expandAbbreviations = TRUE,
+  superscript2bracket = TRUE,
   rm.na.col = TRUE
 )
 }
@@ -30,21 +30,9 @@ table2stats(
 
 \item{standardPcoding}{Logical. If TRUE, and no other detection of coding is detected, then standard coding of p-values is assumed to be * for p<.05, ** for p<.01, and *** for p<.001.}
 
-\item{noSign2p}{Logical. If TRUE, imputes 'p>maximum of coded p-values' to cells that are not coded to be significant.}
-
-\item{correctComma}{Logical. If TRUE, decimal sign commas are converted to dots.}
-
-\item{rotate}{Logical. If TRUE, matrix content is parsed by column.}
-
-\item{expandAbbreviations}{Logical. If TRUE, detected abbreviations are expanded to label from table caption/footer.}
-
-\item{superscript2bracket}{Logical. If TRUE, detected superscript codings are inserted inside parentheses.}
-
-\item{stats.mode}{Select a subset of test results by p-value checkability for output. One of: c("all", "checkable", "computable", "uncomputable").}
-
 \item{checkP}{Logical. If TRUE, detected p-values and recalculated p-values will be checked for consistency.}
 
-\item{alpha}{Numeric. Defines the alpha level to be used for error assignment.}
+\item{noSign2p}{Logical. If TRUE, imputes 'p>maximum of coded p-values' to cells that are not coded to be significant.}
 
 \item{criticalDif}{Numeric. Sets the absolute maximum difference in reported and recalculated p-values for error detection.}
 
@@ -54,11 +42,23 @@ table2stats(
 
 \item{T2t}{Logical. If TRUE, capital letter T is treated as a t-statistic.}
 
+\item{correctComma}{Logical. If TRUE, decimal sign commas are converted to dots.}
+
+\item{stats.mode}{Select a subset of test results by p-value checkability for output. One of: c("all", "checkable", "computable", "uncomputable").}
+
+\item{alpha}{Numeric or "auto". Defines the alpha level to be used for error assignment. If set to "auto", table notes are screened for reports of alpha levels, 1-alpha confidence intervals and correction procedures for multiple testing. If no reported alpha levels is detected, the value is set to the widely used standard 'alpha=.05'.}
+
 \item{dfHandling}{Logical. If TRUE, detected sample size N in the caption/footer is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom.}
 
 \item{collapse}{Logical. If TRUE, the result is collapsed to a single data frame object. Else, a list of data frames with length = n matrices is returned.}
 
-\item{addTableName}{Logical. If TRUE, the table number is added in front of the extracted results.}
+\item{addTableName}{Logical. If TRUE, the table number is added in front of the extracted results, when collapsed to a single data frame with 'collapse=TRUE'.}
+
+\item{rotate}{Logical. If TRUE, matrix content is parsed by column.}
+
+\item{expandAbbreviations}{Logical. If TRUE, detected abbreviations are expanded to label from table caption/footer.}
+
+\item{superscript2bracket}{Logical. If TRUE, detected superscript codings are inserted inside parentheses.}
 
 \item{rm.na.col}{Logical. If TRUE, removes all columns with only NA.}
 }
@@ -66,7 +66,7 @@ table2stats(
 A data.frame object with the extracted statistical standard results, recalculated p-values and a rudimentary, optional consistency check for reported p-values (if 'checkP=TRUE').
 }
 \description{
-Extracts tabulated statistical results from documents in XML, HTML, HML, DOCX, or PDF format. The tabled content is collapsed into a text string with 'table2text()', which is then processed with 'standardStats()' from the 'JATSdecoder' package. It detects most standard statistics (t, Z, chi^2, F, r, d, beta, SE, r, d, eta^2, omega^2, OR, RR, p-values), decodes encoded p-values to text and recalculates and checks p-values if possible.
+Extracts tabulated statistical results from documents in XML, HTML, HML, DOCX, or PDF format. The tabled content is collapsed into a text string with table2text(), which is then processed with standardStats() from the 'JATSdecoder' package. It detects most standard statistics (t, Z, chi^2, F, r, d, beta, SE, r, d, eta^2, omega^2, OR, RR, p-values), decodes encoded p-values to text and recalculates and checks p-values if possible.
 }
 \examples{
 ## - Download example DOCX file
@@ -92,7 +92,7 @@ download.file(p,paste0(tempdir(),"/","tableExamples.pdf"))
 # standard coded as well as not coded p-values with the recalculated p-values.
 table2stats(paste0(tempdir(),"/","tableExamples.pdf"), checkP=TRUE, estimateZ=TRUE, 
 standardPcoding=TRUE, noSign2p=FALSE)
-# Note: Due to the messy table extraction with 'tabulapdf::extract_tables()', the  
+# Note: Due to the messy table extraction with tabulapdf::extract_tables(), the  
 # extraction of the statistical results is less precise here.
 }
 }

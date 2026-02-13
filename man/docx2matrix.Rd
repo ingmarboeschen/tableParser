@@ -4,12 +4,14 @@
 \alias{docx2matrix}
 \title{docx2matrix}
 \usage{
-docx2matrix(x, unifyMatrix = TRUE, replicate = TRUE)
+docx2matrix(x, unifyMatrix = FALSE, correctComma = FALSE, replicate = TRUE)
 }
 \arguments{
 \item{x}{File path to a DOCX input file with tables.}
 
 \item{unifyMatrix}{Logical. If TRUE, matrix cells are unified for better post-processing (see 'unifyMatrixContent()').}
+
+\item{correctComma}{Logical. If TRUE, commas used as decimal are converted to dots, big mark commas are removed.}
 
 \item{replicate}{Logical. If TRUE, replicates content when splitting connected cells.}
 }
@@ -22,8 +24,17 @@ Extracts tables from DOCX documents and returns a list of character matrices.
 \examples{
 ## Download an example DOCX file from tableParser's github repo to temp directory 
 d<-'https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.docx'
-download.file(d,paste0(tempdir(),"/","tableExamples.docx"),method="wget")
+tempFile<-paste0(tempdir(),"/","tableExamples.docx")
+
+# on Windows with method="wget"
+if(grepl("^[A-z]:",tempFile))
+   download.file(d,tempFile,method="wget")
+# on all other machines
+if(!grepl("^[A-z]:",tempFile))
+   download.file(d,tempFile)
+   
+Sys.sleep(.2)
 
 # Extract tables as character matrices
-docx2matrix(paste0(tempdir(),"/","tableExamples.docx"))
+docx2matrix(tempFile)
 }

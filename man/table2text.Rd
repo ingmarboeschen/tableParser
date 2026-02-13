@@ -16,7 +16,7 @@ table2text(
   bracketHandling = TRUE,
   dfHandling = FALSE,
   rotate = FALSE,
-  correctComma = TRUE,
+  correctComma = FALSE,
   na.rm = TRUE,
   addDescription = TRUE,
   unlist = FALSE,
@@ -42,7 +42,7 @@ table2text(
 
 \item{bracketHandling}{Logical. If TRUE and if possible, decodes numbers in brackets.}
 
-\item{dfHandling}{Logical. If TRUE, the detected sample size N in the caption/footnote is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom.}
+\item{dfHandling}{Logical. If TRUE, the detected sample size N in a row is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom (df) in that row. In ANOVA tables, the detected residual df (df2) is imputed behind the faktor df (df1).}
 
 \item{rotate}{Logical. If TRUE, matrix content is parsed by column.}
 

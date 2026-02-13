@@ -4,16 +4,18 @@
 \alias{prepareMatrix}
 \title{prepareMatrix}
 \usage{
-prepareMatrix(x, split = FALSE, forceClass = NULL, na.rm = TRUE)
+prepareMatrix(x, split = FALSE, forceClass = NULL, na.rm = TRUE, legend = NULL)
 }
 \arguments{
 \item{x}{character matrix}
 
-\item{split}{logical. If TRUE, multi-model matrices are split into a list of single-model matrices.}
+\item{split}{Logical. If TRUE, multi-model matrices are split into a list of single-model matrices.}
 
-\item{forceClass}{character. Set matrix-specific handling to one of c("tabled result", "correlation", "matrix, "text").}
+\item{forceClass}{Character. Set matrix-specific handling to one of c("tabled result", "correlation", "matrix, "text").}
 
 \item{na.rm}{Logical. If TRUE, NA cells are set to empty cells.}
+
+\item{legend}{Character. Optional, text from table caption and/or footnote for table class specific processing.}
 }
 \value{
 A character matrix

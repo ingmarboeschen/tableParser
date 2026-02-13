@@ -32,17 +32,17 @@ parseMatrixContent(
 
 \item{forceClass}{Character. Set a fixed table class for extraction heuristic. One of c("tabled result", "correlation", "matrix", "text").}
 
-\item{expandAbbreviations}{Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footnotes with 'tableParser::legendCodings()'.}
+\item{expandAbbreviations}{Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footnotes with legendCodings().}
 
 \item{superscript2bracket}{Logical. If TRUE, detected superscript codings are inserted inside parentheses.}
 
-\item{dfHandling}{Logical. If TRUE, detected sample size N in the caption/footnotes is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom.}
+\item{dfHandling}{Logical. If TRUE, detected sample size N in the caption/footnotes is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom, if the detected N>3.}
 }
 \value{
 A text vector with the parsed matrix content.
 }
 \description{
-Parses character matrix content into a text vector. This is the basic function of 'tableParser', which is implemented in 'matrix2text()', 'table2text()', and 'table2stats()'. Row and column names are parsed to cell content with operators that depend on the cell content. Numeric cells are parsed with "=", and textual cell content with ":". Cells that start with an operator ('<', '=' or '>') are parsed without a separator. Detected codings for (e.g., p-values, abbreviations) from table legend text can be used to extend the tabled content to a fully written-out form.
+Parses character matrix content into a text vector. This is the basic function of 'tableParser', which is implemented in matrix2text(), table2text(), and table2stats(). Row and column names are parsed to cell content with operators that depend on the cell content. Numeric cells are parsed with "=", and textual cell content with ":". Cells that start with an operator ('<', '=' or '>') are parsed without a separator. Detected codings for (e.g., p-values, abbreviations) from table legend text can be used to extend the tabled content to a fully written-out form.
 }
 \examples{
 # Example matrix

@@ -16,13 +16,13 @@ unifyMatrixContent(
 \arguments{
 \item{x}{A character matrix or list of character matrices.}
 
-\item{letter.convert}{Logical. If TRUE, hexadecimal- and html-encoded letters will be unified and converted to Unicode with 'JATSdecoder::letter.convert()'.}
+\item{letter.convert}{Logical. If TRUE, hexadecimal- and html-encoded letters will be unified and converted to Unicode with JATSdecoder::letter.convert().}
 
 \item{greek2text}{Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text-based form (e.g., 'alpha', 'beta').}
 
 \item{text2num}{Logical. If TRUE, textual representations of numbers (words, exponents, fractions) are converted to digit numbers.}
 
-\item{correctComma}{Logical. If TRUE, commas used as numeric separators are converted to dots.}
+\item{correctComma}{Logical. If TRUE, commas used as decimal are converted to dots, big mark commas are removed.}
 
 \item{na.rm}{Logical. If TRUE, cells with NA, or only minus, hyphen, slash, or dot are set to empty cells.}
 }

@@ -4,10 +4,12 @@
 \alias{unifyStats}
 \title{unifyStats}
 \usage{
-unifyStats(x)
+unifyStats(x, dfHandling = FALSE)
 }
 \arguments{
 \item{x}{A text vector with the parsed table content.}
+
+\item{dfHandling}{Logical. If TRUE, ANOVA specific handling of degrees of freedom (df) is performed. The detected residual df (df2) is imputed behind the faktor df (df1). Note: Should only be activated, when unifyStats() is applied to the collapsed content of a single table.}
 }
 \value{
 A unified text string.
