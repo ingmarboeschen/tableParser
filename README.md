@@ -43,8 +43,8 @@ table2matrix(pdfFilePath)
 
 ## Parse tabled content from example files
 table2text(docxFilePath)
-table2text(htmlFilePath)
-table2text(pdfFilePath)
+table2text(htmlFilePath,decodeP=TRUE)
+table2text(pdfFilePath,decodeP=TRUE,standardPcoding=TRUE,noSign2p=TRUE)
 
 ## Extract the detected statistical standard results and validate the reported and coded p-values
 #ä with the recaluclated p-values
