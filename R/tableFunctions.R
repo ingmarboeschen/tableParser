@@ -1397,7 +1397,7 @@ matrixSplit<-function(x){
     # find rows with second header line
     i<-which(rowSums(matrix(grepl("[[:alpha:]]|^%*$",gsub("^[Nn]\\.*[Ss]\\.*$","",x)) &
                               !grepl("[<=>]|^[Nn]\\.*[Ss]\\.*$",gsub("\\(.*\\)|\\^.*","",x)),ncol=Ncol))==Ncol &
-               rowSums(matrix(grepl("^$",gsub("^[Nn]\\.*[Ss]\\.*$","",x)),ncol=Ncol)[,-1])<((Ncol-1)/2)
+               rowSums(matrix(grepl("^$",gsub("^[Nn]\\.*[Ss]\\.*$","",x)),ncol=Ncol)[,-1])<=((Ncol-1)/2)
     )
     # correct i  
     i<-i[i>3&i<nrow(x)]
