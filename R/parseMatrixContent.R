@@ -1,6 +1,6 @@
 #' parseMatrixContent
 #'
-#' Parses character matrix content into a text vector. This is the basic function of 'tableParser', which is implemented in 'matrix2text()', 'table2text()', and 'table2stats()'. Row and column names are parsed to cell content with operators that depend on the cell content. Numeric cells are parsed with "=", and textual cell content with ":". Cells that start with an operator ('<', '=' or '>') are parsed without a separator. Detected codings for (e.g., p-values, abbreviations) from table legend text can be used to extend the tabled content to a fully written-out form.
+#' Parses character matrix content into a text vector. This is the basic function of 'tableParser', which is implemented in matrix2text(), table2text(), and table2stats(). Row and column names are parsed to cell content with operators that depend on the cell content. Numeric cells are parsed with "=", and textual cell content with ":". Cells that start with an operator ('<', '=' or '>') are parsed without a separator. Detected codings for (e.g., p-values, abbreviations) from table legend text can be used to extend the tabled content to a fully written-out form.
 #' @param x A character matrix or list with a character matrix as first and only element.
 #' @param legend The table's caption/footnote as a character vector.
 #' @param decodeP Logical. If TRUE, imputes the converts the detected p-value codings to text with seperator ';;' (e.g., '1.23*' -> '1.23;; p<.01')
@@ -8,9 +8,9 @@
 #' @param noSign2p Logical. If TRUE, imputes 'p>maximum of the detected p-value codes to cells that do have a coding sign.
 #' @param bracketHandling Logical. If TRUE and if possible, decodes numbers in brackets.
 #' @param forceClass Character. Set a fixed table class for extraction heuristic. One of c("tabled result", "correlation", "matrix", "text").
-#' @param expandAbbreviations Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footnotes with 'tableParser::legendCodings()'.
+#' @param expandAbbreviations Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footnotes with legendCodings().
 #' @param superscript2bracket Logical. If TRUE, detected superscript codings are inserted inside parentheses.
-#' @param dfHandling Logical. If TRUE, detected sample size N in the caption/footnotes is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom. 
+#' @param dfHandling Logical. If TRUE, detected sample size N in the caption/footnotes is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom, if the detected N>3. 
 #' @returns A text vector with the parsed matrix content.
 #' @examples
 #' # Example matrix
@@ -59,8 +59,8 @@ parseMatrixContent<-function(x,legend=NULL,
     pval<-codesFromLegend$pval
     abbr<-codesFromLegend$abbreviation
     label<-codesFromLegend$label
-    italic<-codesFromLegend$italic
-    bold<-codesFromLegend$bold
+    italic<-codesFromLegend$italicP
+    bold<-codesFromLegend$boldP
     alpha<-codesFromLegend$alpha
     N<-codesFromLegend$N
     sup<-codesFromLegend$superscript
@@ -99,16 +99,18 @@ parseMatrixContent<-function(x,legend=NULL,
     x<-parseContent(x)
     # add degrees of freedom
     if(isTRUE(dfHandling)){
-      # add df=max(n)-2 for t and r values if has N= in legend
-      if(!is.null(N)){
+      # add df=max(n)-2 for t and r values if has N>3 in legend and only one N
+      if(length(N)==1){
         # get highest N
         maxN<-suppressWarnings(max(suppressWarnings(as.numeric(gsub(".*[<=>]","",N))),na.rm=T))
         # add maxN-2 to r= and t= if no df is found
-        i<-(grep(" df[12]*=|degrees* of freed",x,invert=TRUE))
-        if(maxN!=-Inf) x[i]<-gsub(" r=",paste0(" r(",maxN-2,")="),x[i])
-        if(maxN!=-Inf) x[i]<-gsub(" t=",paste0(" t(",maxN-2,")="),x[i])
-        if(maxN!=-Inf) x[i]<-gsub(" T=",paste0(" T(",maxN-2,")="),x[i])
-      }
+        i<-(grep(" [dD]\\.*[fF]\\.*[12]* *=|degrees* of freed",x,invert=TRUE))
+        maxN<-maxN[maxN>3]
+        if(length(maxN)>0){
+        if(maxN!=-Inf) x[i]<-gsub(" r *=",paste0(" r(",maxN-2,")="),x[i])
+        if(maxN!=-Inf) x[i]<-gsub(" t *=",paste0(" t(",maxN-2,")="),x[i])
+        #if(maxN!=-Inf) x[i]<-gsub(" T *=",paste0(" T(",maxN-2,")="),x[i])
+      }}
     }
     return(x)
   } 
@@ -127,6 +129,7 @@ parseMatrixContent<-function(x,legend=NULL,
     if(length(i)>0){
       for(j in i) m[-1,j-1]<-paste0(m[-1,j-1],m[-1,j])
       m<-m[,-i]
+      if(!is.matrix(m)) m<-as.matrix(m)
     }
   }
   
@@ -151,19 +154,21 @@ parseMatrixContent<-function(x,legend=NULL,
   if(is.null(forceClass)) class<-tableClass(m,legend=legend)
   
   # return parsed vector 
-  if(tableClass(m)=="vector"){
+  if(class=="vector"){
     m<-parseContent(m)
     # add degrees of freedom
     if(isTRUE(dfHandling)){
       # add df=max(n)-2 for t and r values if has N= in legend
-      if(!is.null(N)){
+      if(length(N)==1&sum(grepl("[\\( ][nN]=|^[nN]=",m))==0 &
+         # and no df in matrix
+         sum(grepl("^[Dd]\\.*[Ff]\\.*$|degrees* of freedom",m))==0){
         # get highest N
         maxN<-suppressWarnings(max(suppressWarnings(as.numeric(gsub(".*[<=>]","",N))),na.rm=T))
         # add maxN-2 to r= and t= if no df is found
         i<-(grep(" df[12]*=|degrees* of freed",m,invert=TRUE))
-        if(maxN!=-Inf) m[i]<-gsub(" r=",paste0(" r(",maxN-2,")="),m[i])
-        if(maxN!=-Inf) m[i]<-gsub(" t=",paste0(" t(",maxN-2,")="),m[i])
-        if(maxN!=-Inf) m[i]<-gsub(" T=",paste0(" T(",maxN-2,")="),m[i])
+        if(maxN!=-Inf) m[i]<-gsub(" r *=",paste0(" r(",maxN-2,")="),m[i])
+        if(maxN!=-Inf) m[i]<-gsub(" t *=",paste0(" t(",maxN-2,")="),m[i])
+        #if(maxN!=-Inf) m[i]<-gsub(" T *=",paste0(" T(",maxN-2,")="),m[i])
       }
     }
     return(m) 
@@ -171,8 +176,10 @@ parseMatrixContent<-function(x,legend=NULL,
   
 
   # remove categorizing lines in correlation table
-  if(class=="correlation"){ 
-    if(nrow(m)>2&ncol(m)>2){
+  if(class=="correlation"|class=="matrix"){ 
+    m<-coding2variable(m)
+    if(nrow(m)>2&ncol(m)>2&
+       nrow(m)!=ncol(m)){
       i<-which(rowSums(m[-1,-1]=="")==(ncol(m)-1)&!grepl("^[1-9]",m[-1,1]))
       if(length(i)>0) m<-m[-(i+1),]
     }
@@ -192,6 +199,7 @@ parseMatrixContent<-function(x,legend=NULL,
    }
   }
   
+  
   if(class!="text"&class!="vector"){
     # create new columns for brackets and percent
     if(isTRUE(bracketHandling)){
@@ -209,11 +217,13 @@ parseMatrixContent<-function(x,legend=NULL,
     if(length(grep("[A-z]",m[-1,1]))==0&length(grep("^[A-z]",m[-1,2]))==(nrow(m)-1)){
       m[,1]<-paste(m[,1],m[,2])
       m<-m[,-2]
+      if(!is.matrix(m)) m<-as.matrix(m)
     }
     # parse first and second row, if first row has no letters and second row starts with letter in every cell
     if(length(grep("[A-z]",m[1,-1]))==0&length(grep("^[A-z]",m[2,-1]))==(ncol(m)-1)){
       m[1,]<-paste(m[1,],m[2,])
       m<-m[-2,]
+      if(!is.matrix(m)) m<-as.matrix(m)
     }
   }
   
@@ -221,38 +231,41 @@ parseMatrixContent<-function(x,legend=NULL,
   
   # convert numbers in brackets in inner matrix
   if(isTRUE(bracketHandling)){
-  if(length(parentheses)>0) m[-1,-1]<-bracket2value(m[-1,-1],parentheses,"parentheses",sep=";;")
-  if(length(brackets)>0) m[-1,-1]<-bracket2value(m[-1,-1],brackets,"brackets",sep=";;")
-  if(length(brackets)>0&length(parentheses)==0) m[-1,-1]<-bracket2value(m[-1,-1],brackets,"parentheses",sep=";;")
-  if(length(brackets)==0&length(parentheses)>0) m[-1,-1]<-bracket2value(m[-1,-1],brackets,"brackets",sep=";;")
+  if(length(parentheses)>0) m[-1,-1]<-bracket2value(m[-1,-1],parentheses,"parentheses",sep=",")
+  if(length(brackets)>0) m[-1,-1]<-bracket2value(m[-1,-1],brackets,"brackets",sep=",")
+  if(length(brackets)>0&length(parentheses)==0) m[-1,-1]<-bracket2value(m[-1,-1],brackets,"parentheses",sep=",")
+  if(length(brackets)==0&length(parentheses)>0) m[-1,-1]<-bracket2value(m[-1,-1],brackets,"brackets",sep=",")
   }
   
   # add standard p-coding
-  if(standardPcoding==TRUE&length(pval)==0){
+  if(isTRUE(standardPcoding)&length(pval)==0){
     psign<-c("***","**","*")
     pval<-c("p<.001","p<.01","p<.05")
   }
   
-  # decode p values in inner matrix
+  # decode p values 
   if(isTRUE(decodeP)){
   if(length(pval)>0) 
-    m[-1,-1]<-sign2p(m[-1,-1],psign,pval,sep=";;")
+    # full matrix
+    m<-sign2p(m,psign,pval,sep=";;")
+  
+  # only in inner matrix
+  #m[-1,-1]<-sign2p(m[-1,-1],psign,pval,sep=";;")
   
   # convert p stars in outer matrix with result^**
-  if(length(pval)>0) {
-    # first column
-    i<-grep("[A-z]\\^*2* *[<=>][<=>]* *-*[\\.0-9][\\.0-9]*\\^*\\*",m[,1])
-    if(length(i)>0) m[i,1]<-sign2p(m[i,1],psign,pval,sep=";;")
-    # first row
-    i<-grep("[A-z]\\^*2* *[<=>][<=>]* *-*[\\.0-9][\\.0-9]*\\^*\\*",m[1,])
-    if(length(i)>0) m[1,i]<-sign2p(m[1,i],psign,pval,sep=";;")
-    }
-
-  } # end
+  #if(length(pval)>0) {
+  #  # first column
+  #  i<-grep("[A-z]\\^*2* *[<=>][<=>]* *-*[\\.0-9][\\.0-9]*\\^*\\*",m[,1])
+  #  if(length(i)>0) m[i,1]<-sign2p(m[i,1],psign,pval,sep=";;")
+  #  # first row
+  #  i<-grep("[A-z]\\^*2* *[<=>][<=>]* *-*[\\.0-9][\\.0-9]*\\^*\\*",m[1,])
+  #  if(length(i)>0) m[1,i]<-sign2p(m[1,i],psign,pval,sep=";;")
+  #  }
   
-  # remove superscripted bold and italic text
+  # remove all other superscripted bold and italic text
   m<-gsub("\\^italic","",m)
   m<-gsub("\\^bold","",m)
+  }
 
   # convert abbreviations in first row and col
   if(isTRUE(expandAbbreviations)){
@@ -293,14 +306,16 @@ parseMatrixContent<-function(x,legend=NULL,
     # add degrees of freedom
     if(isTRUE(dfHandling)){
       # add df=max(n)-2 for t and r values if has N= in legend
-      if(!is.null(N)){
+      if(length(N)==1& 
+         # and no df in matrix
+         sum(grepl("^[Dd]\\.*[Ff]\\.*$|degrees* of freedom|df1|df2",m))==0){
         # get highest N
         maxN<-suppressWarnings(max(suppressWarnings(as.numeric(gsub(".*[<=>]","",N))),na.rm=T))
         # add maxN-2 to r= and t= if no df is found
         i<-(grep(" df[12]*=|degrees* of freed",m,invert=TRUE))
-        if(maxN!=-Inf) m[i]<-gsub(" r=",paste0(" r(",maxN-2,")="),m[i])
-        if(maxN!=-Inf) m[i]<-gsub(" t=",paste0(" t(",maxN-2,")="),m[i])
-        if(maxN!=-Inf) m[i]<-gsub(" T=",paste0(" T(",maxN-2,")="),m[i])
+        if(maxN!=-Inf) m[i]<-gsub(" r *=",paste0(" r(",maxN-2,")="),m[i])
+        if(maxN!=-Inf) m[i]<-gsub(" t *=",paste0(" t(",maxN-2,")="),m[i])
+        #if(maxN!=-Inf) m[i]<-gsub(" T *=",paste0(" T(",maxN-2,")="),m[i])
       }
     }
     return(m)
@@ -320,6 +335,7 @@ parseMatrixContent<-function(x,legend=NULL,
     m[2,][m[1,]==m[2,]]<-""
     m[1,]<-gsub("^  *|  *$","",paste(m[1,],m[2,]))
     m<-m[-2,]
+    if(!is.matrix(m)) m<-as.matrix(m)
   }
 
   ###################################################################
@@ -347,12 +363,14 @@ parseMatrixContent<-function(x,legend=NULL,
     # add df to extracted correlations
     if(class=="correlation")
       if(isTRUE(dfHandling)){
-      # add df=max(n)-2 if has N in legend
-      if(!is.null(N)){
+      # add df=max(n)-2 if has N in legend and no n= in matrix
+      if(length(N)==1 & sum(grepl("[\\( ][nN]=|^[nN]=",m))==0 &
+         # and no df in matrix
+         sum(grepl("^[Dd]\\.*[Ff]\\.*$|degrees* of freedom|df1|df2",m))==0){
       # get highest N
       maxN<-suppressWarnings(max(suppressWarnings(as.numeric(gsub(".*[<=>]","",N))),na.rm=T))
       # add maxN-2 to r=
-      if(maxN!=-Inf) correlations<-gsub("r=",paste0("r(",maxN-2,")="),correlations)
+      if(maxN!=-Inf) correlations<-gsub("r *=",paste0("r(",maxN-2,")="),correlations)
     }
   }
 } # results are in updated "m" and object "correlations"
@@ -370,8 +388,10 @@ parseMatrixContent<-function(x,legend=NULL,
   i<-NULL;j<-NULL
   if(length(m)>0&is.matrix(m)){
   # convert ns -> p>.05
-  if(standardPcoding==TRUE) m<-gsub(" [Nn]\\.*[Ss]\\.*$",";; p>.05",m)
-  if(standardPcoding==TRUE) m<-gsub("^[Nn]\\.*[Ss]\\.*$",";; p>.05",m)
+  if(isTRUE(standardPcoding)){
+    m<-gsub(" [Nn]\\.*[Ss]\\.*$",";; p>.05",m)
+    m<-gsub("^[Nn]\\.*[Ss]\\.*$",";; p>.05",m)
+  }
   
   # add non significant p-values in columns that have cells with coded p-values,
   if(isTRUE(noSign2p)){
@@ -388,6 +408,7 @@ parseMatrixContent<-function(x,legend=NULL,
   if(length(j)>0) m[j,]<-t(noSign2p(t(as.matrix(m[c(1,j),])),pval))[-1,]
   # remove inserted grouping from Model stats
   m[-i,1]<-gsub("^[^,;]*: ","",m[-i,1])
+  if(!is.matrix(m)) m<-as.matrix(m)
   }
 }  
   # which line has number-star in model stats
@@ -439,19 +460,21 @@ parseMatrixContent<-function(x,legend=NULL,
   
   # add degrees of freedom
   if(isTRUE(dfHandling)){
-    # add df=max(n)-2 for t and r values if has N= in legend
-    if(!is.null(N)){
+    # add df=max(n)-2 for t and r values if has N= in legend but not in matrix
+    if(length(N)==1 & sum(grepl("[\\( ][nN] *= *[1-9]|^[nN] *= *[1-9]",m))==0 &
+       # and no df in matrix
+       sum(grepl("^[Dd]\\.*[Ff]\\.*$|degrees* of freedom|df1|df2",m))==0){
       # get highest N
       maxN<-suppressWarnings(max(suppressWarnings(as.numeric(gsub(".*[<=>]","",N))),na.rm=T))
       # add maxN-2 to r= and t= if no df is found
-      i<-(grep(" df[12]*=|degrees* of freed",output,invert=TRUE))
-      if(maxN!=-Inf) output[i]<-gsub(" r=",paste0(" r(",maxN-2,")="),output[i])
-      if(maxN!=-Inf) output[i]<-gsub(" t=",paste0(" t(",maxN-2,")="),output[i])
-      if(maxN!=-Inf) output[i]<-gsub(" T=",paste0(" T(",maxN-2,")="),output[i])
+      i<-(grep(" [dD][fF][12]* *=|degrees* of freed",output,invert=TRUE))
+      if(maxN!=-Inf) output[i]<-gsub(" r *=",paste0(" r(",maxN-2,")="),output[i])
+      if(maxN!=-Inf) output[i]<-gsub(" t *=",paste0(" t(",maxN-2,")="),output[i])
+#      if(maxN!=-Inf) output[i]<-gsub(" T *=",paste0(" T(",maxN-2,")="),output[i])
     }
     # perform ANOVQA df handling
     output<-anovaHandler(output)  
-    
+    output<-correctDF(output)
   }
   
   # clean up spaces
@@ -459,11 +482,11 @@ parseMatrixContent<-function(x,legend=NULL,
   # remove ": ;;"
   output<-gsub(": ;;",";;",output)
   
-  # remove more than one appearing of grouping variable
+  # remove more than one appearing of grouping variable, if has less than 100 characters
   group<-gsub("^([^:][^:]*): .*","\\1",output)
-  ind<-which(group!=output)
+  ind<-which(group!=output&nchar(group)<100)
   if(length(ind)>0)
-  for(i in ind) output[i]<-gsub(paste0(" ",specialChars(group[i]),": ")," ",output[i])
+     for(i in ind) output[i]<-gsub(paste0(" ",specialChars(group[i]),": ")," ",output[i])
 
   # clean up spaces
   output<-gsub("  *"," ",output)

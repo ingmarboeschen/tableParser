@@ -3,8 +3,9 @@
 #' Extracts tables from HTML, HML, XML, DOCX, PDF files, or plain HTML code to a list of character matrices.
 #' @param x A file path to a DOCX, PDF, or HTML encoded file, or text with HTML code.
 #' @param unifyMatrix Logical. If TRUE, matrix cells are unified for better post-processing (see '?unifyMatrixContent').
-#' @param letter.convert Logical. If TRUE, html and hexadecimal encoded letters will be unified and converted to Unicode with 'html2unicode()' and 'JATSdecoder::letter.convert()'.
+#' @param letter.convert Logical. If TRUE, html and hexadecimal encoded letters will be unified and converted to Unicode with html2unicode() and JATSdecoder::letter.convert().
 #' @param greek2text Logical. If TRUE and 'letter.convert=TRUE', converts and unifies various Greek letters to a text-based form (e.g.: 'alpha', 'beta'). 
+#' @param correctComma Logical. If TRUE, commas used as decimal are converted to dots, big mark commas are removed. 
 #' @param replicate Logical. If TRUE, the content of cells with row/col span > 1 is replicated in all connected cells; if FALSE, the value will only be placed in the first of the connected cells.
 #' @param repNums Logical. If TRUE, cells with numbers that have row/col span > 1 are replicated in every connected cell.
 #' @param rm.empty.row.col Logical. If TRUE, empty rows/columns are removed from output.
@@ -59,6 +60,7 @@
 table2matrix<-function(x,unifyMatrix=FALSE,
                        letter.convert=TRUE,
                        greek2text=FALSE,
+                       correctComma=FALSE,
                        replicate=FALSE, 
                        repNums=FALSE,
                        rm.html=FALSE, 
@@ -92,7 +94,14 @@ table2matrix<-function(x,unifyMatrix=FALSE,
   if(is.element(type,c("docx","pdf"))){
   # docx 
   if(is.element(type,c("docx"))){
-    m<-docx2matrix(x,replicate=replicate)
+    m<-uniqueWarnings(docx2matrix(x,replicate=replicate,
+                                  unifyMatrix=FALSE,correctComma=FALSE))
+    
+    if(isTRUE(unifyMatrix)|isTRUE(correctComma)) m<-uniqueWarnings(unifyMatrixContent(m,letter.convert=FALSE,
+                                                  greek2text=FALSE,
+                                                  correctComma=correctComma,text2num=FALSE))
+    # convert letters in matrix
+    if(isTRUE(greek2text)|isTRUE(letter.convert)) m<-lapply(m,JATSdecoder::letter.convert,greek2text=greek2text)
     # get captions and footer
     legendText<-guessCaptionFootnote(x)
     if(length(legendText)==2){
@@ -110,20 +119,20 @@ table2matrix<-function(x,unifyMatrix=FALSE,
       }
     }
     
-    # convert letters in matrix
-    if(letter.convert==TRUE) m<-lapply(m,JATSdecoder::letter.convert,greek2text=greek2text)
   }
   # pdf
   if(type=="pdf"){
     x<-tabulapdf::extract_tables(x,output="matrix")
     m<-lapply(x,as.matrix)
-    # convert letters in matrix with cermine=TRUE
-    if(letter.convert==TRUE) m<-lapply(m,JATSdecoder::letter.convert,greek2text=greek2text,cermine=TRUE)
+    if(isTRUE(unifyMatrix)|isTRUE(correctComma)) m<-uniqueWarnings(unifyMatrixContent(m,letter.convert=letter.convert,
+                                                  greek2text=FALSE,
+                                                  correctComma=correctComma,text2num=FALSE))
+    if(isTRUE(greek2text)) m<-lapply(m,JATSdecoder::letter.convert,greek2text=greek2text)
   }
     
   # apply options
   # remove html
-    if(rm.html==TRUE){
+    if(isTRUE(rm.html)){
       # convert </break> to space, <sub> to _, <sup> to ^ 
       m<-lapply(m,function(x) gsub("</*break/*>"," ",x))
       m<-lapply(m,function(x) gsub(" *<sub> *","_",x))
@@ -152,7 +161,7 @@ table2matrix<-function(x,unifyMatrix=FALSE,
       
     }
     
-    if(header2colnames==TRUE) {
+    if(isTRUE(header2colnames)) {
      m<-lapply(m,function(x){
        if(length(colnames(x)==0)){
          colnames(x)<-x[1,]
@@ -161,7 +170,7 @@ table2matrix<-function(x,unifyMatrix=FALSE,
        return(x)
      })
     }
-    if(header2colnames==FALSE) {
+    if(isFALSE(header2colnames)) {
       m<-lapply(m,function(x){
         if(length(colnames(x)>0)){
           x<-rbind(colnames(x),x)
@@ -169,7 +178,7 @@ table2matrix<-function(x,unifyMatrix=FALSE,
         return(x)
       })
     }
-    if(collapseHeader==TRUE) warnings("Header collapsing is only possible for HTML coded tables.")
+    if(isTRUE(collapseHeader)) warnings("Header collapsing is only possible for HTML coded tables.")
     
     # add table class as attribute
     if(length(m)>0) 
@@ -255,8 +264,9 @@ table2matrix<-function(x,unifyMatrix=FALSE,
       if(length(out)==length(legendText) & isFile)
         for(i in 1:length(out))
           attributes(out[[i]])$class <- tableClass(out[[i]],legend=legendText[i])
-    }
     
+    }
+  
     # remove empty lists
     if(length(out)>0){
       out<-out[which(unlist(lapply(out,length))!=0)]
@@ -271,12 +281,30 @@ table2matrix<-function(x,unifyMatrix=FALSE,
 
   # escape if no content is left
   if(length(unlist(out))==0) return(NULL)
-  
+ 
   # apply options
-  if(unifyMatrix==TRUE) 
+  uniqueWarnings({
+  if(isTRUE(unifyMatrix)) 
       for(i in 1:length(out))
-        if(length(out[[i]])>1)
-           out[[i]]<-unifyMatrixContent(out[[i]],letter.convert=letter.convert,greek2text=greek2text,text2num=TRUE)
+        if(length(out[[i]])>1){
+          # get attributes
+          class<-attributes(out[[i]])$class
+          caption<-attributes(out[[i]])$caption
+          footer<-attributes(out[[i]])$footer
+          
+           out[[i]]<-unifyMatrixContent(out[[i]],letter.convert=FALSE,
+                                        greek2text=FALSE,
+                                        correctComma=correctComma,text2num=FALSE)
+           
+           if(isTRUE(greek2text)|isTRUE(letter.convert)) out[[i]]<-matrix(letter.convert(out[[i]],greek2text=greek2text),ncol=ncol(out[[i]]))
+        
+           # set attributes
+           attributes(out[[i]])$class<-class
+           attributes(out[[i]])$caption<-caption
+           attributes(out[[i]])$footer<-footer
+           
+           }
+    })
   
   # name list elements  
   if(is.list(out))
@@ -350,14 +378,14 @@ singleTable2matrix<-function(x,letter.convert=TRUE,# Logical. If TRUE hex codes 
         times<-as.numeric(gsub('.*colspan="([1-9][0-9]*).*',"\\1",cells[[k]][cellIndex]))-1
         for(m in 1:length(cellIndex)){
           if(m==1){
-            if(repNums==TRUE) cell4rep<-ifelse(replicate==TRUE,cells[[k]][cellIndex[m]],"")
-            if(repNums==FALSE) cell4rep<-ifelse(replicate==TRUE & !is.num[[k]][cellIndex[m]],
+            if(isTRUE(repNums)) cell4rep<-ifelse(replicate==TRUE,cells[[k]][cellIndex[m]],"")
+            if(isFALSE(repNums)) cell4rep<-ifelse(replicate==TRUE & !is.num[[k]][cellIndex[m]],
                                                 cells[[k]][cellIndex[m]],"")
             cells[[k]]<-insert(rep(cell4rep,times[m]),cells[[k]],cellIndex[m]+1)
           }
           if(m>1){
-            if(repNums==TRUE) cell4rep<-ifelse(replicate==TRUE,cells[[k]][cellIndex[m]+sum(times[1:(m-1)])],"")
-            if(repNums==FALSE) cell4rep<-ifelse(replicate==TRUE & !is.num[[k]][cellIndex[m]],
+            if(isTRUE(repNums)) cell4rep<-ifelse(replicate==TRUE,cells[[k]][cellIndex[m]+sum(times[1:(m-1)])],"")
+            if(isFALSE(repNums)) cell4rep<-ifelse(replicate==TRUE & !is.num[[k]][cellIndex[m]],
                              cells[[k]][cellIndex[m]+sum(times[1:(m-1)])],"")
             cells[[k]]<-insert(rep(cell4rep,times[m]),cells[[k]],cellIndex[m]+1+sum(times[1:(m-1)]))
           }
@@ -389,9 +417,9 @@ singleTable2matrix<-function(x,letter.convert=TRUE,# Logical. If TRUE hex codes 
       # remove rowspan from processed cell
       cells[[line]][cellIndex]<-gsub(' *rowspan="[1-9][0-9]*"',"",cells[[line]][cellIndex])
       if(times>0&(line+times)<=length(cells)){
-        if(repNums==TRUE)         cell4rep<-ifelse(replicate==TRUE , 
+        if(isTRUE(repNums))         cell4rep<-ifelse(replicate==TRUE , 
                                                    cells[[line]][cellIndex],"")
-        if(repNums==FALSE) cell4rep<-ifelse(replicate==TRUE & !is.num[[line]][cellIndex], 
+        if(isFALSE(repNums)) cell4rep<-ifelse(replicate==TRUE & !is.num[[line]][cellIndex], 
                          cells[[line]][cellIndex],"")
         for(m in 1:times){
           cells[[line+m]]<-insert(cell4rep,cells[[line+m]],cellIndex)
@@ -400,7 +428,7 @@ singleTable2matrix<-function(x,letter.convert=TRUE,# Logical. If TRUE hex codes 
       # lines with rowspan left 
       line<-which(grepl('rowspan=..[1-9]',cells))
     }
-    if(warn==TRUE) warning("Table compiling might have gone wrong due to complexety of cell connections.",call.=FALSE)
+    if(isTRUE(warn)) warning("Table compiling might have gone wrong due to complexety of cell connections.",call.=FALSE)
     
     return(cells)
   }
@@ -426,7 +454,7 @@ singleTable2matrix<-function(x,letter.convert=TRUE,# Logical. If TRUE hex codes 
   
   # collapse first header lines if header has 2 or more lines
   ind<-ind1<-grepl("</*th>",cells)
-  if(length((1:length(ind))[!ind])>0 & collapseHeader==TRUE&length(rows)>1 & sum(grepl("</*th>",cells))>1){
+  if(length((1:length(ind))[!ind])>0 & isTRUE(collapseHeader) & length(rows)>1 & sum(grepl("</*th>",cells))>1){
     ind[min((1:length(ind))[!ind]):length(ind)]<-FALSE
     # abort if table has multiple headers  
     if(sum(ind1)!=sum(ind)){
@@ -482,9 +510,9 @@ singleTable2matrix<-function(x,letter.convert=TRUE,# Logical. If TRUE hex codes 
   # escape
   if(length(cells)==0) return(NULL)
   # convert special characters
-  if(letter.convert==TRUE) cells<-lapply(cells,JATSdecoder::letter.convert,greek2text=greek2text)
+  if(isTRUE(letter.convert)) cells<-lapply(cells,JATSdecoder::letter.convert,greek2text=greek2text)
   # remove duplicated rows
- # if(rm.duplicated==TRUE){
+ # if(isTRUE(rm.duplicated)){
 #    rowText<-unlist(lapply(cells,function(x) paste(x,collapse="")))
 #    cells<-cells[!duplicated(rowText)]
 #  }
@@ -494,12 +522,12 @@ singleTable2matrix<-function(x,letter.convert=TRUE,# Logical. If TRUE hex codes 
   if(isTRUE(collapseHeader)) m<-headerHandling(m)
   
   # convert header text to column names
-  if(header2colnames==TRUE&collapseHeader==TRUE) {
+  if(isTRUE(header2colnames) & isTRUE(collapseHeader)) {
     colnames(m)<-m[1,]
     m<-m[-1,]
   }
   # remove empty cols/rows
-  if(rm.empty.row.col==TRUE) m<-rm.empty(m)
+  if(isTRUE(rm.empty.row.col)) m<-rm.empty(m)
   
   # get caption and footer for classification from html table-wrap
   leg<-c(gsub("[^[:punct:]]$","\\1.",get.caption(x)),get.footer(x))

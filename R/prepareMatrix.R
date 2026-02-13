@@ -2,8 +2,9 @@
 #' 
 #' Prepares character matrix content for parsing. Removes empty rows and columns, extends content from plausible grouping cells to sparse cells, collapses multiple header rows, and splits multiple model tables to a list of single model tables.
 #' @param x character matrix
-#' @param split logical. If TRUE, multi-model matrices are split into a list of single-model matrices.
-#' @param forceClass character. Set matrix-specific handling to one of c("tabled result", "correlation", "matrix, "text").
+#' @param split Logical. If TRUE, multi-model matrices are split into a list of single-model matrices.
+#' @param forceClass Character. Set matrix-specific handling to one of c("tabled result", "correlation", "matrix, "text").
+#' @param legend Character. Optional, text from table caption and/or footnote for table class specific processing.
 #' @param na.rm Logical. If TRUE, NA cells are set to empty cells.
 #' @returns A character matrix
 #' @examples
@@ -17,7 +18,7 @@
 #' prepareMatrix(x)
 #' @export
 
-prepareMatrix<-function(x,split=FALSE,forceClass=NULL,na.rm=TRUE){
+prepareMatrix<-function(x,split=FALSE,forceClass=NULL,na.rm=TRUE,legend=NULL){
   # check forceClass
   if(!is.null(forceClass))
     if(sum(is.element(c("tabled result","correlation","matrix","text"),forceClass))!=1)
@@ -52,7 +53,7 @@ prepareMatrix<-function(x,split=FALSE,forceClass=NULL,na.rm=TRUE){
     }
   }
   
-  
+  x
   # remove empty lines/cols
   row.rm<-which(rowSums(x=="",na.rm=TRUE)==ncol(x))
   if(length(row.rm)>0) x<-x[-row.rm,]
@@ -65,7 +66,7 @@ prepareMatrix<-function(x,split=FALSE,forceClass=NULL,na.rm=TRUE){
   if(nrow(x)==1|ncol(x)==1) return(x)
 
   # Classify table  
-  if(is.null(forceClass))  class<-tableClass(x)
+  if(is.null(forceClass))  class<-tableClass(x,legend=legend)
   if(!is.null(forceClass)) class<-forceClass
   
   # no further processing in text matrices and vectors
@@ -86,6 +87,7 @@ prepareMatrix<-function(x,split=FALSE,forceClass=NULL,na.rm=TRUE){
     i<-i[i>min(j)]
   }
   }
+  
   # paste text from lines with only the same value to first cells
   x<-multiHeaderSplit(x,split=FALSE,class=class)
   # handle empty cells by row (except for correlations)
@@ -97,17 +99,20 @@ prepareMatrix<-function(x,split=FALSE,forceClass=NULL,na.rm=TRUE){
   
   ## if second column contains enumerated text 
   # paste first and second col -> "col2 (col1)"
-  if(isTRUE(
-    grep("^\\(1\\)|^1\\.[A-z ]",x[-1,2])[1]==grep("^\\(2\\)|^2\\.[A-z ]",x[-1,2])[1]-1&
-    grep("^\\(1\\)|^1\\.[A-z ]",x[-1,2])[1]==grep("^\\(3\\)|^3\\.[A-z ]",x[-1,2])[1]-2)){
+  if(ncol(x)>1 & isTRUE(
+    grep("^\\(1\\)|^1\\. *[A-z]",x[-1,2])[1]==grep("^\\(2\\)|^2\\. *[A-z]",x[-1,2])[1]-1&
+    grep("^\\(1\\)|^1\\. *[A-z]",x[-1,2])[1]==grep("^\\(3\\)|^3\\. *[A-z]",x[-1,2])[1]-2)){
     x[,2]<-paste0(x[,2],rep(" (",length(x[,1])),x[,1],rep(")",length(x[,1])))
     # remove first column
     x<-x[,-1]
     # remove empty brackets and space 
     x<-gsub(" *\\(\\)|^  *","",x)
+    if(!is.matrix(x)) x<-as.matrix(x)
+    
   }
+  
   # paste first and second col -> "col2 (col1)"
-  if(isTRUE(
+  if(ncol(x)>1 & isTRUE(
     grep("^1[\\.]*$",x[-1,2])[1]==grep("^2[\\.]*$",x[-1,2])[1]-1&
     grep("^1[\\.]*$",x[-1,2])[1]==grep("31[\\.]*$",x[-1,2])[1]-2)){
     x[,2]<-paste0(x[,2],rep(" ",length(x[,1])),x[,1])
@@ -115,10 +120,11 @@ prepareMatrix<-function(x,split=FALSE,forceClass=NULL,na.rm=TRUE){
     x<-x[,-1]
     # remove space 
     x<-gsub("^  *","",x)
+    if(!is.matrix(x)) x<-as.matrix(x)
   }
   
   # reclassify if forceClass is null
-  if(is.null(forceClass))  class<-tableClass(x)
+  if(is.null(forceClass))  class<-tableClass(x,legend=legend)
   
   if(class=="correlation"){
     ## parse first and second column, 
@@ -147,8 +153,8 @@ prepareMatrix<-function(x,split=FALSE,forceClass=NULL,na.rm=TRUE){
 
   # as long as multiple fields in second row contain only text, paste to cells in first row and remove row
   while(
-    sum(grepl("[0-9]",gsub("[1-9][0-9\\.][- ]*%","",x[2,]))) == 0 & 
-    sum(grepl("[A-z]",x[2,])) > 1 & 
+    sum(grepl("[0-9]",gsub("[0-9][0-9\\.\\^][- ]*%","",x[2,]))) == 0 & 
+    sum(grepl("[A-z]",gsub("*[Nn]\\.[Ss]\\.|^ns$","",x[2,]))) > 1 & 
     nrow(x) > 2 & 
     # no line with only the same values
     sum(duplicated(x[2,]))!= ncol(x) & 
@@ -159,7 +165,6 @@ prepareMatrix<-function(x,split=FALSE,forceClass=NULL,na.rm=TRUE){
     x[1,]<-gsub("^  *|  *$","",paste(x[1,],x[2,]))
     x<-x[-2,]
   }
-
 
   # split matrices
   if(isTRUE(split)){

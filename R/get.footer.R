@@ -21,17 +21,17 @@ get.footer<-function(x,rm.html=TRUE,sentences=FALSE,letter.convert=TRUE){
     # split at html <br> or </p>
     footer<-lapply(footer,function(x) unlist(strsplit(x,"<p/>|</p>|</*br/*>|\\\\n")))
     # convert to sentences
-    if(sentences==TRUE) footer<-lapply(footer,JATSdecoder::text2sentences)
+    if(isTRUE(sentences)) footer<-lapply(footer,JATSdecoder::text2sentences)
     # remove html tags, and convert sup and sub
     footer<-lapply(footer,function(x) gsub("<sup>","^",gsub("<sub>","_",x)))
     footer<-lapply(footer,function(x) gsub("</*sup/*>"," ",gsub("</*sub/*>"," ",x)))
     footer<-lapply(footer,function(x) gsub("</*break/*>"," ",x))
-    if(rm.html==TRUE) footer<-lapply(footer,function(x) gsub("</*[a-z][^>]*/*>","",x))
+    if(isTRUE(rm.html)) footer<-lapply(footer,function(x) gsub("</*[a-z][^>]*/*>","",x))
     # clean up tailoring white spaces
     footer<-lapply(footer,function(x) gsub("^ | $","",gsub("  *"," ",x)))
     # hex/special letter conversion
     # unify letters
-    if(letter.convert==TRUE)  footer<-lapply(footer,JATSdecoder::letter.convert)
+    if(isTRUE(letter.convert))  footer<-lapply(footer,JATSdecoder::letter.convert)
   }
   footer<-unlist(footer)
   footer<-footer[nchar(footer)>0]

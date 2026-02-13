@@ -3,18 +3,28 @@
 #' Extracts tables from DOCX documents and returns a list of character matrices.
 #' @param x File path to a DOCX input file with tables.
 #' @param unifyMatrix Logical. If TRUE, matrix cells are unified for better post-processing (see 'unifyMatrixContent()').
+#' @param correctComma Logical. If TRUE, commas used as decimal are converted to dots, big mark commas are removed. 
 #' @param replicate Logical. If TRUE, replicates content when splitting connected cells.
 #' @examples
 #' ## Download an example DOCX file from tableParser's github repo to temp directory 
 #' d<-'https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.docx'
-#' download.file(d,paste0(tempdir(),"/","tableExamples.docx"),method="wget")
+#' tempFile<-paste0(tempdir(),"/","tableExamples.docx")
+#' 
+#' # on Windows with method="wget"
+#' if(grepl("^[A-z]:",tempFile))
+#'    download.file(d,tempFile,method="wget")
+#' # on all other machines
+#' if(!grepl("^[A-z]:",tempFile))
+#'    download.file(d,tempFile)
+#'    
+#' Sys.sleep(.2)
 #' 
 #' # Extract tables as character matrices
-#' docx2matrix(paste0(tempdir(),"/","tableExamples.docx"))
+#' docx2matrix(tempFile)
 #' @return List with extracted tables as character matrices.
 #' @export
 
-docx2matrix<-function(x,unifyMatrix=TRUE,replicate=TRUE){
+docx2matrix<-function(x,unifyMatrix=FALSE,correctComma=FALSE,replicate=TRUE){
   # escapes
   if(gsub(".*\\.docx$","docx",tolower(x[1]))!="docx") stop("Input must be a file path to a DOCX file.")
   if(length(x)>1) stop("Input must be a single DOCX file.")
@@ -61,13 +71,13 @@ docx2matrix<-function(x,unifyMatrix=TRUE,replicate=TRUE){
   
   for(i in ind){
   reps<-as.numeric(gsub(".*<w:gridSpan w:val=.([1-9][1-9]*).*","\\1",y[i+Nadded]))-1
-  if(replicate==TRUE){
+  if(isTRUE(replicate)){
     if((i+Nadded)<length(y)&reps>0) y<-c(y[1:(i+Nadded)],rep(y[i+Nadded],reps),y[(i+1+Nadded):length(y)])
     if((i+Nadded)==length(y)&reps>0) y<-c(y[1:(i+Nadded)],rep(y[i+Nadded],reps))
   }
   
   
-  if(replicate==FALSE){
+  if(isFALSE(replicate)){
     if((i+Nadded)<length(y)&reps>0) y<-c(y[1:(i+Nadded)],rep("",reps),y[(i+1+Nadded):length(y)])
     if((i+Nadded)==length(y)&reps>0) y<-c(y[1:(i+Nadded)],rep("",reps))
   }
@@ -105,7 +115,7 @@ docx2matrix<-function(x,unifyMatrix=TRUE,replicate=TRUE){
   
   # apply functions
   y<-lapply(y,tempFun,replicate=replicate)
-  if(isTRUE(unifyMatrix)) y<-lapply(y,unifyMatrixContent) 
+  if(isTRUE(unifyMatrix)) y<-lapply(y,unifyMatrixContent,correctComma=correctComma) 
   
   return(y)
 }

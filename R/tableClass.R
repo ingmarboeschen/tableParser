@@ -22,6 +22,8 @@ tableClass<-function(x,legend=NULL){
   
   # remove minus at beginning
   x<-gsub("^-","",x)
+  # remove hight anything
+  x<-gsub("\\^.*","",x)
   
   # take a copy
   m<-x
@@ -30,8 +32,10 @@ tableClass<-function(x,legend=NULL){
   if(is.null(nCol)|nCol==1|nrow(m)==1) return("vector")
   if(nrow(m)==1&ncol(m)==1) return("vector")
   
-  # if has cells with many characters, return text
-  if(sum(unlist(lapply(m,nchar))>150,na.rm=TRUE)>0) return("text")
+  # if has many cells (>20%) with many characters (>150), return text
+  nCells<-nrow(m)*ncol(x)
+  
+  if(sum(unlist(lapply(m,nchar))>150,na.rm=TRUE)/nCells>.2) return("text")
 
   ## check if matrix is text matrix
   # is cell with character?
@@ -48,6 +52,15 @@ tableClass<-function(x,legend=NULL){
     return("text")
   }
   
+  # remove grouping lines
+  m<-m[!rowSums(matrix(grepl("^$",m),ncol=ncol(m)))==(ncol(m)-1),]
+  if(length(m)==0) return("tabled results")
+  if(!is.matrix(m)) m<- as.matrix(m)
+  m<-m[rowSums(m==m[,1])!=ncol(m),]
+  if(length(m)==0) return("tabled results")
+  if(!is.matrix(m)) m<- as.matrix(m)
+  
+  
   ###################################
   ## check if is correlation matrix?
   if(ncol(m)>2&nrow(m)>2){
@@ -57,16 +70,20 @@ tableClass<-function(x,legend=NULL){
   m<-gsub("([0-9])[\\*+]*","\\1",m)
   # remove numbers in brackets behind numbers
   m<-gsub("([0-9])[,;]* \\([-\\.0-9][\\.0-9]*\\)","\\1",m)
+  # remove everything behind numbers
+  m<-gsub("([0-9])[,;]* .*","\\1",m)
+  # remove n.s. from inner matrix
+  m[-1,-1]<-gsub("^[Nn]\\.*[Ss]\\.*$","",m[-1,-1])
   
   # check 1: all numeric fields have values [-1; 1] and "Correlation" is in legend
   cors<-matrix(suppressWarnings(as.numeric(gsub("[^0-9\\.-]","",m[-1,-1]))),ncol=ncol(m)-1)
   empty<-matrix(gsub("[[:punct:]]","",m[-1,-1])=="",ncol=ncol(m)-1)
   
-  # set rows/cols with mean/sd/alpha to NA
-  cors[grep("^ICC|^[Mm]ed*i*an$|^AVE$|^M$|Cronbach|\u03b1|[aA]lpha|[Ss]tandard [Dd]eviation|^SD$",m[-1,1]),]<-NA
-  cors[,grep("^ICC|^[Mm]ed*i*an$|^AVE$|^M$|Cronbach|\u03b1|[aA]lpha|[Ss]tandard [Dd]eviation|^SD$",m[1,-1])]<-NA
-  empty[grep("^ICC|^[Mm]ed*i*an$|^AVE$|^M$|Cronbach|\u03b1|[aA]lpha|[Ss]tandard [Dd]eviation|^SD$",m[-1,1]),]<-TRUE
-  empty[,grep("^ICC|^[Mm]ed*i*an$|^AVE$|^M$|Cronbach|\u03b1|[aA]lpha|[Ss]tandard [Dd]eviation|^SD$",m[1,-1])]<-TRUE
+  # set rows/cols with mean/sd/alpha/... to NA
+  cors[grep("^ICC|^[Mm]ed*i*an$|^AVE$|^M$|Cronbach|\u03b1|[aA]lpha|[Ss]tandard [Dd]eviation|^SDs*$|^[Ll]oadings*$",m[-1,1]),]<-NA
+  cors[,grep("^ICC|^[Mm]ed*i*an$|^AVE$|^M$|Cronbach|\u03b1|[aA]lpha|[Ss]tandard [Dd]eviation|^SD|^[Ll]oadings*$$",m[1,-1])]<-NA
+  empty[grep("^ICC|^[Mm]ed*i*an$|^AVE$|^M$|Cronbach|\u03b1|[aA]lpha|[Ss]tandard [Dd]eviation|^SD$|^[Ll]oadings*$",m[-1,1]),]<-TRUE
+  empty[,grep("^ICC|^[Mm]ed*i*an$|^AVE$|^M$|Cronbach|\u03b1|[aA]lpha|[Ss]tandard [Dd]eviation|^SD$|^[Ll]oadings*$",m[1,-1])]<-TRUE
   
   # prepare removal matrix of correlations
   cors <- cors<=1&cors>=-1
@@ -78,8 +95,16 @@ tableClass<-function(x,legend=NULL){
   t2<-length(grep("[Cc]orr*elation|[Aa]ssociation|[Re]elation",legend))>0
   # is there no p/d/beta/R^2 value in matrix?
   t3<-length(grep("[Ii]ntercept|^[PpdDBb]$| [PpdDBb]$|[Pp]-value|[0-9]%[-]*[Cc][oIi]|R\\^*2|eta\\^*2$",m))==0
+  # check if matrix has at not more than 3 times as many rows as columns and vice versa
+  t4<-TRUE #(nrow(m)/ncol(m))<3 & (nrow(m)/ncol(m))>.33
+  # first column has no digit number starting with 0 
+  t5<-length(grep("^0\\.[0-9]",m[,1]))==0
+  # exclude cases with first column only numbers but no 1 nor 2
+  t6<-TRUE
+  if(length(grep("^[0-9][0-9\\.]*$|^$",m[-1,1]))==(nrow(m)-1))
+    t6<-(length(grep("^1\\.*[^0-9]*$",m[-1,1]))>0|length(grep("^2\\.*[^0-9]*$",m[-1,1]))>0)
   
-  if(t1&t2&t3){
+  if(t1&t2&t3&t4&t5&t6){
     class<-"correlation"
     return(class)
   }

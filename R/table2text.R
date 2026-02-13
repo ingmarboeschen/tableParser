@@ -10,7 +10,7 @@
 #' @param unifyStats Logical. If TRUE, output is unified for better post-processing (e.g., "p-value"->"p").
 #' @param expandAbbreviations Logical. If TRUE, detected abbreviations are expanded to label from table caption/footnote.
 #' @param superscript2bracket Logical. If TRUE, detected superscript codings are inserted inside parentheses.
-#' @param dfHandling Logical. If TRUE, the detected sample size N in the caption/footnote is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom.
+#' @param dfHandling Logical. If TRUE, the detected sample size N in a row is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom (df) in that row. In ANOVA tables, the detected residual df (df2) is imputed behind the faktor df (df1).
 #' @param bracketHandling Logical. If TRUE and if possible, decodes numbers in brackets.
 #' @param rotate Logical. If TRUE, matrix content is parsed by column.
 #' @param na.rm Logical. If TRUE, NA cells are set to empty cells.
@@ -55,7 +55,7 @@ table2text<-function(x,
                      bracketHandling=TRUE,
                      dfHandling=FALSE,
                      rotate=FALSE,
-                     correctComma=TRUE,
+                     correctComma=FALSE,
                      na.rm=TRUE,
                      addDescription=TRUE,
                      unlist=FALSE,
@@ -69,6 +69,10 @@ table2text<-function(x,
   caption<-NULL;footer<-NULL;legend<-NULL;m<-NULL;file<-FALSE
   # extract matrices and legend (caption and footnotes)
   m<-table2matrix(x,rm.html = TRUE,unifyMatrix = unifyMatrix)
+  
+  # split matrices at text lines (if is not vector, text, correlation)
+  m<-matrixSplit(m)
+  
   # get attributes
   caption<-unname(lapply(m,function(x) attributes(x)$caption))
   caption<-unlist(lapply(caption,paste,collapse=" "))
@@ -88,7 +92,7 @@ table2text<-function(x,
                 legend=NULL,unlist=FALSE){
     
     if(length(x)==0)  return(NULL)
-    if(unifyMatrix==TRUE) x<-unifyMatrixContent(x,correctComma=correctComma,na.rm=na.rm)
+    if(isTRUE(unifyMatrix)) x<-unifyMatrixContent(x,correctComma=correctComma,na.rm=na.rm)
     if(length(x)==0) return(NULL)
     
     # convert matrix to text
@@ -102,8 +106,8 @@ table2text<-function(x,
                    rotate=rotate,unlist=unlist
                    )
      
-  if(!is.list(out)&isTRUE(unifyStats)) out<-unifyStats(out)
-  if(is.list(out)&isTRUE(unifyStats)) out<-lapply(out,unifyStats)
+  if(!is.list(out)&isTRUE(unifyStats)) out<-unifyStats(out,dfHandling=dfHandling)
+  if(is.list(out)&isTRUE(unifyStats)) out<-lapply(out,function(x) unifyStats(x,dfHandling=dfHandling))
      # output
   return(out)
   }
@@ -111,6 +115,7 @@ table2text<-function(x,
   # escape
   if(length(m)==0) return(NULL)
   output<-list()
+  o_name<-names(m)
   # apply function
   uniqueWarnings({
   for(i in 1:length(m)) 
@@ -135,31 +140,22 @@ table2text<-function(x,
                        output[[i]]),invert=TRUE,value=TRUE)
       
   # set attributes
-  if(length(caption)==length(output) & !isTRUE(addDescription)){
+  if(length(caption)==length(output) & isFALSE(addDescription)){
     for(i in 1:length(m)){
       attributes(output[[i]])$caption <- caption[i]
       attributes(output[[i]])$footer <- footer[i]
     }
   }
   
-  # name the listed output
-  names(output)<-paste("Table",1:length(output))
-  
-  # remove all but one empty cell
-  #output<-lapply(output,function(x){
-  #  if(sum(nchar(x)==0)>0){
-  #    i<-which(nchar(x)==0)
-  #    if(length(i)==length(x)) return("")
-  #    if(length(i)<length(x)) return(x[x!=""]) 
-  #  }})
+  # rename the listed output
+#  names(output)<-paste("Table",1:length(output))
+  names(output)<-o_name
   
   # unlist with table names
   if(isTRUE(unlist)){
     n<-rep(names(output),times=unlist(lapply(output,length)))
     if(isTRUE(addTableName)) output<-paste0(n,":: ",unname(unlist(output)))
-    if(!isTRUE(addTableName)) output<-unname(unlist(output))
+    if(isFALSE(addTableName)) output<-unname(unlist(output))
   }  
   return(output)
   }
-
-

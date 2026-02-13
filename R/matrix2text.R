@@ -2,12 +2,12 @@
 #'
 #' Converts character matrix content to a screen reader-like readable character string. The parsing is performed row-wise in standard mode. 
 #' @param x A character matrix or list of character matrices.
-#' @param legend A list with table legend codes extracted from table caption and/or footnote with 'tableParser::legendCodings()'. 
+#' @param legend A list with table legend codes extracted from table caption and/or footnote with legendCodings(). 
 #' @param unifyMatrix Logical. If TRUE, matrix cells are unified for better post-processing.
 #' @param correctComma Logical. If TRUE and 'unifyMatrix=TRUE', decimal sign commas are converted to dots. 
 #' @param na.rm Logical. If TRUE, NA cells are set to empty cells.
 #' @param forceClass character. Set matrix-specific handling to one of c("tabled result", "correlation", "matrix", "text").
-#' @param expandAbbreviations Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footnote with 'tableParser::legendCodings()'.
+#' @param expandAbbreviations Logical. If TRUE, detected abbreviations are expanded to label detected in table caption/footnote with legendCodings().
 #' @param superscript2bracket Logical. If TRUE, detected superscript codings are inserted inside parentheses.
 #' @param dfHandling Logical. If TRUE, detected sample size N in the caption/footnote is inserted as degrees of freedom (N-2) to r- and t-values that are reported without degrees of freedom. 
 #' @param decodeP Logical. If TRUE, imputes the converts the detected p-value codings to text with seperator ';;' (e.g., '1.23*' -> '1.23;; p<.01')
@@ -71,7 +71,7 @@ matrix2text<-function(x,legend=NULL,
   if(length(x)==0) return(NULL)
   if(length(unlist(x))==0) return(NULL)
   
-  if(!isTRUE(decodeP)) noSign2p<-FALSE
+  if(isFALSE(decodeP)) noSign2p<-FALSE
 
   # single matrix to list
   if(is.matrix(x)) x<-list(x)
@@ -104,7 +104,7 @@ matrix2text<-function(x,legend=NULL,
   if(is.matrix(x)) x<-list(x)
   
   # prepare
-  x<-lapply(x,prepareMatrix,forceClass=forceClass,na.rm=na.rm)
+  x<-lapply(x,prepareMatrix,forceClass=forceClass,na.rm=na.rm,legend=legend)
   
   fun<-function(x,rotate=FALSE,unifyMatrix=TRUE,correctComma=FALSE,na.rm=TRUE){
   # escapes
@@ -112,7 +112,7 @@ matrix2text<-function(x,legend=NULL,
   # set NA to ""
   x[is.na(x)]<-""
   # unify matrix content
-  if(unifyMatrix==TRUE) x<-unifyMatrixContent(x,correctComma=correctComma,na.rm=na.rm)
+  if(isTRUE(unifyMatrix)) x<-unifyMatrixContent(x,correctComma=correctComma,na.rm=na.rm)
   
   if(is.matrix(x)){
   # insert col and row names to inner matrix
@@ -151,7 +151,7 @@ matrix2text<-function(x,legend=NULL,
                              superscript2bracket=superscript2bracket,dfHandling=dfHandling)
 
   # unify output for better readability of get.stats
-  if(unifyMatrix==TRUE) out<-lapply(out,unifyOutput)
+  if(isTRUE(unifyMatrix)) out<-lapply(out,unifyOutput)
   
   if(length(out)==0) return(NULL)
   names(out)<-names(x)
@@ -160,7 +160,7 @@ matrix2text<-function(x,legend=NULL,
   if(isTRUE(unlist)){
     n<-rep(names(out),times=unlist(lapply(out,length)))
     if(isTRUE(addTableName)) out<-paste0(n,":: ",unname(unlist(out)))
-    if(!isTRUE(addTableName)) out<-unname(unlist(out))
+    if(isFALSE(addTableName)) out<-unname(unlist(out))
   }
     return(out) 
 

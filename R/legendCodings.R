@@ -34,8 +34,9 @@ legendCodings<-function(x){
   out<-c(
     get.pCodes(x),
     get.bracketCodes(x),
-    get.HTMLcodes(x),
-  #  get.CronbachAlpha(x),
+    get.HTMLpCodes(x),
+    get.HTMLvalue(x),
+    #  get.CronbachAlpha(x),
     get.diagonal(x),
     get.abbr(x),
     get.N(x),
@@ -497,9 +498,74 @@ get.N<-function(x){
   return(list(N=n))
 }
 
-get.HTMLcodes<-function(x){
+get.HTMLvalue<-function(x){
+  boldValue<-NULL;italicValue<-NULL
+  x<-grep(" [Bb]olde*d*[^a-z]|^[Bb]olde*d*[^a-z]| [Ii]talic[^a-z]|^[Ii]talic[^a-z]",x,value=TRUE)
+  # escape
+  if(length(x)==0) return(list(boldValue=boldValue, italicValue=italicValue))
+  # split
+  x<-unlist(strsplit(x,"[,;.][ [:punct:]]"))
+  # remove lines with reference to significance and diagonal
+  x<-grep("[Ss]ignific|p *[<=>][<=>]* *0*\\.[0-9]|[Dd]iagonal",x,invert = TRUE, value = TRUE)
+  # and further lines
+  x<-grep("\\|\\.[0-9]|greater|above|under|below|[<=>]",x,invert = TRUE, value = TRUE)
+  # select only bold and italic
+  x<-grep(" [Bb]olde*d*[^a-z]|^[Bb]olde*d*[^a-z]| [Ii]talic[^a-z]|^[Ii]talic[^a-z]",x,value=TRUE)
+  # escape
+  if(length(x)==0) return(list(boldValue=boldValue, italicValue=italicValue))
+  
+  x<-JATSdecoder::letter.convert(x,greek2text=TRUE)
+  
+  fun<-function(x){
+  alpha<-NULL;omega<-NULL;AVE<-NULL;SD<-NULL;M<-NULL;accuracy<-NULL;CI<-NULL;out<-NULL;VIF<-NULL;R2<-NULL;RMSE<-NULL
+  
+  if(length(grep("Cronbach|[^A-z][aA]lpha|internal consistenc|consistency*i*e*s*",x,value=TRUE))>0)
+    alpha<-"alpha"
+  if(length(grep("[^A-z][Oo]mega",x))>0)
+    omega<-"omega"
+#  if(length(grep("[Cc]onfidence[- ][Ii]nter",x))>0)
+#    CI<-"CI"
+  if(length(grep("[- ]R\\^*2|^R\\^*2|of determination|determination.*coefficient",x))>0)
+    R2<-"R2"
+  if(length(grep("RMSE|RMSR",x))>0)
+    RMSE<-"RMSE"
+  if(length(grep("VIF|[Vv]ariance [Ii]nflation",x))>0)
+    VIF<-"VIF"
+  if(length(grep("([Aa]verage[- ][Vv]ariance[- ][Ee]x|[^A-z]AVEs*[^A-z]|[^A-z]AVEs*$)",x))>0)
+    AVE<-ifelse(length(grep("\u221a|root|[sS]quare|sqrt",
+                            grep("[Aa]verage[- ][Vv]ariance[- ][Ee]x|[^A-z]AVEs*[^A-z]|[^A-z]AVEs*$",x,value=TRUE)))>0,
+                "sqrt AVE","AVE")
+  if(length(grep("[Aa]ccuracy",x,value=TRUE))>0)
+    accuracy<-"accuracy"
+  if(length(grep("[sS]tandard [Dd]eviation",x,value=TRUE))>0)
+    SD<-"SD"
+  temp<-grep("[sS]tandard [Dd]eviation",x,value=TRUE)
+  if(length(grep("^Means*[^a-z]| [Mm]eans[^a-z]",x,value=TRUE))>0)
+    M<-"M"
+  
+  if(!is.null(c(omega,alpha,AVE,VIF,R2,RMSE,accuracy)))
+    # only take first element
+    out<-paste(c(omega,alpha,AVE,VIF,R2,RMSE,accuracy)[1],collapse=", ")
+  return(out)
+  }
+  b<-grep(" [Bb]olde*d*[^a-z]|^[Bb]olde*d*[^a-z]",x,value=TRUE)
+  i<-grep(" [Ii]talic[^a-z]|^[Ii]talic[^a-z]",x,value=TRUE)
+  boldValue<-fun(b)
+  italicValue<-fun(i)
+  
+  return(list(boldValue=boldValue, italicValue=italicValue))
+}
+
+get.HTMLpCodes<-function(x){
+  boldP<-NULL;italicP<-NULL
   # select lines
-  x<-grep("[Bb]old|[Ii]talic",x,value=TRUE)
+  x<-grep("[Bb]old[^a-z]|[Ii]talic[^a-z]",x,value=TRUE)
+  # escape
+  if(length(x)==0) return(list(boldP=boldP,italicP=italicP))
+  
+  # split at sentences/listings
+  x<-gsub("[\\.;,] ([A-z[:punct:]])","SPLIT\\1",x)
+  x<-unlist(strsplit(x,"SPLIT"))
   
   # correct .[punctA-z]
   x<-gsub("[\\.;]([[:punct:]A-z])",". \\1",x)
@@ -509,6 +575,10 @@ get.HTMLcodes<-function(x){
   x<-gsub(" *([<=>][<=>]*) *([\\.0-9])","\\1\\2",x)
   # remove:
   x<-gsub(":","",x)
+  # kyrillic Er to p
+  x<-gsub("\u0420|\u0440","p",x)
+  # rho to p
+  x<-gsub("\u03C1","p",x)
   # Pr to p
   x<-gsub("(.)[pP]r( *[<=>][<=>]* *0*\\.[0-9])","\\1p\\2",x)
   # remove -value
@@ -518,36 +588,35 @@ get.HTMLcodes<-function(x){
   # text 2 number
   x<-JATSdecoder::text2num(x)
   # alpha-level to p-value in lines with 
-  i<-grep("level.*signific|[Ss]ignif.*level",x)
-  x[i]<-gsub("\u03B1 *= *|\u1D6FC *= *|&#945 *= *","p<",x[i])
+  i<-grep("level.*signific|[Ss]ignif.*level|signific.* at ",x)
+  x[i]<-gsub("\u03B1 *= *|&#945 *= *","p<",x[i])
   x[i]<-gsub("([^p][^<])([0\\.]*[0-9][0-9]*) levels* ","\\1 p<\\2 ",x[i])
   # all other lines with alpha level p<
   x<-gsub("alpha[- ]level[^\\.015]*([\\.015][\\.015])","p<\\1",x)
   x
   
-  # kyrillic Er to p
-  x<-gsub("\u0420|\u0440","p",x)
-  # rho to p
-  x<-gsub("\u03C1","p",x)
-  # split at sentences
-  x<-unlist(strsplit(x,"[\\.,;] "))
-  
   # select lines
-  x<-grep("[Bb]old|[Ii]talic",x,value=TRUE)
+  x<-letter.convert(grep("[Bb]old|[Ii]talic",x,value=TRUE),greek2text = TRUE)
+
+  # escape
+  if(length(x)==0) return(list(boldP=boldP,italicP=italicP))
   
-  boldP<-NULL;italicP<-NULL
+  # alpha-num -> p-num in lines with significant
+  i<-grep("[Ss]ignific",x)
+  x[i]<-gsub(" alpha *([<=>][=]*) *(0*\\.0[510]1*)"," p\\1\\2",x[i])
   
-#if(length(grep("[Cc]ronbach'*s* alpha|[Ii]ntern.*consist",x))>0){
-#    # and escape if has alpha
-#    if(length(grep("[Bb]old",x))>0) boldP<-"CrAlpha"
-#    if(length(grep("[Ii]talic",x))>0)  italicP<-"CrAlpha"
-#    } 
-  
-  # insert p<.05 if only significant, but no number is detected
-  i<-grep("p[<=>][<=>]*|[0-9]",x,value=TRUE)
-  if(length(i)==0)
-    x<-gsub("[Ss]ignific[a-z]*","p<.05",x)
+  # split at comma if has bold and italic
+  x<-gsub("(bold.*), (.*italic)","\\1SPLIT\\2",x)
+  x<-gsub("(italic.*), (.*bold)","\\1SPLIT\\2",x)
+  x<-unlist(strsplit(x,"SPLIT"))
     
+  # insert p<.05 if only significant, but no number is detected
+  i<-grep("p[<=>][<=>]*|[0-9]",x,invert=TRUE)
+    x[i]<-gsub("[Ss]ignific[a-z]*","p<.05",x[i])
+  # insert p to standard p-values in lines with p
+  i<-grep("^[pP][- ]| p[- ]",x)
+    x[i]<-gsub("([^p])<0*\\.0[015]1*","\\1 p<.05",x[i])
+  
   # select lines
   x<-grep("[0-9]",x,value=TRUE)
   x<-grep("p[<=>][<=>]*",x,value=TRUE)
@@ -566,9 +635,17 @@ get.HTMLcodes<-function(x){
   italic<-gsub(".*(p[<=>][<=>]* *0*\\.[0-9][0-9]*)[^0-9].*","\\1",italic)
   italic<-gsub(".*(p[<=>][<=>]* *0*\\.[0-9][0-9]*)[^0-9]*","\\1",italic)
   
-  return(list(bold=unique(c(bold,boldP)),italic=unique(c(italic,italicP))))
+  # take the first detection only
+  if(length(bold)>0) bold<-bold[1]
+  if(length(boldP)>0) boldP<-boldP[1]
+  if(length(italic)>0) italic<-italic[1]
+  if(length(italicP)>0) italicP<-italicP[1]
+  
+  return(list(boldP=unique(c(bold,boldP)),italicP=unique(c(italic,italicP))))
   
 }
+
+
 
 ############################
 get.bracketCodes<-function(x){
@@ -739,9 +816,15 @@ get.abbr<-function(text=NULL,footer=NULL){
   x<-gsub("^([A-Z][[:punct:]A-Z0-9]*)[;:] ","\\1, ",x)
 
   # split at sentences
-  x<-unlist(strsplit(x,"\\. |\\n"))
-  
+  x<-gsub("([a-z])\\. ([A-z])","\\1SPLIT\\2",x)
+  x<-gsub("\\. ([[:punct:]])","SPLIT\\1",x)
+  # and *p-values
+  x<-gsub("\\** *p *[<=>][<=>]* *0*\\.[0-9]*","SPLIT",x)
+  x<-unlist(strsplit(x,"\\n|SPLIT"))
+  # aplit at ", and"
   x<-gsub("^[,;] and ","",unlist(JATSdecoder::strsplit2(x,"[,;] and ",type="before")))
+  # select lines with words
+  x<-grep("[A-z][A-z][A-z]",x,value=TRUE)
   # remove space around -
   x<-gsub(" *- *","-",x)
   # ", and " to
@@ -770,8 +853,8 @@ get.abbr<-function(text=NULL,footer=NULL){
   x<-gsub(" \\([A-Z][A-z\\.& ]*[,;] [1-2][0-9]{3}\\)","",x)
 
   # remove listings of abbreviations
-  x<-gsub("[A-Z][-0-9A-Z/]*[,; ]*(and|or|[,;]) [A-Z][-0-9A-Z][-0-9A-Z/]*[,; ]*(and|or|[,;]) [A-Z][-0-9A-Z][-0-9A-Z/]*","",x)
-  x<-gsub("[A-Z][-0-9A-Z/]*[,; ]*(and|or|[,;]) [A-Z][-0-9A-Z][-0-9A-Z/]*","",x)
+#  x<-gsub("[A-Z][-0-9A-Z/]*[,; ]*(and|or|[,;]) [A-Z][-0-9A-Z][-0-9A-Z/]*[,; ]*(and|or|[,;]) [A-Z][-0-9A-Z][-0-9A-Z/]*","",x)
+#  x<-gsub("[A-Z][-0-9A-Z/]*[,; ]*(and|or|[,;]) [A-Z][-0-9A-Z][-0-9A-Z/]*","",x)
     
   # TYPE A: if has "ABB[,:] full;"
   pattern<-"^[A-Z][A-Z_-][A-z_-]*[,:] |[,;\\.] [A-Z][A-Z_-][A-z_-]*[,:] |^[A-Z][0-9]*[,:] |[A-Z][-0-9A-z_]*[A-Z][,:] [A-z][a-z][^;]|[A-Z][-0-9A-Z_][-0-9A-Z_]*[,:] [A-z][a-z][^;]*;|[A-Z][-0-9A-Z_][-0-9A-Z_]*[,:] [A-z][a-z][^;]*$"
@@ -810,9 +893,8 @@ get.abbr<-function(text=NULL,footer=NULL){
     
     # remove abb and full from x
     for(i in abb) x<-gsub(paste0(specialChars(i),"[,:] "),"",x)
-    for(i in full){ 
-      x<-gsub(specialChars(i),"",x)
-    }
+    for(i in full) x<-gsub(paste0(specialChars(i),"[;,]* *"),"",x)
+    
     }
   
   
@@ -940,8 +1022,8 @@ get.abbr<-function(text=NULL,footer=NULL){
     }
     
     y<-grep("[A-Z][a-z]*\\.[;:=,] *[A-z]",y,value=T)
-    y<-gsub(".* ([A-Z][a-z]*\\.*[;:=,] *[A-z])","\\1",y)
-    abb<-c(abb,gsub("[^-0-9A-Z_]*([A-Z][a-z]*\\.)[^a-z\\.]*.*","\\1",y))
+    y<-sub("[^\\.A-z]*([A-Z]*[a-z]*\\.* *[A-Z][a-z]*\\.[;:=,] *[A-z])","\\1",y)
+    abb<-c(abb,gsub("[^-0-9A-Z_]*([A-Z]*[a-z]*\\.* *[A-Z][a-z]*\\.)[^a-z\\.]*.*","\\1",y))
     full<-c(full,gsub(".*\\.[:;=,] ","",y))
     if(length(abb)==0) full<-NULL
     if(length(full)==0) abb<-NULL
@@ -971,11 +1053,11 @@ get.abbr<-function(text=NULL,footer=NULL){
   if(length(full)==0|length(abb)==0) return(list(abbreviation=NULL,label=NULL))
 
   # clean up
-  # remove text till abb
-  for(i in 1:length(full)){
-    if(nchar(abb[i])>1) 
-      full[i]<-gsub(paste0(".*",abb[i],"[^A-z0-1]"),"[,:=]*",full[i])
-  }
+  # remove text till abb in full label
+  #for(i in 1:length(full)){
+  #  if(nchar(abb[i])>1) 
+  #    full[i]<-gsub(paste0(".*",specialChars(abb[i]),"([^A-z0-1])"),paste0(abb[i],"\\1"),full[i])
+  #}
   
   # remove tailoring '' or brackets
   full<-gsub("^[']([^'][^']*)[']*$","\\1",full)
@@ -996,21 +1078,16 @@ get.abbr<-function(text=NULL,footer=NULL){
   full<-full[i]
   
   # remove cases whith http
-  i<-grep("http:",full,invert=TRUE)
+  i<-!grepl("http:",full) &
+  # and bad captures
+     !grepl("^for$|^[Tt]he$|^etc$",full) &
+  # and cases where nchar(full)<=2
+     nchar(full)>2 &
+  # and abbreviations with less than 9 characters
+    nchar(abb)<=9
+  
   abb<-abb[i]
   full<-full[i]
-  
-  # remove bad captures
-  i<-grep("^for$|^[Tt]he$|^etc$",full,invert=TRUE)
-  abb<-abb[i]
-  full<-full[i]
-  
-  # remove cases where nchar(full)<=2
-  i<-nchar(full)>2
-  #sort(table(full[!i]))
-  abb<-abb[i]
-  full<-full[i]
-  
   
   # combine
   abbreviation<-c(abb,brack_abb)
@@ -1039,8 +1116,8 @@ ngram2<-function(x,pattern,ngram=c(-3,3),tolower=FALSE,split=FALSE,exact=FALSE){
   if(length(x)>0){
     text<-unlist(x)
     #text<-text2sentences(x)
-    if(split==TRUE) text<-unlist(strsplit(text,"[:;,.] "))
-    if(tolower==TRUE){ pattern<-tolower(pattern); text<-tolower(text)}
+    if(isTRUE(split)) text<-unlist(strsplit(text,"[:;,.] "))
+    if(isTRUE(tolower)){ pattern<-tolower(pattern); text<-tolower(text)}
     if(length(grep(pattern,text))>0){
       if(sum(!is.na(text))>0){
         # select lines
@@ -1048,8 +1125,8 @@ ngram2<-function(x,pattern,ngram=c(-3,3),tolower=FALSE,split=FALSE,exact=FALSE){
         # vectorize lines and extract ngram
         temp<-vectorize.text(text)
         # get positions of pattern in lines
-        if(exact==TRUE) ind<-lapply(lapply(temp,function(y) grep(paste0("^",pattern,"$"),y)),max,warn=F)
-        if(exact==FALSE) ind<-lapply(lapply(temp,function(y) grep(pattern,y)),max,warn=F)
+        if(isTRUE(exact)) ind<-lapply(lapply(temp,function(y) grep(paste0("^",pattern,"$"),y)),max,warn=F)
+        if(isFALSE(exact)) ind<-lapply(lapply(temp,function(y) grep(pattern,y)),max,warn=F)
         # get index of ngram in lines
         # For several pattern matchess in one line, take max of index
         ind<-lapply(ind,function(y) y+(ngram[1]:ngram[2]))

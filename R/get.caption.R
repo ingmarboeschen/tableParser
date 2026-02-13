@@ -20,16 +20,16 @@ get.caption<-function(x,rm.html=TRUE,sentences=FALSE,letter.convert=TRUE){
     caption<-lapply(caption,function(x) gsub("^<captio[^>]*>","",x))
     # split at html <br> or </p>
     caption<-lapply(caption,function(x) unlist(strsplit(x,"<p/>|</p>|</*br/*>|\\\\n")))        # convert to sentences
-    if(sentences==TRUE) caption<-lapply(caption,JATSdecoder::text2sentences)
+    if(isTRUE(sentences)) caption<-lapply(caption,JATSdecoder::text2sentences)
     # remove html tags
     caption<-lapply(caption,function(x) gsub("<sup>","^",gsub("<sub>","_",x)))
     caption<-lapply(caption,function(x) gsub("</*sup/*>"," ",gsub("</*sub/*>"," ",x)))
     caption<-lapply(caption,function(x) gsub("</*break/*>"," ",x))
-    if(rm.html==TRUE) caption<-lapply(caption,function(x) gsub("</*[a-z][^>]*/*>","",x))
+    if(isTRUE(rm.html)) caption<-lapply(caption,function(x) gsub("</*[a-z][^>]*/*>","",x))
     # clean up tailoring white spaces
     caption<-lapply(caption,function(x) gsub("^ | $","",gsub("  *"," ",x)))
     # unify letters
-    if(letter.convert==TRUE)  caption<-lapply(caption,JATSdecoder::letter.convert)
+    if(isTRUE(letter.convert))  caption<-lapply(caption,JATSdecoder::letter.convert)
   }
   caption<-unlist(caption)
   caption<-caption[nchar(caption)>0]
