@@ -8,7 +8,7 @@ The textual representation of characters in matrix content can be unified with *
 Important note: Due to the great variability in table structures and complexity, parsing accuracy may vary. For best results, it is recommended to work with simple, accessible, and barrier-free table structures to minimize parsing errors. 
 
 ## How does it work?
-The following process tree is a simplified representation of the conversion process of HTML tables into the extracted statistical standard results. The HTML table is first transposed into a matrix. The matrix is then parsed into text lines, considering the detected legend codings within the caption and foot notes (e.g. '*' for p<.05). The representations of the numerical results within the text lines are further unified and then processed with JATSdecoder's function standardStats() to detect all statistical standard results and recompute p-values if possible.
+The following process tree is a simplified representation of the conversion of HTML tables into the extracted statistical standard results. The HTML table is first transposed into a matrix. The matrix is then parsed into text lines, considering the detected legend codings within the caption and foot notes (e.g. '*' for p<.05). The representations of the numerical results within the text lines are further unified and then processed with JATSdecoder's function standardStats() to detect all statistical standard results and recompute p-values if possible.
 
 ![alt text](https://github.com/ingmarboeschen/tableParser/blob/main/processTree.png?raw=true)
 
