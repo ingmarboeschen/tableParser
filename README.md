@@ -58,6 +58,8 @@ table2stats(pdfFilePath,checkP=TRUE,estimateZ=T,standardPcoding=TRUE)
 The following process tree is a simplified representation of the conversion process of HTML tables into the extracted statistical standard results. The HTML table is first transposed into a matrix. The matrix is then parsed into text lines, considering the detected legend codings within the caption and foot notes (e.g. '*' for p<.05). The representations of the numerical results within the text lines are further unified and then processed with JATSdecoder's function standardStats() to detect all statistical standard results and recompute p-values if possible.
 document HTML table matrix caption/footer text and codings classifier parsed text statistics
 
+![alt text](https://github.com/ingmarboeschen/tableParser/blob/main/processTree.png?raw=true)
+
 The parsing of the matrix content to text is based on upon the decision of the classifier. In the case of correlation matrices, the reported sample size specified within the caption or footnote is subtracted by two and then imputed as degrees of freedom. This process enables a subsequent recomputation of the p-values.
 
 
