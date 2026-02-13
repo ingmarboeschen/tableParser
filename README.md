@@ -54,3 +54,15 @@ table2stats(paste0(tempdir(),"/","tableExamples.pdf"),checkP=TRUE,estimateZ=T,st
 Test tableParser without installation here:
 [http://134.100.146.165:3838/tableParser/](http://134.100.146.165:3838/tableParser/)
 
+
+## Citation
+```R
+@Manual{,
+    title = {tableParser: Parse Tabled Content to Text Vector and Extract Statistical Standard Results},
+    author = {Ingmar Böschen},
+    year = {2026},
+    note = {R package version 1.0.3},
+    url = {https://github.com/ingmarboeschen/tableParser},
+  }
+```
+  
