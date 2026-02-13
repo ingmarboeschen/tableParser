@@ -1,12 +1,18 @@
 # tableParser (1.0.3)
 Converts HTML-tables and character matrices into a text vector and extracts and checks statistical standard test results.
 
-The package contains several functions to extract, unify and parse content from scientific tables into a human readable text format by simulating the experience of a screen reader for visually impaired users. It can process HTML-encoded tables, as well as native R character matrices. The functions *table2matrix()*, *table2text()* and *table2stats()* can be applied on documents in HTML, HML, XML, CERMXML, as well as DOCX and PDF file format. The table extraction from DOCX files is performed with the function *docx2matrix()*, tables in PDF documents are extracted with the 'tabulapdf' package. 
+The package contains several functions to extract, unify and parse content from scientific tables into a human readable text format by simulating the experience of a screen reader for visually impaired users. It can process HTML-encoded tables, as well as native R character matrices. The functions *table2matrix()*, *table2text()* and *table2stats()* can be applied on documents in HTML, HML, XML, as well as DOCX and PDF file format. The table extraction from DOCX files is performed with the function *docx2matrix()*, tables in PDF documents are extracted with the 'tabulapdf' package. 
 
-The textual representation of characters in matrix content can be unified with *unifyMatrix()* before parsing. The function *table2stats()* extracts tabled statistical results. The function further unifies the parsed text, which is then processed with *JATSdecoder::standardStats()*, in order to extract all statistical standard results and check the reported and coded p-values for consistency, if possible. 
+The textual representation of characters in matrix content can be unified with *unifyMatrix()* before parsing. The function *table2stats()* extracts tabled statistical results. The function further unifies the parsed text, which is then processed with *JATSdecoder::standardStats()*, in order to extract all statistical standard results (t, Z, χ2, F, r, d, β, SE, r, d, η2, ω2, OR, RR, p), the coded p-values and recompute p-values if possible. 
 
 Important note: Due to the great variability in table structures and complexity, parsing accuracy may vary. For best results, it is recommended to work with simple, accessible, and barrier-free table structures to minimize parsing errors. 
 
+## How does it work?
+The following process tree is a simplified representation of the conversion process of HTML tables into the extracted statistical standard results. The HTML table is first transposed into a matrix. The matrix is then parsed into text lines, considering the detected legend codings within the caption and foot notes (e.g. '*' for p<.05). The representations of the numerical results within the text lines are further unified and then processed with JATSdecoder's function standardStats() to detect all statistical standard results and recompute p-values if possible.
+
+![alt text](https://github.com/ingmarboeschen/tableParser/blob/main/processTree.png?raw=true)
+
+The parsing of the matrix content to text is based on the decision of the classifier. In the case of correlation matrices, the reported sample size specified within the caption or footnote is subtracted by two and then imputed as degrees of freedom. This process enables a subsequent recomputation of the p-values.
 
 ## Installation 
 ```R
@@ -53,14 +59,6 @@ table2stats(htmlFilePath,checkP=TRUE,estimateZ=T)
 table2stats(pdfFilePath,checkP=TRUE,estimateZ=T,standardPcoding=TRUE)
  
 ```
-
-## How does it work?
-The following process tree is a simplified representation of the conversion process of HTML tables into the extracted statistical standard results. The HTML table is first transposed into a matrix. The matrix is then parsed into text lines, considering the detected legend codings within the caption and foot notes (e.g. '*' for p<.05). The representations of the numerical results within the text lines are further unified and then processed with JATSdecoder's function standardStats() to detect all statistical standard results and recompute p-values if possible.
-
-![alt text](https://github.com/ingmarboeschen/tableParser/blob/main/processTree.png?raw=true)
-
-The parsing of the matrix content to text is based on the decision of the classifier. In the case of correlation matrices, the reported sample size specified within the caption or footnote is subtracted by two and then imputed as degrees of freedom. This process enables a subsequent recomputation of the p-values.
-
 
 ## Web application
 Test tableParser without installation here:
