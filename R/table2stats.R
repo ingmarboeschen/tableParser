@@ -274,24 +274,22 @@ table2stats<-function(x,
   # remove columns with only NA
   if(length(out)>0)
     if(isTRUE(rm.na.col)){
-      fun<-function(x){
-      if(!is.data.frame(x)) return(x)
-      if(nrow(x)==0) return(x)
-      i<-which(colSums(is.na(x))==nrow(x))
-      # exclude result and recalculated p and following
-      i<-i[i>1]
-      i<-i[i<grep("recalculatedP",names(x))]
-      x<-x[,-i]
-      return(x)
-      }
-    
-      if(isTRUE(collapse)) out<-fun(out)
-      if(isFALSE(collapse)) out<-lapply(out,fun)
-      
+      if(isTRUE(collapse)) out<-noNA(out)
+      if(isFALSE(collapse)) out<-lapply(out,noNA)
     }
       
   # output
   return(out)
   }
 
-
+# remove columns with only NA
+noNA<-function(x){
+  if(!is.data.frame(x)) return(x)
+  if(nrow(x)==0) return(x)
+  i<-which(colSums(is.na(x))==nrow(x))
+  # exclude result and recalculated p and following
+  i<-i[i>1]
+  i<-i[i<grep("recalculatedP",names(x))]
+  x<-x[,-i]
+  return(x)
+}
