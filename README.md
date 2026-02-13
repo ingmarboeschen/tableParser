@@ -55,7 +55,7 @@ Test tableParser without installation here:
 [http://134.100.146.165:3838/tableParser/](http://134.100.146.165:3838/tableParser/)
 
 
-## Citation
+## Reference
 ```R
 @Manual{,
     title = {tableParser: Parse Tabled Content to Text Vector and Extract Statistical Standard Results},
