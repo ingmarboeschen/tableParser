@@ -56,7 +56,7 @@ table2text(pdfFilePath,decodeP=TRUE,standardPcoding=TRUE,noSign2p=TRUE)
 ## Extract the detected statistical standard results and validate the reported and coded p-values
 #ä with the recaluclated p-values
 table2stats(docxFilePath,checkP=TRUE,estimateZ=T)
-table2stats(htmlFilePath,checkP=TRUE,estimateZ=T)
+table2stats(htmlFilePath,checkP=TRUE,estimateZ=T,noSign2p=T,alpha=.01)
 table2stats(pdfFilePath,checkP=TRUE,estimateZ=T,standardPcoding=TRUE)
  
 ```
