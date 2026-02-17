@@ -70,7 +70,7 @@ docxFilePath<-paste0(tempdir(),"/","tableExamples.docx")
 htmlFilePath<-paste0(tempdir(),"/","tableExamples.html")
 pdfFilePath<-paste0(tempdir(),"/","tableExamples.pdf")
 
-# Download example files with tables from this repo to temp directory
+# Download example DOCX, HTML, and PDF file with tables from this repo to temp directory
 download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.docx",docxFilePath)
 download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.html",htmlFilePath)
 download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.pdf",pdfFilePath)
