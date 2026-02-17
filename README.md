@@ -49,7 +49,7 @@ Output of the collapsed matrix with decoded p-values gathered with:
 __*table2text(docxFilePath,decodeP=TRUE,noSign2p=TRUE,dfHandling=TRUE)*__:
 
 |__[1]__| __"Variable: Factor A, SSq=12;; p<0.01, df1=2, df2=30;; p<0.01, MSq=3;; p<0.01, F=9.09;; p<0.01, P(>F)=.00;; p<0.01"__ |    
-|----|----|
+|:----|:----|
 |__[2]__| __"Variable: Factor B, SSq=4.5;; p<0.05, df1=1, df2=30;; p<0.05, MSq=4.5;; p<0.05, F=6.82;; p<0.05, P(>F)=.01;; p<0.05"__ | 
 |__[3]__| __"Variable: Factor A * B, SSq=3;; p>0.05, df1=2, df2=30;; p>0.05, MSq=1.5;; p>0.05, F=2.27;; p>0.05, P(>F)=.12;; p>0.05"__|
 |__[4]__| __"Variable: Residuals, SSq=20, df2=30, MSq=0.66"__ |                                                                       
