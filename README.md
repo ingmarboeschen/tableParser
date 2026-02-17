@@ -15,7 +15,7 @@ The following process tree is a simplified representation of the conversion of H
 The parsing of the matrix content to text is based on the decision of the classifier. In the case of correlation matrices, the reported sample size specified within the caption or footnote is subtracted by two and then imputed as degrees of freedom. This process enables a subsequent recomputation of the p-values.
 
 
-## Matrix extraction and collapsing
+## Matrix extraction, collapsing and checking of statistical standard results
 To demonstrate how tableParser works, this repo contains three documents in DOCX, HTML and PDF format with the same example tables. For a quick insight, the processing of example Table 4 is displayed here. 
 
 Input matrix gathered with:
