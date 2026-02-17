@@ -35,7 +35,7 @@ __*table2matrix(file.path)*__:
 
 The table contains a footnote with codings for p-values, which can be used to impute these values to the table by setting the argument *decodeP=TRUE*. By activating the option *noSign2P=TRUE*, the absence of a coding for p-values is treated as a coding, and non significant p-values are imputed (this may result in false positive imputations!). Lastly, a special handling and impuation algorithm for degrees of freedom can be activated with 'dfHandling=TRUE*. 
 
-Output of the collapsed matrix with decoded p-values gathered with:
+Output of the collapsed matrix with decoded p-values and degree of freedom handling gathered with:
 
 __*table2text(docxFilePath,decodeP=TRUE,noSign2p=TRUE,dfHandling=TRUE)*__:
 
