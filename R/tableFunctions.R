@@ -1395,9 +1395,13 @@ matrixSplit<-function(x){
     Ncol<-ncol(x)
     if(Ncol<3|nrow(x)<4) return(x)
     # find rows with second header line
-    i<-which(rowSums(matrix(grepl("[[:alpha:]]|^%*$",gsub("^[Nn]\\.*[Ss]\\.*$","",x)) &
-                              !grepl("[<=>]|^[Nn]\\.*[Ss]\\.*$",gsub("\\(.*\\)|\\^.*","",x)),ncol=Ncol))==Ncol &
-               rowSums(matrix(grepl("^$",gsub("^[Nn]\\.*[Ss]\\.*$","",x)),ncol=Ncol)[,-1])<=((Ncol-1)/2)
+    i<-which(rowSums(matrix(
+      # rows with letters or empty in every cell
+      grepl("[[:alpha:]]|^[% ]*$",gsub("^[Nn]\\.*[Ss]\\.*$","",x)) &
+       # rows without result
+       !grepl("[<=>]|^[Nn]\\.*[Ss]\\.*$",gsub("\\(.*\\)|\\^.*","",x)),ncol=Ncol))==Ncol &
+       # less than half of cells are not empty
+       rowSums(matrix(grepl("^$",gsub("^[Nn]\\.*[Ss]\\.*$","",x)),ncol=Ncol)[,-1])<=((Ncol)/2)
     )
     # correct i  
     i<-i[i>3&i<nrow(x)]

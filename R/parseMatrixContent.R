@@ -445,18 +445,15 @@ parseMatrixContent<-function(x,legend=NULL,
   firstCell<-"Variable"
   output<-gsub(paste0("^(",specialChars(firstCell),": [^:]*: )",specialChars(firstCell),": "),"\\1",output)
   
-  # convert abbreviations in first row and col
-  #output<-abb2text(output,abbr=abbr,label=label)
-  
-  # escape if no stats are detected
+  # escape if nothing left
   if(length(output)==0) return(NULL)
+  
   # remove "[:;=,] " at start
   output<-gsub("^ *[:;=,] *","",output)
   # remove second sign
   output<-gsub(", [:;=,] *",", ",output)
   output<-gsub("  *"," ",output)
   
-  #output<-unifyStats(output)
   
   # add degrees of freedom
   if(isTRUE(dfHandling)){
@@ -484,7 +481,7 @@ parseMatrixContent<-function(x,legend=NULL,
   
   # remove more than one appearing of grouping variable, if has less than 100 characters
   group<-gsub("^([^:][^:]*): .*","\\1",output)
-  ind<-which(group!=output&nchar(group)<100)
+  ind<-which(group!=output & nchar(group)<100)
   if(length(ind)>0)
      for(i in ind) output[i]<-gsub(paste0(" ",specialChars(group[i]),": ")," ",output[i])
 

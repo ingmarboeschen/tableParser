@@ -151,6 +151,32 @@ table2text<-function(x,
 #  names(output)<-paste("Table",1:length(output))
   names(output)<-o_name
   
+  # paste contentent from splitted matrices
+  x<-output
+  stop<-FALSE
+  n<-names(x)
+  while(length(grep("[0-9]\\.a",n))>0|isTRUE(stop)){
+    # in 
+    i<-grep("[0-9]\\.a",n)[1]
+    # out
+    o<-grep("[0-9]\\.a|[0-9]$",n)
+    o<-o[o>i][1]-1
+    if(is.na(o)) o<-length(n)
+    if(isTRUE(o>i)){
+      x[[i]]<-unname(unlist(x[i:o]))
+      # remove caption/footer duplicates
+      temp<-grep("^caption:|^footer:",x[[i]])
+      temp<-temp[temp>2]
+      x[[i]]<-x[[i]][-temp]
+      # rename
+      names(x)[i]<-gsub("\\.[a-z][a-z]*","",names(x)[i])
+      # remove elements
+      x<-x[(-(i+1)):(-o)]
+      n<-names(x)
+    }else stop<-TRUE
+  }
+  
+  output<-x  
   # unlist with table names
   if(isTRUE(unlist)){
     n<-rep(names(output),times=unlist(lapply(output,length)))

@@ -154,9 +154,10 @@ matrix2text<-function(x,legend=NULL,
   if(isTRUE(unifyMatrix)) out<-lapply(out,unifyOutput)
   
   if(length(out)==0) return(NULL)
+  
   names(out)<-names(x)
-  names(out)[1]<-"Table 1"
-  #names(out)<-paste("Pable",1:length(out))
+#  names(out)[1]<-"Table 1"
+
   if(isTRUE(unlist)){
     n<-rep(names(out),times=unlist(lapply(out,length)))
     if(isTRUE(addTableName)) out<-paste0(n,":: ",unname(unlist(out)))
