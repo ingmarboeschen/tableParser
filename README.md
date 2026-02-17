@@ -46,7 +46,21 @@ __*table2text(docxFilePath,decodeP=TRUE,noSign2p=TRUE,dfHandling=TRUE)*__:
 |__[4]__| __"Variable: Residuals, SSq=20, df2=30, MSq=0.66"__ |                                                                       
 |__[5]__| __"Variable: Total, SSq=39.5, df=35, MSq=1.13"__|
 
+Finally, after some further uniformizations, the extraction of statistical standard results is performed with the function standardStats from the JATSdecoder package. The resulting data frame can easily be processed for analysis of results and p-value consistency check ups, when the argument *checkP=TRUE*.
 
+__*table2stats(docxFilePath,noSign2p=TRUE,dfHandling=TRUE,checkP=T)*__:
+
+| | result |  F_op  |  F | df1 | df2 |  p_op |   p| codedP_op | codedP | recalculatedP | deltaP2tailed |  error errorType | alpha4check|  correction_meth
+|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|
+|1|      Variable: Factor A, SSq=12, df1=2, df2=30, MSq=3, F=9.09, p=0.00;; p<0.01
+|2|   Variable: Factor B, SSq=4.5, df1=1, df2=30, MSq=4.5, F=6.82, p=0.01;; p<0.05
+|3| Variable: Factor A * B, SSq=3, df1=2, df2=30, MSq=1.5, F=2.27, p=0.12;; p>0.05
+  = 9.09   2  30    = 0.00         <   0.01        0.0008        0.0008
+  = 6.82   1  30    = 0.01         <   0.05        0.0139        0.0039
+  = 2.27   2  30    = 0.12         >   0.05        0.1208        0.0008
+   0      <NA>        0.05                
+   0      <NA>        0.05                
+   0      <NA>        0.05 
 
 
 ## Installation 
