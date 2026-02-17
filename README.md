@@ -50,8 +50,8 @@ Finally, after some further uniformizations, the extraction of statistical stand
 
 __*table2stats(docxFilePath,noSign2p=TRUE,dfHandling=TRUE,checkP=T)*__:
 
-|  |  F_op  |  F | df1 | df2 |  p_op |   p| codedP_op | codedP | recalculatedP | deltaP2tailed |  error errorType | alpha4check|  correction_meth
-|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|
+|  |  F_op  |  F | df1 | df2 |  p_op |   p| codedP_op | codedP | recalculatedP | deltaP2tailed |  error errorType | alpha4check|
+|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|
 |1|  =| 9.09 |  2 | 30 |   =| 0.00 |        <  | 0.01 |       0.0008  |      0.0008 |  0 |     <NA>   |     0.05 |     
 |2|  =| 6.82 |  1 | 30 |   =| 0.01 |        <  | 0.05 |       0.0139  |      0.0039 |  0 |     <NA>   |     0.05 |
 |3|  =| 2.27 |  2 | 30 |   =| 0.12 |        >  | 0.05 |       0.1208  |      0.0008 |  0 |     <NA>   |     0.05 |
