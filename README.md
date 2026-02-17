@@ -28,7 +28,8 @@ devtools::install_github("ingmarboeschen/tableParser")
 To demonstrate how tableParser works, this repo contains three documents in DOCX, HTML and PDF format with the same example tables. For a quick insight, the processing of example Table 4 is displayed here. 
 
 Input matrix gathered with:
-*table2matrix(file.path)*:
+
+__*table2matrix(file.path)*__:
 
 |  			Variable 		     |  			SSq 		  |  			df 		 |  			MSq 		  |  			F 		    |  			P(>F) 		 |
 |----------------|--------|------|--------|--------|---------|
@@ -41,19 +42,20 @@ Input matrix gathered with:
 *Italic values are p<.05.*
 *Bold valus are significant with p<.01.*
 
-The table contains a footnote with codings for p-values, which can be used to impute these values to the table.
+The table contains a footnote with codings for p-values, which can be used to impute these values to the table by setting the argument *decodeP=TRUE*. By activating the option *noSign2P=TRUE*, the absence of a coding for p-values is treated as a coding, and non significant p-values are imputed (this may result in false positive imputations!). Lastly, a special handling and impuation algorithm for degrees of freedom can be activated with 'dfHandling=TRUE*. 
 
 Output of the collapsed matrix with decoded p-values gathered with:
-*table2text(docxFilePath,decodeP=TRUE,noSign2p=TRUE,dfHandling=TRUE)*:
 
-| | |
-|----|----|
+__*table2text(docxFilePath,decodeP=TRUE,noSign2p=TRUE,dfHandling=TRUE)*__:
+
 |__[1]__| __"Variable: Factor A, SSq=12;; p<0.01, df1=2, df2=30;; p<0.01, MSq=3;; p<0.01, F=9.09;; p<0.01, P(>F)=.00;; p<0.01"__ |    
+|----|----|
 |__[2]__| __"Variable: Factor B, SSq=4.5;; p<0.05, df1=1, df2=30;; p<0.05, MSq=4.5;; p<0.05, F=6.82;; p<0.05, P(>F)=.01;; p<0.05"__ | 
 |__[3]__| __"Variable: Factor A * B, SSq=3;; p>0.05, df1=2, df2=30;; p>0.05, MSq=1.5;; p>0.05, F=2.27;; p>0.05, P(>F)=.12;; p>0.05"__|
 |__[4]__| __"Variable: Residuals, SSq=20, df2=30, MSq=0.66"__ |                                                                       
 |__[5]__| __"Variable: Total, SSq=39.5, df=35, MSq=1.13"__|
 
+Note that
 
 ## Examples for table processing in docx, html and pdf documents
 I have prepared a document with several example table structures to demonstrate tableParser's capabilities. You may manually download the examples in three file formats, or use the following lines to only store them within the temporary folder. 
