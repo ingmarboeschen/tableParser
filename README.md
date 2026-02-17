@@ -32,11 +32,11 @@ Input matrix gathered with:
 
 |  			Variable 		     |  			SSq 		  |  			df 		 |  			MSq 		  |  			F 		    |  			P(>F) 		 |
 |----------------|--------|------|--------|--------|---------|
-|  			Factor A 		     |  			12 		   |  			2 		  |  			3 		    |  			9.09 		 |  			.00 		   |
-|  			Factor B 		     |  			4.5 		  |  			1 		  |  			4.5 		  |  			6.82 		 |  			.01 		   |
-|  			Factor A * B 		 |  			3 		    |  			2 		  |  			1.5 		  |  			2.27 		 |  			.12 		   |
-|  			Residuals 		    |  			20 		   |  			30 		 |  			0.66 		 |  			   			 		  |  			   			 		   |
-|  			Total 		        |  			39.5 		 |  			35 		 |  			1.13 		 |  			   			 		  |  			   			 		   |
+|  			__Factor A__ 		     |  			__12__ 		   |  			__2__ 		  |  			__3__ 		    |  			__9.09__ 		 |  			__.00__ 		   |
+|  			__Factor B__ 		     |  			*4.5* 		  |  			*1* 		  |  			*4.5* 		  |  			*6.82* 		 |  			*.01* 		   |
+|  			__Factor A * B__ 		 |  			3 		    |  			2 		  |  			1.5 		  |  			2.27 		 |  			.12 		   |
+|  			__Residuals__ 		    |  			20 		   |  			30 		 |  			0.66 		 |  			   			 		  |  			   			 		   |
+|  			__Total__ 		        |  			39.5 		 |  			35 		 |  			1.13 		 |  			   			 		  |  			   			 		   |
 
 *Italic values are p<.05.*
 *Bold valus are significant with p<.01.*
