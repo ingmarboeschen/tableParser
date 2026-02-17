@@ -56,7 +56,7 @@ __*table2stats(docxFilePath,noSign2p=TRUE,dfHandling=TRUE,checkP=T)*__:
 |2|  =| 6.82 |  1 | 30 |   =| 0.01 |        <  | 0.05 |       0.0139  |      0.0039 |  0 |  <NA>|  0.05 |
 |3|  =| 2.27 |  2 | 30 |   =| 0.12 |        >  | 0.05 |       0.1208  |      0.0008 |  0 |  <NA>|  0.05 |
 
-Check further example compiling with the exampleTables documents in the main folder after installation of tableParser. 
+Discover further examples for the special handling of correlation matrices and model result tables, by processing the exampleTables documents in the main folder of this repo after installation of tableParser. 
 
 
 ## Installation 
