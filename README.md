@@ -75,7 +75,7 @@ I have prepared a document with several example table structures to demonstrate 
 # Load the package
 library(tableParser)
 
-# prepare temporary file path
+# prepare temporary file paths
 docxFilePath<-paste0(tempdir(),"/","tableExamples.docx")
 htmlFilePath<-paste0(tempdir(),"/","tableExamples.html")
 pdfFilePath<-paste0(tempdir(),"/","tableExamples.pdf")
@@ -85,7 +85,7 @@ download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main
 download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.html",htmlFilePath)
 download.file("https://github.com/ingmarboeschen/tableParser/raw/refs/heads/main/tableExamples.pdf",pdfFilePath)
 
-## Extract tables from example files
+## Extract tables as matrices from example files
 table2matrix(docxFilePath)
 table2matrix(htmlFilePath,rm.html=TRUE)
 table2matrix(pdfFilePath)
@@ -93,13 +93,13 @@ table2matrix(pdfFilePath)
 # Also, the table's caption and footnotes cannot be used for decoding (e.g., p-values).
 # This affects all further processes and results.
 
-## Parse tabled content from example files
+## Collapse tabled content to text from example files
 table2text(docxFilePath)
 table2text(htmlFilePath,decodeP=TRUE)
 table2text(pdfFilePath,decodeP=TRUE,standardPcoding=TRUE,noSign2p=TRUE)
 
 ## Extract the detected statistical standard results and validate the reported and coded p-values
-#ä with the recaluclated p-values
+## with the recaluclated p-values
 table2stats(docxFilePath,checkP=TRUE,estimateZ=T)
 table2stats(htmlFilePath,checkP=TRUE,estimateZ=T,noSign2p=T,alpha=.01)
 table2stats(pdfFilePath,checkP=TRUE,estimateZ=T,standardPcoding=TRUE)
