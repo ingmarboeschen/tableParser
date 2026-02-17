@@ -34,9 +34,9 @@ To demonstrate how tableParser works, this repo contains three documents in DOCX
 |  			Factor B 		     |  			4.5 		  |  			1 		  |  			4.5 		  |  			6.82 		 |  			.01 		   |
 |  			Factor A * B 		 |  			3 		    |  			2 		  |  			1.5 		  |  			2.27 		 |  			.12 		   |
 |  			Residuals 		    |  			20 		   |  			30 		 |  			0.66 		 |  			   			 		  |  			   			 		   |
-|----------------|--------|------|--------|--------|---------|
 |  			Total 		        |  			39.5 		 |  			35 		 |  			1.13 		 |  			   			 		  |  			   			 		   |
-
+*Italic values are p<.05.*
+*Bold valus are significant with p<.01.*
 
 ## Examples for table processing in docx, html and pdf documents
 I have prepared a document with several example table structures to demonstrate tableParser's capabilities. You may manually download the examples in three file formats, or use the following lines to only store them within the temporary folder. 
