@@ -25,8 +25,10 @@ devtools::install_github("ingmarboeschen/tableParser")
 ```
 
 ## Example table
-To demonstrate how tableParser works, this repo contains three documents in DOCX, HTML and PDF format with the same example tables. For a quick insight, the processing of example Table 4 is displayed here.
+To demonstrate how tableParser works, this repo contains three documents in DOCX, HTML and PDF format with the same example tables. For a quick insight, the processing of example Table 4 is displayed here. 
 
+Input matrix gathered with:
+*table2matrix(file.path)*:
 
 |  			Variable 		     |  			SSq 		  |  			df 		 |  			MSq 		  |  			F 		    |  			P(>F) 		 |
 |----------------|--------|------|--------|--------|---------|
@@ -35,8 +37,20 @@ To demonstrate how tableParser works, this repo contains three documents in DOCX
 |  			Factor A * B 		 |  			3 		    |  			2 		  |  			1.5 		  |  			2.27 		 |  			.12 		   |
 |  			Residuals 		    |  			20 		   |  			30 		 |  			0.66 		 |  			   			 		  |  			   			 		   |
 |  			Total 		        |  			39.5 		 |  			35 		 |  			1.13 		 |  			   			 		  |  			   			 		   |
+
 *Italic values are p<.05.*
 *Bold valus are significant with p<.01.*
+
+The table contains a footnote with codings for p-values, which can be used to impute these values to the table.
+
+Output of the collapsed matrix with decoded p-values gathered with:
+*table2text(docxFilePath,decodeP=TRUE,noSign2p=TRUE,dfHandling=TRUE)*:
+|[1]| "Variable: Factor A, SSq=12;; p<0.01, df1=2, df2=30;; p<0.01, MSq=3;; p<0.01, F=9.09;; p<0.01, P(>F)=.00;; p<0.01"     
+|[2]| "Variable: Factor B, SSq=4.5;; p<0.05, df1=1, df2=30;; p<0.05, MSq=4.5;; p<0.05, F=6.82;; p<0.05, P(>F)=.01;; p<0.05"  
+|[3]| "Variable: Factor A * B, SSq=3;; p>0.05, df1=2, df2=30;; p>0.05, MSq=1.5;; p>0.05, F=2.27;; p>0.05, P(>F)=.12;; p>0.05"
+|[4]| "Variable: Residuals, SSq=20, df2=30, MSq=0.66"                                                                        
+|[5]| "Variable: Total, SSq=39.5, df=35, MSq=1.13" 
+
 
 ## Examples for table processing in docx, html and pdf documents
 I have prepared a document with several example table structures to demonstrate tableParser's capabilities. You may manually download the examples in three file formats, or use the following lines to only store them within the temporary folder. 
