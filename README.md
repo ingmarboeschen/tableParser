@@ -46,6 +46,8 @@ The table contains a footnote with codings for p-values, which can be used to im
 Output of the collapsed matrix with decoded p-values gathered with:
 *table2text(docxFilePath,decodeP=TRUE,noSign2p=TRUE,dfHandling=TRUE)*:
 
+| | |
+|----|----|
 |[1]| "Variable: Factor A, SSq=12;; p<0.01, df1=2, df2=30;; p<0.01, MSq=3;; p<0.01, F=9.09;; p<0.01, P(>F)=.00;; p<0.01" |    
 |[2]| "Variable: Factor B, SSq=4.5;; p<0.05, df1=1, df2=30;; p<0.05, MSq=4.5;; p<0.05, F=6.82;; p<0.05, P(>F)=.01;; p<0.05" | 
 |[3]| "Variable: Factor A * B, SSq=3;; p>0.05, df1=2, df2=30;; p>0.05, MSq=1.5;; p>0.05, F=2.27;; p>0.05, P(>F)=.12;; p>0.05"|
