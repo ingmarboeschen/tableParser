@@ -37,7 +37,7 @@ The table contains a footnote with codings for p-values, which can be used to im
 
 Output of the collapsed matrix with decoded p-values and degree of freedom handling gathered with:
 
-__*table2text(docxFilePath,decodeP=TRUE,noSign2p=TRUE,dfHandling=TRUE)*__:
+__*table2text(docxFilePath, decodeP=TRUE, noSign2p=TRUE ,dfHandling=TRUE)*__:
 
 |__[1]__| __"Variable: Factor A, SSq=12;; p<0.01, df1=2, df2=30;; p<0.01, MSq=3;; p<0.01, F=9.09;; p<0.01, P(>F)=.00;; p<0.01"__ |    
 |:----|:----|
@@ -48,7 +48,7 @@ __*table2text(docxFilePath,decodeP=TRUE,noSign2p=TRUE,dfHandling=TRUE)*__:
 
 Finally, after some further uniformizations, the extraction of statistical standard results is performed with the function standardStats from the JATSdecoder package. The resulting data frame can easily be processed for analysis of results and p-value consistency check ups, when the argument *checkP=TRUE*.
 
-__*table2stats(docxFilePath,noSign2p=TRUE,dfHandling=TRUE,checkP=T)*__:
+__*table2stats(docxFilePath, noSign2p=TRUE, dfHandling=TRUE, checkP=TRUE)*__:
 
 |  |  F_op  |  F | df1 | df2 |  p_op |   p| codedP_op | codedP | recalculatedP | deltaP2tailed |  error | errorType | alpha4check|
 |:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|
