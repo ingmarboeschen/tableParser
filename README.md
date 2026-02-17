@@ -25,12 +25,16 @@ devtools::install_github("ingmarboeschen/tableParser")
 ```
 
 ## Example table
+To demonstrate how tableParser works, this repo contains three documents in DOCX, HTML and PDF format with the same example tables. For a quick insight, the processing of example Table 4 is displayed here.
+
+
 |  			Variable 		     |  			SSq 		  |  			df 		 |  			MSq 		  |  			F 		    |  			P(>F) 		 |
 |----------------|--------|------|--------|--------|---------|
 |  			Factor A 		     |  			12 		   |  			2 		  |  			3 		    |  			9.09 		 |  			.00 		   |
 |  			Factor B 		     |  			4.5 		  |  			1 		  |  			4.5 		  |  			6.82 		 |  			.01 		   |
 |  			Factor A * B 		 |  			3 		    |  			2 		  |  			1.5 		  |  			2.27 		 |  			.12 		   |
 |  			Residuals 		    |  			20 		   |  			30 		 |  			0.66 		 |  			   			 		  |  			   			 		   |
+|----------------|--------|------|--------|--------|---------|
 |  			Total 		        |  			39.5 		 |  			35 		 |  			1.13 		 |  			   			 		  |  			   			 		   |
 
 
