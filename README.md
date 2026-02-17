@@ -14,17 +14,8 @@ The following process tree is a simplified representation of the conversion of H
 
 The parsing of the matrix content to text is based on the decision of the classifier. In the case of correlation matrices, the reported sample size specified within the caption or footnote is subtracted by two and then imputed as degrees of freedom. This process enables a subsequent recomputation of the p-values.
 
-## Installation 
-```R
-# latest CRAN release
-install.packages("tableParser")
 
-# latest github version
-if(require(devtools)!=TRUE) install.packages("devtools")
-devtools::install_github("ingmarboeschen/tableParser")
-```
-
-## Matrix extraction with tablematrix()
+## Matrix extraction and collapsing
 To demonstrate how tableParser works, this repo contains three documents in DOCX, HTML and PDF format with the same example tables. For a quick insight, the processing of example Table 4 is displayed here. 
 
 Input matrix gathered with:
@@ -55,7 +46,18 @@ __*table2text(docxFilePath,decodeP=TRUE,noSign2p=TRUE,dfHandling=TRUE)*__:
 |__[4]__| __"Variable: Residuals, SSq=20, df2=30, MSq=0.66"__ |                                                                       
 |__[5]__| __"Variable: Total, SSq=39.5, df=35, MSq=1.13"__|
 
-Note that
+
+
+
+## Installation 
+```R
+# latest CRAN release
+install.packages("tableParser")
+
+# latest github version
+if(require(devtools)!=TRUE) install.packages("devtools")
+devtools::install_github("ingmarboeschen/tableParser")
+```
 
 ## Examples for table processing in docx, html and pdf documents
 I have prepared a document with several example table structures to demonstrate tableParser's capabilities. You may manually download the examples in three file formats, or use the following lines to only store them within the temporary folder. 
