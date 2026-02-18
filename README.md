@@ -12,7 +12,7 @@ The following process tree is a simplified representation of the conversion of t
 
 ![alt text](https://github.com/ingmarboeschen/tableParser/blob/main/processTree.png?raw=true)
 
-The collapsing of the matrix content to text is based on the decision of the classifier. In the case of correlation matrices, the reported sample size specified within the caption or footnote is subtracted by two and then imputed as degrees of freedom. This process enables a subsequent recomputation of the p-values.
+The collapsing of the matrix content to text is based on the decision of a table classifier. In the case of correlation matrices, the reported sample size specified within the caption or footnote is subtracted by two and then imputed as degrees of freedom in brackets. This enables a subsequent recomputation of many p-values.
 
 
 ## Matrix extraction, collapsing and checking of statistical standard results
