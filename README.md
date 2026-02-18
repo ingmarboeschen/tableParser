@@ -16,9 +16,9 @@ The collapsing of the matrix content to text is based on the decision of a table
 
 
 ## Table extraction from documents
-To demonstrate how tableParser works, this repo contains three documents in DOCX, HTML and PDF format with the same example tables. For a quick insight, the processing of example Table 4 is displayed here. 
+To demonstrate how tableParser works, this repo contains three documents in DOCX, HTML and PDF format with the same example tables. Following the three-part-table approach, tables are extracted with caption and footnotes. For a quick insight, only the processing of example Table 4 is displayed here. 
 
-Input matrix retrieved with:
+Input matrix with footnotes extracted from file:
 
 __*table2matrix(file.path)*__:
 
@@ -34,7 +34,7 @@ __*table2matrix(file.path)*__:
 *Bold valus are significant with p<.01.*
 
 ## Matrix collapsing and decoding
-The table contains a footnote with codings for p-values, which can be used to impute these values to the table by setting the argument *decodeP=TRUE*. By activating the option *noSign2P=TRUE*, the absence of a coding for p-values is treated as a coding, and non significant p-values are imputed (this may result in false positive imputations!). A special handling and impuation algorithm for degrees of freedom can be activated with *dfHandling=TRUE*. This is very useful for checking the reported results on consistency.
+The example table contains a footnote with text style codings for p-values, which can be used to impute these values to the table by setting the argument *decodeP=TRUE*. By activating the option *noSign2P=TRUE*, the absence of a coding for p-values is treated as a coding, and non significant p-values are imputed (this may result in false positive imputations!). A special handling and impuation algorithm for degrees of freedom can be activated with *dfHandling=TRUE*. This is very useful for checking the reported results on consistency.
 
 Output of the collapsed matrix with decoded p-values and degree of freedom handling retrieved with:
 
