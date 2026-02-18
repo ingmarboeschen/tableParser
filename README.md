@@ -70,7 +70,7 @@ devtools::install_github("ingmarboeschen/tableParser")
 ```
 
 ## Examples for table processing in docx, html and pdf documents
-I have prepared a document with several example table structures to demonstrate tableParser's capabilities. You may manually download the examples in three file formats, or use the following lines to only store them within the temporary folder. 
+I have prepared a document with several example table structures to demonstrate tableParser's capabilities. You may manually download the examples in three file formats, or use the following lines to temporarely store them within your temporary R directory (tempdir()). 
 ```R
 # Load the package
 library(tableParser)
