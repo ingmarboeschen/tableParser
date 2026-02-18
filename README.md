@@ -15,7 +15,7 @@ The following process tree is a simplified representation of the conversion of t
 The collapsing of the matrix content to text is based on the decision of a table classifier. In the case of correlation matrices, the reported sample size specified within the caption or footnote is subtracted by two and then imputed as degrees of freedom in brackets. This enables a subsequent recomputation of many p-values.
 
 
-## Matrix extraction, collapsing and checking of statistical standard results
+## Table extraction from documents
 To demonstrate how tableParser works, this repo contains three documents in DOCX, HTML and PDF format with the same example tables. For a quick insight, the processing of example Table 4 is displayed here. 
 
 Input matrix retrieved with:
@@ -33,6 +33,7 @@ __*table2matrix(file.path)*__:
 *Italic values are p<.05.*
 *Bold valus are significant with p<.01.*
 
+## Matrix collapsing and decoding
 The table contains a footnote with codings for p-values, which can be used to impute these values to the table by setting the argument *decodeP=TRUE*. By activating the option *noSign2P=TRUE*, the absence of a coding for p-values is treated as a coding, and non significant p-values are imputed (this may result in false positive imputations!). A special handling and impuation algorithm for degrees of freedom can be activated with *dfHandling=TRUE*. This is very useful for checking the reported results on consistency.
 
 Output of the collapsed matrix with decoded p-values and degree of freedom handling retrieved with:
@@ -46,7 +47,8 @@ __*table2text(file.path, decodeP=TRUE, noSign2p=TRUE ,dfHandling=TRUE)*__:
 |__[4]__| __"Variable: Residuals, SSq=20, df2=30, MSq=0.66"__ |                                                                       
 |__[5]__| __"Variable: Total, SSq=39.5, df=35, MSq=1.13"__|
 
-Finally, after some further uniformizations, the extraction of statistical standard results is performed with the function standardStats from the JATSdecoder package. The resulting data frame can easily be processed for analysis of results and p-value consistency check ups, when the argument *checkP=TRUE*.
+## Extraction and checking of p-values in statistical standard results
+The function table2stats(), finally, extracts the reported standard results from the text string returned by table2text(). After further uniformizations, the extraction of statistical standard results is performed with the function standardStats() from the JATSdecoder package. The resulting data frame can easily be processed for analysis of results and p-value consistency check ups, when the argument *checkP=TRUE*.
 
 __*table2stats(file.path, noSign2p=TRUE, dfHandling=TRUE, checkP=TRUE)*__:
 
