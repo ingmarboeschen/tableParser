@@ -109,8 +109,11 @@ table2stats(pdfFilePath,checkP=TRUE,estimateZ=T,standardPcoding=TRUE)
 ```
 
 ## Web application
-Test tableParser without installation here:
+Test tableParser without installation on recent articles by [Frontiers in Psychology](https://www.frontiersin.org/journals/psychology/)  here:
 [http://134.100.146.165:3838/tableParser/](http://134.100.146.165:3838/tableParser/)
+
+## Data pool
+A valuable resource for big scale table analyses with tableParser is the PubMed-Central data base ([PMC](https://pmc.ncbi.nlm.nih.gov/)) with more than 7 million scientific documents related to the medical and health sciences. A bulk download of all articles in NISO-JATS format is available here: [Link to ftp-server](https://ftp.ncbi.nlm.nih.gov/pub/pmc/oa_bulk/). 
 
 ## Cite tableParser
 ```R
