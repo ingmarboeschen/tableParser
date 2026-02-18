@@ -110,8 +110,7 @@ table2stats(pdfFilePath,checkP=TRUE,estimateZ=T,standardPcoding=TRUE)
 Test tableParser without installation here:
 [http://134.100.146.165:3838/tableParser/](http://134.100.146.165:3838/tableParser/)
 
-
-## Reference
+## Cite tableParser
 ```R
 @Manual{,
     title = {tableParser: Parse Tabled Content to Text Vector and Extract Statistical Standard Results},
@@ -122,3 +121,11 @@ Test tableParser without installation here:
   }
 ```
   
+## References
+<div id="JATSdecoder">
+- Böschen, I. (2021) Software review: The JATSdecoder package—extract metadata, abstract and sectioned text from NISO-JATS coded XML documents; Insights to PubMed central’s open access database. Scientometrics. https://doi.org/10.1007/s11192-021-04162-z
+</div>
+  
+<div id="get.stats">
+- Böschen, I. (2021). Evaluation of JATSdecoder as an automated text extraction tool for statistical results in scientific reports. Scientific Reports. 11, 19525. https://doi.org/10.1038/s41598-021-98782-3
+</div>
