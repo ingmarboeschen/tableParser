@@ -18,7 +18,7 @@ The collapsing of the matrix content to text is based on the decision of a table
 ## Matrix extraction, collapsing and checking of statistical standard results
 To demonstrate how tableParser works, this repo contains three documents in DOCX, HTML and PDF format with the same example tables. For a quick insight, the processing of example Table 4 is displayed here. 
 
-Input matrix gathered with:
+Input matrix retrieved with:
 
 __*table2matrix(file.path)*__:
 
@@ -35,7 +35,7 @@ __*table2matrix(file.path)*__:
 
 The table contains a footnote with codings for p-values, which can be used to impute these values to the table by setting the argument *decodeP=TRUE*. By activating the option *noSign2P=TRUE*, the absence of a coding for p-values is treated as a coding, and non significant p-values are imputed (this may result in false positive imputations!). A special handling and impuation algorithm for degrees of freedom can be activated with *dfHandling=TRUE*. This is very useful for checking the reported results on consistency.
 
-Output of the collapsed matrix with decoded p-values and degree of freedom handling gathered with:
+Output of the collapsed matrix with decoded p-values and degree of freedom handling retrieved with:
 
 __*table2text(file.path, decodeP=TRUE, noSign2p=TRUE ,dfHandling=TRUE)*__:
 
