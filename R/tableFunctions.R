@@ -135,8 +135,9 @@ multiHeaderSplit<-function(x,split=FALSE,class=NULL){
   at<-NULL
  if(length(nrow(x))>0){
  if(ncol(x)<2) return(x)
- if(ncol(x)==nrow(x) & class == "correlation") return(x)
- if(ncol(x)==(nrow(x)-1) & class == "correlation") return(x)
+# if(ncol(x)==nrow(x) & class == "correlation") return(x)
+# if(ncol(x)==(nrow(x)-1) & class == "correlation") return(x)
+   if(class == "correlation"| class== "matrix") return(x)
    # detect lines with only the same value
   for(i in 1:nrow(x)) at[i]<-sum(x[i,]==x[i,1])==length(x[i,])
   # and remove those that are also part in col names
@@ -464,27 +465,51 @@ colHandling<-function(m){
 ## convert numeric codings of variables in correlation matrices
 coding2variable<-function(m){
   
-  # remove brackets around enumeration
-  m[1,]<-gsub("^\\(([0-9][0-9]*\\.*)\\)","\\1",m[1,])
-  m[,1]<-gsub("^\\(([0-9][0-9]*\\.*)\\)","\\1",m[,1])
-  # move number in brackets at end to front
-  m[1,]<-gsub("(.*) \\(([0-9][0-9]*\\.*)\\)$","\\2 \\1",m[1,])
-  m[,1]<-gsub("(.*) \\(([0-9][0-9]*\\.*)\\)$","\\2 \\1",m[,1])
-  
   # remove bold/italic from first row and col, and stars and coded p-values at end behind letter
   m[1,]<-gsub("\\^bold|\\^italic|([A-z]) *\\^*\\*\\**","\\1",m[1,])
   m[,1]<-gsub("\\^bold|\\^italic|([A-z]) *\\^*\\*\\**","\\1",m[,1])
+  
+  # remove brackets around enumeration at start
+  m[1,]<-gsub("^\\(([0-9][0-9]*\\.*)\\)","\\1",m[1,])
+  m[,1]<-gsub("^\\(([0-9][0-9]*\\.*)\\)","\\1",m[,1])
+  
+  # remove pretext but keep number at end 
+  preTextRow1<-NULL
+  # if first row has sequence at end
+  if(
+    hasSequence(suppressWarnings(na.omit(as.numeric(gsub("^[^1-9].*[^A-z\\^]([1-9][0-9]*)\\.*\\)*$","\\1",m[1,]))))) & 
+    # and first column has sequence at beginning
+    hasSequence(suppressWarnings(na.omit(as.numeric(gsub("^([1-9]).*","\\1",m[,1])))))
+    ){
+    # get preText
+    preTextRow1<-gsub("(.*)[^A-z][1-9][0-9]*\\.*\\)*$","\\1",m[1,])
+    preTextRow1[preTextRow1==m[1,]]<-""
+    # cleanup
+    preTextRow1<-gsub("[ ;,]*\\(*$","",preTextRow1)
+    # extract number at end
+    m[1,]<-gsub(".*[^0-9]([1-9][0-9]*\\.*)\\)*$","\\1",m[1,])
+  }
+  
+  # move number in brackets at end to front if not starting with a number
+  m[1,]<-gsub("^([^1-9].*) \\(([0-9][0-9]*\\.*)\\)$","\\2 \\1",m[1,])
+  m[,1]<-gsub("^([^1-9].*) \\(([0-9][0-9]*\\.*)\\)$","\\2 \\1",m[,1])
+  
   m
   # if coding is in first row
-  if(sum(nchar(m[1,]),na.rm=TRUE)>sum(nchar(m[,1]),na.rm=TRUE)){
+  if(sum(nchar(gsub(" *\\(.*\\)","",m[1,])),na.rm=TRUE)>sum(nchar(m[,1]),na.rm=TRUE)){
     fullNames<-m[1,] 
     # get numeric coding and varNames
     coding<-gsub("^([0-9][0-9]*).*|^[^:]*: ([0-9][0-9]*).*","\\1\\2",fullNames)
     coding[grep("^[0-9]",coding,invert=TRUE)]<-""
     varNames<-gsub("^[0-9][^A-z]*([A-z])|^[^:]*: [0-9][^A-z]*([A-z])","\\1\\2",fullNames)
     
-    codes<-varNames[coding!=""]
-    coding<-coding[coding!=""]
+    codes<-varNames[coding!=""&!is.na(coding)]
+    coding<-coding[coding!=""&!is.na(coding)]
+    
+    # only go on if not both are not the same
+    if(length(codes)>0 & length(coding)>0)
+    if(sum(is.element(codes,coding))/length(coding)<.5){
+      
     rowname<-gsub("\\.$","",m[,1])
     
     if(sum(is.element(c(1,2,3),gsub("^0","",coding)))==3&
@@ -496,10 +521,11 @@ coding2variable<-function(m){
       m[,1]<-rowname
       m[1,]<-varNames  
     }
-  }
-  
+    }
+    }
+
   # if coding is in first column
-  if(sum(nchar(m[1,]),na.rm=TRUE)<sum(nchar(m[,1]),na.rm=TRUE)){
+  if(sum(nchar(gsub(" *\\(.*\\)","",m[1,])),na.rm=TRUE)<sum(nchar(gsub(" *\\(.*\\)","",m[,1])),na.rm=TRUE)){
     
     # add numbers from first row to first column if has no numbers
     # and matrix is quadratic
@@ -523,11 +549,13 @@ coding2variable<-function(m){
     coding[grep("^[0-9]",coding,invert=TRUE)]<-""
     varNames<-gsub("^[0-9][^A-z]*([A-z])|^[^:]*: [0-9][^A-z]*([A-z])","\\1\\2",fullNames)
     
-    codes<-varNames[coding!=""]
-    coding<-coding[coding!=""]
-    
+    codes<-varNames[coding!=""&!is.na(coding)]
+    coding<-coding[coding!=""&!is.na(coding)]
+
+    # only go on if not both are not the same
+    if(length(codes)>0 & length(coding)>0)
+      if(sum(is.element(codes,coding))/length(coding)<.5){
     colname<-m[1,]
-    
     if((sum(is.element(c(1,2,3),gsub("^0","",coding)))==3|sum(is.element(c(2,3,4),gsub("^0","",coding)))==3) &
        sum(nchar(coding))!=0){
           for(i in 1:length(coding)) colname<-gsub(paste0("^",coding[i],"[^0-9]*$"),codes[i],colname)
@@ -535,7 +563,8 @@ coding2variable<-function(m){
       m[1,]<-colname
       m[,1]<-varNames  
     }
-  } 
+    } 
+  }
   
   # if first row still contains numbers and nrow=ncol
   if(sum(is.element(c(1,2,3),gsub("^0","",m[1,])))==3){
@@ -546,7 +575,11 @@ coding2variable<-function(m){
   # add space between letter-bracket-letters
   m<-gsub("([A-z])(\\([A-z][-A-z _]*\\))","\\1 \\2",m)
   
-  
+  # add row pre text behind variable in brackets
+  if(!is.null(preTextRow1)){
+    i<-preTextRow1!=""
+    m[1,i]<-paste0(m[1,i]," (",preTextRow1[i],")")
+  }
 return(m)
 }# end function coding2variable
 
@@ -567,7 +600,14 @@ extractCorrelations<-function(x,
     bold<-legendCodes$boldP
     italicValue<-legendCodes$italicValue
     boldValue<-legendCodes$boldValue
-    N<-gsub("[Nn]=","",legendCodes$N)
+    # first detected single N
+    if(!is.null(legendCodes$N)){
+       N<-suppressWarnings(as.numeric(gsub("[Nn]=","",legendCodes$N)))
+       N<-N[N>0]
+       N<-N[!is.na(N)]
+       if(length(N)>1) N<-N[1]
+       if(length(N)==0) N<-NULL
+       }
     diagonal<-legendCodes$diagonal
   }
   if(isFALSE(addNasDF)) N<-NULL
@@ -575,14 +615,25 @@ extractCorrelations<-function(x,
   x<-unifyMatrixContent(x)
   m<-x
   # unify letters
-  m<-letter.convert(m,greek2text=TRUE)
+  m<-JATSdecoder::letter.convert(m,greek2text=TRUE)
   if(ncol(m)<=2|nrow(m)<=2) return(m)
-  # remove grouping text 
+  # add grouping text
+  #m<-groupCor(m)
+  # capture grouping text 
   preText<-rep("",length(m[,1]))
-  i<-grep("(.*: )",m[,1])
-  preText[i]<-gsub("(.*: ).*","\\1",m[i,1])
+  i<-grep("(.*::* )",m[,1])
+  preText[i]<-gsub("(.*::* ).*","\\1",m[i,1])
   m[,1]<-gsub(".*: ","",m[,1])
   
+  # remove text til number of "correlation-number"
+  m[1,]<-gsub("^[Cc]orrelations* (\\(*[1-9])","\\1",m[1,])
+  m[1,]<-gsub("^Pearson'*s* r* *[Cc]orrelations* (\\(*[1-9])","\\1",m[1,])
+  # delete correlation referencem in headerline
+#  m[1,]<-gsub( "^A* *[Cc]orrelations* *","",m[1,])
+#  m[1,]<-gsub( "^A* *Pear*s*o*n*'*s* *r* *[Cc]orrelations* *","",m[1,])
+  
+  
+  m
   # move number in bracket at end in first row and col to front
   m[1,]<-gsub("^([A-z][-A-z _\\^\\.\\*]*) (\\([1-9][0-9]*\\))$","\\2 \\1",m[1,])
   m[,1]<-gsub("^([A-z][-A-z _\\^\\.\\*]*) (\\([1-9][0-9]*\\))$","\\2 \\1",m[,1])
@@ -590,10 +641,14 @@ extractCorrelations<-function(x,
   m[,1]<-gsub(": ([A-z][-A-z _\\^\\.\\*]*) (\\([1-9][0-9]*\\))$",": \\2 \\1",m[,1])
   m[1,]<-gsub("^([A-z][-A-z _\\^\\.\\*]*) (\\([1-9][0-9]*\\)): ","\\2 \\1: ",m[1,])
   m[,1]<-gsub("^([A-z][-A-z _\\^\\.\\*]*) (\\([1-9][0-9]*\\)): ","\\2 \\1: ",m[,1])
+  # move dotted number at end if has no number in front
+  m[1,]<-gsub("^([^1-9].*) ([1-9][0-9]*\\.) *$","\\2 \\1",m[1,])
+  m[,1]<-gsub("^([^1-9].*) ([1-9][0-9]*\\.) *$","\\2 \\1",m[,1])
+  
   m
-  # remove brackets around numbers from first row and col
-  m[1,]<-gsub("^ *\\(([1-9][0-9]*\\.*)\\)","\\1",m[1,])
-  m[,1]<-gsub("^ *\\(([1-9][0-9]*\\.*)\\)","\\1",m[,1])
+  # remove brackets around numbers from first row and col and add dot
+  m[1,]<-gsub("^ *\\(([1-9][0-9]*)\\.*\\)","\\1.",m[1,])
+  m[,1]<-gsub("^ *\\(([1-9][0-9]*)\\.*\\)","\\1.",m[,1])
   
   # paste first and second column, if first column has enumeration only and all cells in second column start with letters
   col1<-m[,1]
@@ -659,11 +714,16 @@ extractCorrelations<-function(x,
   
   # convert numbered variable name to full name label 
   m<-coding2variable(m)  
-
+  # set cells of statistics to FALSE
   cors[grep("^S\\.*D\\.*$|^sd$|^Var\\.$|^[Mm]in\\.*$|^[Mm]ax\\.*$|^[Rr]ange$|^RMSEA*|^SRMR|^p$|delta [A-z][^a-z]|delta [A-z]$",m[,1]),-1]<-FALSE
   cors[-1,grep("^S\\.*D\\.*$|^sd$|^Var\\.$|^[Mm]in\\.*$|^[Mm]ax\\.*$|^[Rr]ange$|^RMSEA*|^SRMR|^p$|delta [A-z][^a-z]|delta [A-z]$",m[1,])]<-FALSE
-  cors[grep("^[Rr]\\^2| [Rr]\\^2|$[Rr]2$|[Cc]hi\\^*2|^[tpdr]$",m[,1]),-1]<-FALSE
-  cors[-1,grep("^[Rr]\\^2| [Rr]\\^2|$[Rr]2$|[Cc]hi\\^*2|^[tpdr]$",m[1,])]<-FALSE
+  cors[grep("^[Rr]ho[^a-z]|[- ][Rr]ho$|^[Rr]ho[^a-z]*$|[Rr]ho\\^2|^[Rr]\\^2|[- ][Rr]\\^2|$[Rr]2$|[Cc]hi\\^*2|^[tpdr]$|Skew|skewne*d*n|[cC]urtosis",m[,1]),-1]<-FALSE
+  cors[-1,grep("^[Rr]ho[^a-z]|[- ][Rr]ho$|^[Rr]ho[^a-z]*$|[Rr]ho\\^2|^[Rr]\\^2|[- ][Rr]\\^2|$[Rr]2$|[Cc]hi\\^*2|^[tpdr]$|Skew|skewne*d*n|[cC]urtosis",m[1,])]<-FALSE
+  
+  # set cells with lower letter plus optional nonletter to FALSE
+  cors[1,grep("^[^A-Z0-9][^A-z0-9]*$",cors[1,])]<-FALSE
+  cors[grep("^[^A-Z0-9][^A-z0-9]*$",cors[,1]),1]<-FALSE
+  
   
   # if col/row has name N and numbers>1 set cells to false
   i<-grepl("^[Nn]$",m[1,])
@@ -736,8 +796,16 @@ extractCorrelations<-function(x,
   m[-1,-1][corTab[-1,-1]!=""]<-""
   #m<-gsub("^-$","",m)
   
-  ### remove empty lines/columns
+  ### remove empty lines/columns with correlation
   nonempty<-m!=""
+  # but keep all rows/cols with no cor
+  keepRow<-rowSums(corTab!="")==1
+  keepCol<-colSums(corTab!="")==1
+  keepRow[1]<-TRUE
+  keepCol[1]<-TRUE
+  
+   nonempty[keepRow,]<-TRUE
+   nonempty[,keepCol]<-TRUE
   # lines
   m<-m[c(1,which(rowSums(matrix(nonempty[-1,-1],ncol=nCol-1))!=0)+1),]
   if(is.vector(m)) m<-matrix(m,ncol=1)
@@ -747,6 +815,9 @@ extractCorrelations<-function(x,
 
   # empty matrix if only one row or column is left
   if(nrow(m)==1|ncol(m)==1) m<-NULL
+  
+  # reduce to first column, if all other filds are empty
+  if(sum(m[-1,-1]!="")==0) m<-cbind(m[,1])
   
   # insert diaginal statistic instead of r=
   if(length(diagonal)>0){
@@ -808,8 +879,13 @@ extractCorrelations<-function(x,
       }
     }
   
-  
+  # delete cor in brackets
+  correlations<-gsub( " *\\(A* *[Cc]*o*r*r*e*l*a*t*i*o*n*s* *[Cc]orrelations*\\) *"," ",correlations)
+  correlations<-gsub( " *\\(A* *P*e*a*r*s*o*n*'*s* *r* *[Cc]orrelations*\\) *"," ",correlations)
+  correlations<-gsub( " *\\(r\\)| (:)","\\1",correlations)
+  correlations<-gsub("^ | $","",gsub("  "," ",correlations))
   # output
+  if(length(m)==0) m<-NULL
   if(isFALSE(remove)) return(correlations)
   if(isTRUE(remove)) return(m)
 } # end extractCorrelations
@@ -836,7 +912,14 @@ extractMatrix<-function(x,
     bold<-legendCodes$boldP
     italicValue<-legendCodes$italicValue
     boldValue<-legendCodes$boldValue
-    N<-gsub("[Nn]=","",legendCodes$N)
+    # first detected single N
+    if(!is.null(legendCodes$N)){
+      N<-suppressWarnings(as.numeric(gsub("[Nn]=","",legendCodes$N)))
+      N<-N[N>0]
+      N<-N[!is.na(N)]
+      if(length(N)>1) N<-N[1]
+      if(length(N)==0) N<-NULL
+    }
     diagonal<-legendCodes$diagonal
   }
   
@@ -844,11 +927,13 @@ extractMatrix<-function(x,
   x<-unifyMatrixContent(x)
   m<-x
   # unify letters
-  m<-letter.convert(m,greek2text=TRUE)
+  m<-JATSdecoder::letter.convert(m,greek2text=TRUE)
   if(ncol(m)<=2|nrow(m)<=2) return(m)
-  # remove grouping text 
+  # add grouping text
+  #m<-groupCor(m)
+  # capture grouping text 
   preText<-rep("",length(m[,1]))
-  i<-grep("(.*: )",m[,1])
+  i<-grep("(.*::* )",m[,1])
   preText[i]<-gsub("(.*: ).*","\\1",m[i,1])
   m[,1]<-gsub(".*: ","",m[,1])
   
@@ -887,8 +972,8 @@ extractMatrix<-function(x,
   m[1,]<-gsub("^\\(*0*([1-9][0-9]*)[\\),;:] ","\\1. ",m[1,])
   
   ##############################################################
-  # including range
-  values<-suppressWarnings(as.numeric(gsub("[^0-9\\.-]|;;.*|\\^.*","",m)))
+  # including numeric values
+  values<-suppressWarnings(as.numeric(gsub("[^0-9\\.-]|;;.*|\\^.*|.*[<=>](-*[\\.0-9][\\.0-9]*).*","\\1",m)))
   # prepare removal matrix of correlations
   rem<-abs(values)>=0
   if(!is.null(range))
@@ -997,6 +1082,16 @@ extractMatrix<-function(x,
   
   ### remove empty lines/columns
   nonempty<-m!=""
+  
+  # but keep all rows/cols with no cor
+  keepRow<-rowSums(valueTab!="")==1
+  keepCol<-colSums(valueTab!="")==1
+  keepRow[1]<-TRUE
+  keepCol[1]<-TRUE
+  
+  nonempty[keepRow,]<-TRUE
+  nonempty[,keepCol]<-TRUE
+  
   # lines
   m<-m[c(1,which(rowSums(matrix(nonempty[-1,-1],ncol=nCol-1))!=0)+1),]
   if(is.vector(m)) m<-matrix(m,ncol=1)
@@ -1005,7 +1100,10 @@ extractMatrix<-function(x,
   if(is.vector(m)) m<-matrix(m,ncol=length(m))
   
   # empty matrix if only one row or column is left
-  if(nrow(m)==1|ncol(m)==1) m<-NULL
+  if(nrow(m)<=1|ncol(m)<=1) {m<-NULL}else{
+  # remove empty columns
+  m<-m[,colSums(m[,]=="")==(nrow(m))]
+  if(is.vector(m)) m<-matrix(m,ncol=1)}
   
   # insert diaginal statistic instead of r=
   if(length(diagonal)>0){
@@ -1053,15 +1151,93 @@ extractMatrix<-function(x,
   correlations[i]<-gsub("alpha(=[0-9\\.][0-9\\.]*)[ ,;].*sqrt *AVE*.*","sqrt AVE\\1",correlations[i])
   correlations[i]<-gsub("alpha(=[0-9\\.][0-9\\.]*)[ ,;].*AVE.*|alpha(=[0-9\\.][0-9\\.]*) .*[ \\(]AVE\\)*.*","AVE\\1\\2",correlations[i])
   
-  
   correlations<-gsub("STATISTIC",statistic,correlations)
   
   # output
+  if(length(m)==0) m<-NULL
   if(isFALSE(remove)) return(correlations)
   if(isTRUE(remove))  return(m)
 } # end extractMatrix
 
- 
+# paste grouping in correlation table with numbered variables
+groupCor<-function(m){
+  if(!is.matrix(m)) return(m)
+  hasNum<-grepl("^\\(*[1-9]",m[,1])
+  hasSeq<-hasSequence(gsub("^\\(*([1-9])","\\1",m[-1,1]))
+  if(sum(hasNum[-1])>2&hasSeq){
+    isEmpty<-rowSums(m!="")==1
+    if(sum(isEmpty)==0) return(m)
+    g<-!hasNum&isEmpty
+    g[1]<-FALSE
+    if(sum(g)==1){
+      m[(which(g)+1):nrow(m),1]<-paste0(m[which(g),1],":: ",m[(which(g)+1):nrow(m),1])
+      # remove line
+      m<-m[-which(g),]
+      if(is.vector(m)) m<-matrix(m,nrow=1)
+    }
+    if(sum(g)>1) 
+      for(i in 1:sum(g)){
+        if(i<sum(g)) m[(which(g)[i]+1):(which(g)[i+1]-1),1]<-paste0(m[which(g)[i],1],":: ",m[(which(g)[i]+1):(which(g)[i+1]-1),1])
+        if(i==sum(g)) m[(which(g)[i]+1):nrow(m),1]<-paste0(m[which(g)[i],1],":: ",m[(which(g)[i]+1):nrow(m),1])
+      }
+    # remove lines
+    m<-m[-which(g),]
+    if(is.vector(m)) m<-matrix(m,nrow=1)
+  }
+  return(m)
+}
+
+
+# collapse lines with different results with letter-operator
+resultRowCollapse<-function(m){
+  if(length(m)==0) return(m)
+  if(nrow(m)<3) return(m)
+  if(
+    # if first column has at least one empty cell 
+    sum(m[-1,1]=="") > 0 &
+    # and more than 30% of non-empty cell have results with letter-operator
+    length(grep("[A-z2] *[<=>][<=>]* *-*[0-9\\.]|^N*A*$",m[-1,-1]))/
+    length(m[-1,-1])>.3
+  ){
+    # delete cells ending with operator
+    m[-1,-1]<-gsub("^([A-z\\^]*[A-z2]) *[<=>][<=>]* *$","\\1",m[-1,-1])
+    # rows with empty cell in first column
+    # and only results or empty cells
+    j<-which(m[,1]!="")
+    j<-j[j>1]
+    # get start and end row
+    st<-j
+    if(length(j)>1) end<-c(j[-1]-1,nrow(m))
+    if(length(j)==1)  end<-nrow(m)
+    
+    # collapse lines
+    for(k in 1:length(j)){
+      # if has only results or empty cells
+      if(length(grep("[A-z2] *[<=>][<=>]* *-*[0-9\\.]|^[N\\.]*[A\\.]*$",m[j[k],-1],invert=T))>0) next
+      if(st[k]==end[k]) next
+      # temp matrix
+      temp<-m[st[k]:end[k],]
+      # paste rows
+      if(nrow(temp)==1) next
+      # if statistic is not the same
+      s1<-unique(as.vector(gsub("^([A-z\\^]*[A-z2]) *[<=>][<=>]* *-*[0-9\\.][0-9\\.]*.*|^N\\.*A\\.*$","\\1",temp[1,-1])))
+      s2<-unique(as.vector(gsub("^([A-z\\^]*[A-z2]) *[<=>][<=>]* *-*[0-9\\.][0-9\\.]*.*|^N\\.*A\\.*$","\\1",temp[2,-1])))
+      s1<-s1[s1!=""]  
+      s2<-s2[s2!=""]  
+      if(length(unique(c(s1,s2)))<2) next
+      for(u in 2:nrow(temp)) temp[1,]<-paste0(temp[1,],", ",temp[u,])
+      temp<-gsub(", $","",gsub(", ,* *",", ",temp[1,]))
+      m[j[k],]<-temp
+      # remove lines
+      m[((st[k]+1):end[k]),1]<-"REMOVE"
+      
+    }
+    m<-m[m[,1]!="REMOVE",]
+  }
+  return(m)  
+}
+
+
 # convert signs to p-values
 sign2p<-function(x,sign,val,sep=";;"){
   if(length(x)==0) return(x)
@@ -1139,7 +1315,7 @@ noSign2p<-function(x,pval){
   if(length(grep(";; p>=*[\\.0]",x))>0 & length(grep(";; p<=*[\\.0]",x))>0) return(x)
   
   ##########################################
-  ## for cases with no insignificant p but significicant p inserted
+  ## for cases with no insignificant p but significant p inserted
   if(length(grep(";; p>=*[\\.0]",x))==0 & length(grep(";; p<=*[\\.0]",x))>0){
   # remove p-values with ">" in coding
   i<-grep(">=*|[^<]=",pval,invert=TRUE)
@@ -1147,7 +1323,8 @@ noSign2p<-function(x,pval){
   # escape
   if(length(pval)==0) return(x)
   nCol<-ncol(x)
-  # find cloumns with already inserted p-values and no results in front
+  
+  # find coluumns with already inserted p-values and no results in front
   cols<-which(colSums(matrix(grepl(";; p<",x),ncol=nCol))>0)
   # escape
   if(length(cols)==0) return(x)
@@ -1162,8 +1339,9 @@ noSign2p<-function(x,pval){
   # go through columns and add p>Pmax in cells without ;; p>
   if(length(cols)>0)
   for(j in cols){
-    cells<-!grepl(";; p<|;; p>",x[,j]) & !grepl("^$",x[,j])&
-               grepl("^[<=>]*-*[\\.0-9][\\.0-9]*$",x[,j])
+    cells<-!grepl(";; p<|;; p>",x[,j]) & !grepl("^$",x[,j]) &
+               grepl("^[<=>]*-*[\\.0-9][\\.0-9]*$",x[,j]) &
+              !grepl("[A-z] *[0-9][0-9]*$",x[,j]) 
     # impute p>max(p<num)
     x[cells,j]<-gsub("([0-9])$",paste0("\\1;; p>",Pmax),x[cells,j])
     if(j>1)  x[cells,j][grepl("[0-9]$",x[cells,j-1])] <- 
@@ -1178,18 +1356,35 @@ noSign2p<-function(x,pval){
   # go through columns and add p>Pmax in cells without ;; p>
   if(length(cols)>0)
     for(j in cols){
-      cells<-!grepl(";; p<|;; p>",x[,j]) & !grepl("^$",x[,j])&
+      cells<-!grepl(";; p<|;; p>",x[,j]) & !grepl("^$",x[,j]) & 
+        !grepl("[A-z] *[0-9][0-9]*$",x[,j]) & 
         (grepl("[A-z\\)]\\^*2* *[<=>][<=>]*-*[\\.0-9][\\.0-9]*$",x[,j])|
            grepl("[\\.0-9] *[;-] *-*[\\.0-9][\\.0-9]*$",x[,j])|
-           grepl("[\\.0-9] *[;-] *-*[\\.0-9][\\.0-9]*\\)*\\]*$",x[,j])
+           grepl("[\\.0-9][\\.0-9]*\\)*\\]*$",x[,j])
+         
         )
-      # set first cell to FALSE 
-      #cells[1]<-FALSE
+
       # impute p>max(p<num)
       x[cells,j]<-gsub("([0-9]\\]*\\)*)$",paste0("\\1;; p>",Pmax),x[cells,j])
       if(j>1)  x[cells,j][grepl("[0-9]\\]*\\)*$",x[cells,j-1])] <- 
         gsub("^$",paste0(";; p>",Pmax),x[cells,j][grepl("[0-9]\\]*\\)*$",x[cells,j-1])])
     }
+  
+  ## find cloumns with already inserted p-values between starting number and anything else behind
+  cols<-which(colSums(matrix(grepl("^-*[\\.0-9][\\.0-9]*[0-9];; p<[\\.0-9][\\.0-9]*[^\\.0-9]",x)
+                             ,ncol=nCol))>0)
+  
+  # go through columns and add p>Pmax in cells without ;; p>
+  if(length(cols)>0)
+    for(j in cols){
+      cells<-!grepl(";; p[<>]",x[,j]) & !grepl("^$",x[,j]) &
+        grepl("^-*[\\.0-9][\\.0-9]*[0-9][^\\.0-9;]",x[,j]) &
+        !grepl("[A-z] *[0-9][0-9]*$",x[,j]) 
+        
+      # impute p>max(p<num)
+      x[cells,j]<-gsub("^(-*[\\.0-9]*[\\.0-9][0-9])([^\\.0-9])",paste0("\\1;; p>",Pmax,"\\2"),x[cells,j])
+    }
+  
   
   ## find cloumns with already inserted p-values and nothing in front
   cols<-which(colSums(matrix(grepl("^;; p<",x)
@@ -1208,6 +1403,7 @@ noSign2p<-function(x,pval){
         gsub("^$",paste0(";; p>",Pmax),x[cells,j][grepl("[0-9]$",x[cells,j-1])])
     }
   
+  
   # clean up brackets
   x<-gsub(" \\((;; p[<=>][<=>]*[\\.0][0-9\\.]*),* *\\)","\\1",x)
   x<-gsub(" \\[(;; p[<=>][<=>]*[\\.0][0-9\\.]*),* *\\]","\\1",x)
@@ -1221,14 +1417,15 @@ noSign2p<-function(x,pval){
     # escape
     if(length(pval)==0) return(x)
     nCol<-ncol(x)
-    ## find cloumns with already inserted p-values and only number in front
+    ## find coluumns with already inserted p-values and only number in front
     cols<-which(colSums(matrix(grepl("^[<=>]*-*[\\.0-9][\\.0-9]*;; p>",x),ncol=nCol))>0)
     
     # go through columns and add p<pval in cells without ;; p<
     if(length(cols)>0)
       for(j in cols){ 
         cells<-!grepl(";; p<|;; p>",x[,j]) & !grepl("^$",x[,j])&
-          grepl("^[<=>]*-*[\\.0-9][\\.0-9]*$",x[,j])
+          grepl("^[<=>]*-*[\\.0-9][\\.0-9]*$",x[,j])&
+          !grepl("[A-z] *[0-9][0-9]*$",x[,j])
         # impute p<pval(p<num)
         x[cells,j]<-gsub("([0-9])$",paste0("\\1;; p<",pval),x[cells,j])
         if(j>1)  x[cells,j][grepl("[0-9]$",x[cells,j-1])] <- 
@@ -1243,7 +1440,8 @@ noSign2p<-function(x,pval){
     # go through columns and add p<pval in cells without ;; p>
     if(length(cols)>0)
       for(j in cols){
-        cells<-!grepl(";; p>|;; p<",x[,j]) & !grepl("^$",x[,j])&
+        cells<-!grepl(";; p>|;; p<",x[,j]) & !grepl("^$",x[,j]) &
+          !grepl("[A-z] *[0-9][0-9]*$",x[,j]) &
           (grepl("[A-z\\)]\\^*2* *[<=>][<=>]*-*[\\.0-9][\\.0-9]*$",x[,j])|
              grepl("[\\.0-9] *[;-] *-*[\\.0-9][\\.0-9]*$",x[,j])|
              grepl("[\\.0-9] *[;-] *-*[\\.0-9][\\.0-9]*\\)*\\]*$",x[,j])
@@ -1260,7 +1458,7 @@ noSign2p<-function(x,pval){
     cols<-which(colSums(matrix(grepl("^;; p>",x)
                                ,ncol=nCol))>0)
     
-    # go through columns and add p<pval in without ;; p>
+    # go through columns and add p<pval in cells without ;; p>
     if(length(cols)>0)
       for(j in cols){
         cells<-!grepl("^;; p>|^;; p<",x[,j]) &
@@ -1331,16 +1529,22 @@ abb2text<-function(x,abbr,label){
 
 sup2text<-function(x,sup=NULL,sup_label=NULL){
   if(length(sup)==0) return(x)
+  if(length(grep("\\^",x))==0) return(x)
+  
   i<-order(sup,decreasing=TRUE)
   sup<-sup[i]
   sup_label<-sup_label[i]
-  # exclude cells with chi, eta, omega, R square
-  j<-grep("[ -]R\\^2|[ /-]chi\\^2|[ -]eta\\^2|[ -]omega\\^2|^R\\^2|^[cC]hi\\^2|^eta\\^2|^omega\\^2",x,invert = TRUE)
-  if(length(j)>0)
-    temp<-x==""
-    temp[j]<-TRUE
-   for(i in 1:length(sup))
-      x[temp]<-gsub(specialChars(sup[i]),paste0(" (",sup_label[i],")"),gsub("([^\\^])\\*","\\1^*",x[temp]))
+  j<-1:length(x)
+  # has numeric superscript?
+  if(sum(!is.na(suppressWarnings(as.numeric(gsub("\\^","",sup)))))>0)
+    # exclude cells with chi, eta, omega, R square or number-sup-number
+    j<-grep("[ -]R\\^2|[ /-][cC]hi\\^2|[ -]eta\\^2|[ -]omega\\^2|^R\\^2|^[cC]hi\\^2|^eta\\^2|^omega\\^2|[0-9]\\^[0-9]",x,invert = TRUE)
+  if(length(j)>0){
+     temp<-x==""
+     temp[j]<-TRUE
+     for(i in 1:length(sup))
+        x[temp]<-gsub(specialChars(sup[i]),paste0(" (",sup_label[i],")"),gsub("([^\\^])\\*","\\1^*",x[temp]))
+    }
   return(x)
 }
 
@@ -1380,6 +1584,46 @@ percentHandler<-function(x){
       x<-unname(x)
       return(x)
     }
+
+
+# move descriptor in brackets in first column to cells with numbers in bracket in that row
+bracketInRowHandler <- function(x){
+  # for text in brackets
+  i<-grep(" \\([A-z][-A-z_0-9\\.\\^]*\\)", x[,1])
+  i<-i[i>1]
+  if(length(i)==0) return(x)
+  for(j in i){
+    b<-gsub(".* \\(([A-z][-A-z_0-9\\.,\\^]*)\\).*","\\1",x[j,1])
+    # for single numbers
+    x[j,-1]<-gsub(" \\(([-<>]* *[0-9\\.][0-9\\.,\\^]*[[:punct:]]*)\\)",paste0(", ",b,"=\\1"),x[j,-1])
+    x[j,-1]<-gsub("=([<>])","\\1",x[j,-1])
+    # for intervals
+    x[j,-1]<-gsub(" \\((-*[0-9\\.][0-9\\.,\\^]* *[-,;] *-*[0-9\\.][0-9\\.,\\^]*)\\)",
+                  paste0(", ",b,": [\\1]"),x[j,-1])
+    
+    # remove from first cell, if no brackets left in row
+    if(length(grep("\\(.*\\)",x[j,-1]))==0)
+      x[j,1]<-gsub(paste0(" \\(",b,"\\)"),"",x[j,1])
+  }
+  
+  # for %-sign in brackets
+  i<-grep(" \\(%\\)", x[,1])
+  i<-i[i>1]
+  if(length(i)==0) return(x)
+  for(j in i){
+    x[j,-1]<-gsub(" \\(([-<=>]*[0-9\\.][0-9\\.]*)\\)",", \\1%",x[j,-1])
+    x[j,1]<-gsub(paste0(" \\(%\\)"),"",x[j,1])
+  }
+  
+  i<-grep(" \\[%\\]", x[,1])
+  i<-i[i>1]
+  if(length(i)==0) return(x)
+  for(j in i){
+    x[j,-1]<-gsub(" \\[([-<=>]*[0-9\\.][0-9\\.]*)\\]",", \\1%",x[j,-1])
+    x[j,1]<-gsub(paste0(" \\[%\\]"),"",x[j,1])
+  }
+  return(x)
+}
 
 
 ## split matrix at textRow-numRows-SPLIT-textRow-NumRow
@@ -1898,8 +2142,10 @@ sequenceSplit<-function(x){
 
 ## collapse all cells with pasted statistics per col 
 hasSequence<-function(x){
+  x<-suppressWarnings(as.numeric(x))
+  x<-unname(na.omit(x))
   if(length(x)==0) return(FALSE)
-  if(length(x)==1) return(TRUE)
+  if(length(x)==1) return(FALSE)
   temp<-NULL
   listSeq<-list()
   listInd<-1

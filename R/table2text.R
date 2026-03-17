@@ -68,7 +68,7 @@ table2text<-function(x,
   if(length(x)==0)  return(NULL)
   caption<-NULL;footer<-NULL;legend<-NULL;m<-NULL;file<-FALSE
   # extract matrices and legend (caption and footnotes)
-  m<-table2matrix(x,rm.html = TRUE,unifyMatrix = unifyMatrix)
+  m<-table2matrix(x,rm.html = TRUE,unifyMatrix = unifyMatrix, replicate = TRUE)
   
   # split matrices at text lines (if is not vector, text, correlation)
   m<-matrixSplit(m)

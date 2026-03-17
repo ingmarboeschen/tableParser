@@ -67,21 +67,30 @@ get.sup<-function(x){
   # add space between stars and following
   x<-gsub("(\\^\\*\\**)([^ \\*,;])","\\1 \\2",x)
   x<-gsub("(\\^\\*\\**)[,;]","\\1 ",x)
-  # has lines with supersript
-  sup<-grep("\\^[^0-9]|\\^1$|\\^1[^0-9]",x,value=T)  
-  if(length(sup)==0) return(list(sup=NULL,sup_label=NULL))
   x<-gsub(" *([<=>][<=>]*) *","\\1",x)
-  x<-unlist(strsplit(x,"[,;:] *| and |\\. "))
+  # remove punctuation behind superscript
+  x<-gsub("\\^([0-9A-z])[[:punct:]] ","^\\1 ",x)
+  # remove letter^number
+  x<-gsub("[A-z][A-z]*\\^[0-9][0-9]*","",x)
+  # remove number^number
+  x<-gsub("[0-9\\.]*[0-9]\\^[1-9][0-9]*","",x)
+  # split
+  x<-unlist(strsplit(x,"[,;:] *| and |\\. |\\n"))
+  
+  # get lines with supersript
+  sup<-grep("\\^",x,value=T)  
+  if(length(sup)==0) return(list(sup=NULL,sup_label=NULL))
   # remove dot at end
   x<-gsub("\\. *$","",x)
   # remove first/second third...
   x<-gsub("\\^st|\\^nd|\\^rd|\\^th","",x)
+  x<-gsub("\\^bold|\\^italic","",x)
   # add space after first superscripted letter
   x<-gsub("\\^\\(*([A-z])\\) *([A-z])","^\\1 \\2",x)
   # get superscript and label
-  if(length(grep("\\^1$|\\^1[^0-9]",x))==0) 
-    sup<-grep("\\^[^0-9]",unlist(JATSdecoder::strsplit2(x,"\\^[^0-9]","before")),value=T)
-  if(length(grep("\\^1$|\\^1[^0-9]",x))>0) 
+  #if(length(grep("\\^1$|\\^1[^0-9]",x))==0) 
+  #sup<-grep("\\^[^0-9]",unlist(JATSdecoder::strsplit2(x,"\\^[^0-9]","before")),value=T)
+  #if(length(grep("\\^1$|\\^1[^0-9]",x))>0) 
     sup<-grep("\\^[^ ]",unlist(JATSdecoder::strsplit2(x,"\\^[^ ]","before")),value=T)
   label<-gsub("^ |\\. *$","",gsub(".*\\^[^ ]*|.*\\^[A-z][A-z]* ","",sup))
   label<-gsub("^\\**","",label)
@@ -95,7 +104,7 @@ get.sup<-function(x){
   i<-grep("\\(",label,invert=TRUE)
   label[i]<-gsub("\\).*","",label[i])
   
-  sup<-gsub("(\\^\\*\\**).*|.*(\\^[A-z][^ ]*) .*|.*(\\^[^0-9]).*","\\1\\2\\3",sup)
+  sup<-gsub("(\\^\\*\\**).*|.*(\\^[A-z0-9][^ ]*) .*|.*(\\^[^0-9]).*","\\1\\2\\3",sup)
   if(length(grep("\\^1$|\\^1[^0-9]",x))>0) 
     sup<-gsub(".*(\\^[1-9]).*","\\1",sup)  
   # remove p values
@@ -107,7 +116,7 @@ get.sup<-function(x){
   label<-label[i]
   sup<-sup[i]
   
-  # add sup to label if starts with =num
+  # add superscript to label if starts with =num
   i<-grep("^[<=>][<=>]*[0-9]",label)
   label[i]<-paste0(sup[i],label[i])
   
@@ -147,14 +156,16 @@ get.DV<-function(x){
 
 ###########################################
 get.pCodes<-function(x){
+  # remove html in inline-formula tag
+  i<-grep("inline-formula",x)
+  x[i]<-gsub("</*[a-z][^>]*>","",x[i])
+  # split
+  x<-unlist(strsplit(gsub("\\. ([A-Z\\^])|\\n *","SPLITHERE\\1",x),"SPLITHERE"))
   # select lines with number
   x<-grep("[0-9]",x,value=TRUE)
   # escape
   if(length(x)==0) return(list(psign=NULL,pval=NULL))
   
-  # remove html in inline-formula tag
-  i<-grep("inline-formula",x)
-  x[i]<-gsub("</*[a-z][^>]*>","",x[i])
   # remove second ^ in ^x^x twice
   x<-gsub("(\\^[^\\^])\\^","\\1",gsub("(\\^[^\\^])\\^","\\1",x))
   # remove point at end
@@ -218,7 +229,7 @@ get.pCodes<-function(x){
   x<-unlist(strsplit(x,"\\. "))
   
   # remove starting "a"
-  x<-gsub("^[Aa] ([a-z])","\\1",x)
+  #x<-gsub("^[Aa] ([a-z])","\\1",x)
   # add "*10^" in num-num
   x<-gsub("([0-9])(-[0-9])","\\1*10^\\2",x)
   
@@ -403,6 +414,11 @@ get.pCodes<-function(x){
   pval<-pval[j]
   psign<-psign[j]
     
+  # remove bold/italic p
+  j<-grep("[bB]old|[iI]talic",psign,invert=TRUE)
+  pval<-pval[j]
+  psign<-psign[j]
+  
   # correct operator "="
   psign<-gsub("=([<>][<=>]*)","\\1",psign)
   psign<-gsub("=([<>][<=>]*)","\\1",psign)
@@ -417,6 +433,8 @@ get.pCodes<-function(x){
     pval<-pval[!is.element(psign,rem)]
     psign<-psign[!is.element(psign,rem)]
   }}}
+  
+  
   # remove un- and badly captured psigns
   j <- nchar(psign)>0 & nchar(psign)<=3
   pval<-pval[j]
@@ -596,7 +614,7 @@ get.HTMLpCodes<-function(x){
   x
   
   # select lines
-  x<-letter.convert(grep("[Bb]old|[Ii]talic",x,value=TRUE),greek2text = TRUE)
+  x<-JATSdecoder::letter.convert(grep("[Bb]old|[Ii]talic",x,value=TRUE),greek2text = TRUE)
 
   # escape
   if(length(x)==0) return(list(boldP=boldP,italicP=italicP))
@@ -774,7 +792,7 @@ get.diagonal<-function(x){
   x<-JATSdecoder::letter.convert(x,greek2text=TRUE)
   
   alpha<-NULL;omega<-NULL;AVE<-NULL;SD<-NULL;M<-NULL;accuracy<-NULL;CI<-NULL;out<-NULL  
-  
+  var<-NULL
   if(length(grep("[^A-z][aA]lpha|internal consistenc|consistency*i*e*s*",JATSdecoder::letter.convert(x,greek2text=TRUE),value=TRUE))>0)
     alpha<-"alpha"
   if(length(grep("[^A-z][Oo]mega",JATSdecoder::letter.convert(x,greek2text=T)))>0)
@@ -793,9 +811,11 @@ get.diagonal<-function(x){
   temp<-grep("[sS]tandard [Dd]eviation",x,value=TRUE)
     if(length(grep("^Means*[^a-z]| [Mm]eans[^a-z]",x,value=TRUE))>0)
       M<-"M"
-
+  if(length(grep("[Vv]ariance",x,value=TRUE))>0)
+    var<-"var"
+  
   if(!is.null(c(omega,alpha,AVE,accuracy,SD)))
-    out<-paste(c(omega,alpha,AVE,accuracy,M,SD,CI),collapse=", ")
+    out<-paste(c(omega,alpha,AVE,accuracy,M,SD,var,CI),collapse=", ")
   return(list(diagonal=out))
 }
 
@@ -817,6 +837,7 @@ get.abbr<-function(text=NULL,footer=NULL){
 
   # split at sentences
   x<-gsub("([a-z])\\. ([A-z])","\\1SPLIT\\2",x)
+  x<-gsub("\\.\\n","SPLIT",x)
   x<-gsub("\\. ([[:punct:]])","SPLIT\\1",x)
   # and *p-values
   x<-gsub("\\** *p *[<=>][<=>]* *0*\\.[0-9]*","SPLIT",x)
@@ -836,8 +857,8 @@ get.abbr<-function(text=NULL,footer=NULL){
   i<-grep("inline-formula",x)
   x[i]<-gsub("</*[a-z][^>]*>","",x[i])
   
-  # select lines with at least two capital letters or capital letter and number/_
-  x<-grep("[A-Z][-a-z_0-9]*[A-Z]|[A-Z][-0-9A-Z_]|[A-Z][a-z]*\\.[,;:=] ",x,value=TRUE)
+  # select lines with at least two capital letters or capital letter and number/_ or capital letter in brackets or cpital letter followed by [,;:]
+  x<-grep("[A-Z][-a-z_0-9]*[A-Z]|[A-Z][-0-9A-Z_]|[A-Z][a-z]*\\.[,;:=] |\\([A-Z]\\)|[A-Z][,;:]",x,value=TRUE)
   x
   # split at "and" after abbreviation 
   x<-gsub(" and $","",unlist(JATSdecoder::strsplit2(x,"[A-Z][-0-9A-Z_] and ",type="after")))
@@ -851,6 +872,8 @@ get.abbr<-function(text=NULL,footer=NULL){
   x<-gsub("\\.$","",x)
   # remove citations
   x<-gsub(" \\([A-Z][A-z\\.& ]*[,;] [1-2][0-9]{3}\\)","",x)
+  # clean up front
+  x<-gsub("^[ ,;:\\.]*","",x)
 
   # remove listings of abbreviations
 #  x<-gsub("[A-Z][-0-9A-Z/]*[,; ]*(and|or|[,;]) [A-Z][-0-9A-Z][-0-9A-Z/]*[,; ]*(and|or|[,;]) [A-Z][-0-9A-Z][-0-9A-Z/]*","",x)
@@ -898,8 +921,8 @@ get.abbr<-function(text=NULL,footer=NULL){
     }
   
   
-  # TYPE B: if has "ABB = full;"
-  typeB<-length(grep("^[A-Z][0-9]* *[=] *|[A-Z][-0-9A-z_]* *[=] *[A-z]",x))>0
+  # TYPE B: if has "ABB [=:] full;"
+  typeB<-length(grep("^[A-Z][0-9]* *[:=] *|[A-Z][-0-9A-z_]* *[:=] *[A-z]",x))>0
   typeB
   if(typeB){
     y<-unlist(strsplit(x,"[;,] "))
@@ -914,13 +937,13 @@ get.abbr<-function(text=NULL,footer=NULL){
     }
     
     y<-grep("[A-Z][-0-9A-z_]* *[=] *[A-z]",y,value=T)
-    y<-gsub(".* ([A-Z][-0-9A-z_]* *[=] *[A-z])","\\1",y)
+    y<-gsub(".* ([A-Z][-0-9A-z_]* *[=:] *[A-z])","\\1",y)
     abb<-c(abb,gsub("[^-0-9A-Z_]*([A-Z][-0-9A-z_]*)[^-0-9A-z_]*.*","\\1",y))
-    full<-c(full,gsub(".*[=] *","",y))
+    full<-c(full,gsub(".*[=:] *","",y))
     if(length(abb)==0) full<-NULL
     if(length(full)==0) abb<-NULL
     # remove abb and full
-    for(i in abb) x<-gsub(paste0(specialChars(i)," *[=] "),"",x)
+    for(i in abb) x<-gsub(paste0(specialChars(i)," *[=:] "),"",x)
     #for(i in full) x<-gsub(paste0(specialChars(i),"[,:] "),"",x)
   }
 
@@ -938,6 +961,7 @@ get.abbr<-function(text=NULL,footer=NULL){
     y<-unlist(strsplit(y,"[,;:]| and "))
     brack<-grep("\\([a-z]*[A-Z][-0-9A-Z_a-z/]*\\)",y,value=T)
     brack_abb<-gsub(".*\\(([a-z]*[A-Z][-0-9A-Z_a-z/]*)\\).*","\\1",brack)
+    
     pre_brack<-gsub("^ | $","",gsub(".*[[:punct:]]","",gsub("(.*) \\([a-z]*[A-Z][-0-9A-Z_a-z/]*\\).*","\\1",brack)))
     post_brack<-gsub(".*\\([a-z]*[A-Z][-0-9A-Z_a-z/]*\\)(.*)","\\1",brack)
     post_brack<-gsub("[[:punct:]] .*|^ ","",post_brack)
@@ -947,6 +971,7 @@ get.abbr<-function(text=NULL,footer=NULL){
     pre_brack<-pre_brack[i]
     post_brack<-post_brack[i]
     brack_abb<-brack_abb[i]
+    
     
     # try find the full text of abbreviation
     for(i in 1:length(brack_abb)){
@@ -958,12 +983,13 @@ get.abbr<-function(text=NULL,footer=NULL){
         if(chars==2) bag_pre<-ngram2(brack[i],brack_abb[i],c(-chars-2,-1))
         if(chars>2) bag_pre<-ngram2(brack[i],brack_abb[i],c(-chars-4,-1))
         if(length(bag_pre)==0) bag_pre<-""
-        if(is.na(bag_pre)) bag_pre <-  ""
+        if(is.na(bag_pre)|bag_pre==brack_abb[i]) bag_pre <-  ""
         
-        if(chars==2) bag_post<-ngram2(brack[i],brack_abb[i],c(1,chars+1))
-        if(chars>2) bag_post<-ngram2(brack[i],brack_abb[i],c(1,chars+2))
+        if(chars==1) bag_post<-ngram2(brack[i],brack_abb[i],c(0,1))
+        if(chars==2) bag_post<-ngram2(brack[i],brack_abb[i],c(0,chars+1))
+        if(chars>2) bag_post<-ngram2(brack[i],brack_abb[i],c(0,chars+2))
         if(length(bag_post)==0) bag_post<-""
-        if(is.na(bag_post)) bag_post <-  ""
+        if(is.na(bag_post)|bag_post==brack_abb[i]) bag_post <-  ""
         
         # remove till first char as start of word
         reduced<-gsub(paste0(".* (",firstChar,")|^(",firstChar,")" ),"\\1\\2",bag_pre)

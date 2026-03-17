@@ -132,7 +132,7 @@ parseMatrixContent<-function(x,legend=NULL,
       if(!is.matrix(m)) m<-as.matrix(m)
     }
   }
-  
+  m
   # convert Cronbachs alpha values
   if(length(alpha)>0)
     m<-enter.CrAlpha(m,alpha)
@@ -176,6 +176,7 @@ parseMatrixContent<-function(x,legend=NULL,
   
 
   # remove categorizing lines in correlation table
+  if(FALSE){ # deactivated
   if(class=="correlation"|class=="matrix"){ 
     m<-coding2variable(m)
     if(nrow(m)>2&ncol(m)>2&
@@ -184,7 +185,7 @@ parseMatrixContent<-function(x,legend=NULL,
       if(length(i)>0) m<-m[-(i+1),]
     }
   }
-  
+  }
   
   if(class!="text"&class!="vector"){
     if(nrow(m)>1&ncol(m)>1){
@@ -198,7 +199,6 @@ parseMatrixContent<-function(x,legend=NULL,
     #m<-textColHandling(m)
    }
   }
-  
   
   if(class!="text"&class!="vector"){
     # create new columns for brackets and percent
@@ -227,16 +227,21 @@ parseMatrixContent<-function(x,legend=NULL,
     }
   }
   
+  
   if(!is.matrix(m)) m<-as.matrix(m)
   
-  # convert numbers in brackets in inner matrix
   if(isTRUE(bracketHandling)){
-  if(length(parentheses)>0) m[-1,-1]<-bracket2value(m[-1,-1],parentheses,"parentheses",sep=",")
-  if(length(brackets)>0) m[-1,-1]<-bracket2value(m[-1,-1],brackets,"brackets",sep=",")
-  if(length(brackets)>0&length(parentheses)==0) m[-1,-1]<-bracket2value(m[-1,-1],brackets,"parentheses",sep=",")
-  if(length(brackets)==0&length(parentheses)>0) m[-1,-1]<-bracket2value(m[-1,-1],brackets,"brackets",sep=",")
+    # convert numbers in brackets in inner matrix
+    if(length(parentheses)>0) m[-1,-1]<-bracket2value(m[-1,-1],parentheses,"parentheses",sep=",")
+    if(length(brackets)>0) m[-1,-1]<-bracket2value(m[-1,-1],brackets,"brackets",sep=",")
+    if(length(brackets)>0&length(parentheses)==0) m[-1,-1]<-bracket2value(m[-1,-1],brackets,"parentheses",sep=",")
+    if(length(brackets)==0&length(parentheses)>0) m[-1,-1]<-bracket2value(m[-1,-1],brackets,"brackets",sep=",")
+    # move descriptor in brackets in first column to numbers in brackets
+    m<-bracketInRowHandler(m)
+    # comma list results in brackets
+    m[-1,-1]<-gsub(" \\(([A-z][-_0-9A-z\\^ ]* *[<=>]=* *-*[0-9\\.][0-9\\.\\^]*)\\)",", \\1",m[-1,-1])
   }
-  
+
   # add standard p-coding
   if(isTRUE(standardPcoding)&length(pval)==0){
     psign<-c("***","**","*")
@@ -336,8 +341,8 @@ parseMatrixContent<-function(x,legend=NULL,
     m[1,]<-gsub("^  *|  *$","",paste(m[1,],m[2,]))
     m<-m[-2,]
     if(!is.matrix(m)) m<-as.matrix(m)
-  }
-
+    }
+  
   ###################################################################
   ## specific correlation table handling
   correlations<-NULL
@@ -345,16 +350,18 @@ parseMatrixContent<-function(x,legend=NULL,
     # extract correlations as vector
     if(class=="correlation") correlations<-extractCorrelations(m,legendCodes=legend,remove=FALSE,
                                                                decodeP=decodeP,noSign2p=noSign2p,addNasDF=dfHandling,standardPcoding=standardPcoding)
-    if(class=="matrix") correlations<-extractMatrix(m,legendCodes=legend,remove=FALSE,
+    if(class=="matrix") correlations<-extractMatrix(resultRowCollapse(m),legendCodes=legend,remove=FALSE,
                                                     decodeP=decodeP,noSign2p=noSign2p,standardPcoding=standardPcoding)
     # table without correlations
     if(class=="correlation") m<-extractCorrelations(m,legendCodes=legend,remove=TRUE,
                                                     decodeP=decodeP,noSign2p=noSign2p,addNasDF=dfHandling,standardPcoding=standardPcoding)
-    if(class=="matrix") m<-extractMatrix(m,legendCodes=legend,remove=TRUE,
+    if(class=="matrix") m<-extractMatrix(resultRowCollapse(m),legendCodes=legend,remove=TRUE,
                                          decodeP=decodeP,noSign2p=noSign2p,standardPcoding=standardPcoding)
+    
     
     # set first cell to ""
     if(length(m)>0) m[1,1]<-""
+    
     
     # rotate if nrow<ncol to better read out descriptive  stats
     if(length(m)>0) 
@@ -375,8 +382,11 @@ parseMatrixContent<-function(x,legend=NULL,
   }
 } # results are in updated "m" and object "correlations"
 
+  if(length(m)==0) m<-NULL
+  if(length(m)==sum(grepl("^$",m))) m<-NULL
+
   # if first cell contains result create new line and move result to first cell in new line
-  if(is.matrix(m)) {
+  if(is.matrix(m)&length(m)>0) {
     if(nrow(m)>2){
       if(length(grep("[<=>]-*[\\.0-9]",m[1,1]))==1){
         m<-rbind(m[1,],rep("",ncol(m)),m[2:nrow(m),])
@@ -393,6 +403,9 @@ parseMatrixContent<-function(x,legend=NULL,
     m<-gsub("^[Nn]\\.*[Ss]\\.*$",";; p>.05",m)
   }
   
+  # collapse rows with empty first cell and different statistics to rows with first cell content in front
+  m<-resultRowCollapse(m)
+  m
   # add non significant p-values in columns that have cells with coded p-values,
   if(isTRUE(noSign2p)){
     # but exclude lines from model statistics/residuals

@@ -168,7 +168,7 @@ prepareMatrix<-function(x,split=FALSE,forceClass=NULL,na.rm=TRUE,legend=NULL){
 
   # split matrices
   if(isTRUE(split)){
-    # split at columns for enumerated multi models
+    # split at columns for enumerated multiple models
     if(is.list(x)){
       for(i in 1:length(x))
       x[[i]]<-splitter(x[[i]])

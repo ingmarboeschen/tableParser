@@ -1,6 +1,6 @@
 #' tableClass
 #'
-#' Classifies matrix content to either 'tabled results', 'correlation', 'matrix', 'text', 'vector', 'model with model statistics', or 'multi model with model statistics'. 
+#' Classifies matrix content to either 'tabled results', 'matrix', 'correlation', 'vector', 'text', 'model with model statistics', or 'multi-model with model statistics'. 
 #' @param x A character matrix.
 #' @param legend A text vector with the tables caption and/or footnote.
 #' @returns A character object of length=1 with the table's class.
@@ -181,12 +181,15 @@ tableClass<-function(x,legend=NULL){
     
   # detect matrix content
   # if 1st row and col contain more than 2 cells with the same name
-  if(class!="correlation"&
-     sum(is.element(unique(m[1,]),unique(m[,1])))>2){
-    class<-"matrix"
-  }
+  if(class!="correlation" &
+     sum(is.element(unique(m[1,][m[1,]!=""]),unique(m[,1][m[,1]!=""])))>2 | 
+     # or a sequence of increasing numbers in row and column
+     (suppressWarnings(hasSequence(na.omit(as.numeric(gsub("^\\(*([1-9][0-9]*)[^0-9]*.*","\\1",m[,1]))))) &
+     suppressWarnings(hasSequence(na.omit(as.numeric(gsub("^\\(*([1-9][0-9]*)[^0-9]*.*","\\1",m[1,]))))))
+  )   class<-"matrix"
   
-  # model and multi model
+  
+  # model and multi-model
   if(nrow(m)>2 &
      # has R^2|F|etc
      (length(grep("^R\\^*2|R\\^*2$|[^A-z]R\\^*2|R[- ][Ss]q|^F$|^AIC|^BIC|Aikaike|[Ii]nformation [Cr]iter",m[-1:-2,1]))>0 
@@ -207,7 +210,7 @@ tableClass<-function(x,legend=NULL){
      length(grep("[\\.0]*[0-9]",m[ind[1],]))>1|
      length(grep("[\\.0]*[0-9]",m[ind[2],]))>1
      ){
-    class<-"multi model with model statistics"
+    class<-"multi-model with model statistics"
   }}
   
   return(class)

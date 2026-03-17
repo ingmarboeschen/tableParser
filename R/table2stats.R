@@ -54,7 +54,6 @@
 #' @importFrom JATSdecoder standardStats
 #' @importFrom JATSdecoder get.multi.comparison
 #' @importFrom JATSdecoder get.alpha.error
-#' @importFrom JATSdecoder pCheck
 #' @return A data.frame object with the extracted statistical standard results, recalculated p-values and a rudimentary, optional consistency check for reported p-values (if 'checkP=TRUE'). 
 #' @export
 
@@ -97,8 +96,7 @@ table2stats<-function(x,
                        )
   o_name<-paste("Unified standard stats in ",names(text))
   # rename the output
-  if(length(text)>0&is.list(text)) names(text)<-o_name #paste("Unified standard stats in Table",1:length(text))
-
+  if(length(text)>0&is.list(text)) names(text)<-o_name 
     
   ########### 
   ## extract statistics
@@ -136,8 +134,8 @@ table2stats<-function(x,
   raw<-grep("[<=>] *-*[\\.0-9][\\.0-9]*",raw,value=TRUE)
   
   # convert ns to p>.05
-  if(isTRUE(standardPcoding)) text<-gsub("([0-9])*[,:;\\^] *[Nn]\\.*[Ss]\\.*$","\\1;; p>.05",text)
-  if(isTRUE(standardPcoding)) text<-gsub("([0-9])*[,:;\\^] *[Nn]\\.*[Ss]\\.*([,:; ])","\\1;; p>.05\\2",text)
+  text<-gsub("([0-9])*[,:;\\^] *[Nn]\\.*[Ss]\\.*$",paste0("\\1;; p>",alpha),text)
+  text<-gsub("([0-9])*[,:;\\^] *[Nn]\\.*[Ss]\\.*([,:; ])",paste0("\\1;; p>",alpha,"\\2"),text)
   
   # remove space around operators
   text<-gsub(" *([<=>][<=>]*) *(-*[\\.0-9])","\\1\\2",text)        
@@ -148,6 +146,9 @@ table2stats<-function(x,
   #remove brackets if is followed by letter-anything except results
   text<-gsub(" \\(([A-z][^\\)]*)\\)([^<=>])"," \\1\\2",text)
   text<-gsub(" \\[([A-z][^]]*)\\]([^<=>])"," \\1\\2",text)
+  
+  # remove text behind last result
+  gsub("([<=>]-*[0-9\\.][0-9\\.]*)[^<=>]*$","\\1",x)
   
   ###########################
   text<-JATSdecoder::letter.convert(text,greek2text=TRUE)
@@ -239,9 +240,10 @@ table2stats<-function(x,
   # add correction method as column?
   stats$correction_meth<-paste(correction,collapse=", ")
   
-  # set to NA if no recalucaltedP
-  stats$alpha4check[is.na(stats$recalculatedP)]<-NA
-  stats$correction_meth[is.na(stats$recalculatedP)]<-NA
+  # set to NA if no check was performed
+  stats$alpha4check[is.na(stats$error)]<-NA
+  stats$correction_meth[is.na(stats$error)]<-NA
+  stats$correction_meth[grep("^[, ]*$",stats$correction_meth)]<-NA
   # return captured warnings, if recalculatedP is present
   if(sum(!is.na(stats$recalculatedP))>0){
     if(!is.null(correctionWarn)) warning(correctionWarn)
