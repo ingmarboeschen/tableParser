@@ -88,7 +88,8 @@ matrix2text<-function(x,legend=NULL,
   x<-lapply(x,function(x) gsub("([0-9])</bold>","\\1^bold",gsub("([0-9])</italic>","\\1^italic",x)))
   x<-lapply(x,function(x) gsub("([0-9])</b>","\\1^bold",gsub("([0-9])</i>","\\1^italic",x)))
   
-  x<-lapply(x,function(x) gsub("</*[A-z][^>]*>","",x))
+  x<-lapply(x,function(x) gsub("</*[A-z!][^>]*>","",x))
+  
   
   # escape if no characters left
   if(sum(nchar(unlist(x)))==0) return(x)

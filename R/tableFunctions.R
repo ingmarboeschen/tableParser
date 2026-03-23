@@ -1279,7 +1279,8 @@ sign2p<-function(x,sign,val,sep=";;"){
     x[1,]<-gsub("([A-z[:punct:]] *)\\^bold|([A-z[:punct:]] *)\\^italic","\\1\\2",x[1,])
     # and behind letter in full matrix
     x<-gsub("([A-z[:punct:]] *)\\^bold|([A-z] *)\\^italic","\\1\\2",x)
-    # replace sign with p value,
+    
+    ## replace sign with p value,
     # if has no letter-num-sign and if at end
     incl<-!grepl(paste0("[A-z][-_]*[0-9][0-9]*",sign[i]),x)
     x[incl]<-gsub(paste0("[0-9\\)\\]] *\\^*",sign[i],"[[:punct:]]*$"),
@@ -1287,6 +1288,9 @@ sign2p<-function(x,sign,val,sep=";;"){
     # and sign is not between a pair of letters or pair of numbers
     incl<-incl & !grepl(paste0("[A-z] *\\^*",sign[i]," *[[:alpha:]]",
                        "|[0-9] *\\^*",sign[i]," *[0-9]"),x)
+    # nor behind only letters and at end
+    incl<-incl & !grepl(paste0("^[A-z][^0-9<=>]*",sign[i],"$"),x)
+    
     x[incl]<-gsub(paste0(" *\\^*",sign[i],"([,; 0-9])| *\\^*",sign[i],"[[:punct:]]*$"),
             # p value with seperator     
             paste0(sep," ",val[i],"\\1"),x[incl])

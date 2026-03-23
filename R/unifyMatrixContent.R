@@ -147,13 +147,17 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,
     # " / "
     x<-gsub(" */ *","/",x)
     # remove all other html brackets
-    x<-gsub("</*[a-z][^>]*/*>","",x)
+    x<-gsub("</*-*[!A-z][^>]*/*>","",x)
     # "*^*" to "**"
     x<-gsub("\\*\\^\\*","**",gsub("\\*\\^\\*","**",x))
     # unify minus/hyphen sign
     x<-gsub("\u2212|\u02D7|\u002D|\u2013","-",x)
     # superscripted 2
     x<-gsub("\u00b3","^2",x)
+    
+    # add space in front of brackets
+    x<-gsub("([0-9])\\(","\\1 (",x)
+    x<-gsub("([0-9])\\[","\\1 [",x)
     
     ## clean up empty cells
     # set only dot, minus, or slash to empty

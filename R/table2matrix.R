@@ -150,11 +150,11 @@ table2matrix<-function(x,unifyMatrix=FALSE,
       m<-lapply(m,function(x) gsub(">[\\.@][a-z][^\\{]*\\{[a-z].*\\}\\}",">",x))
       m<-lapply(m,function(x) gsub(">[\\.@][a-z][^\\{]*\\{[a-z][^\\{]*\\}",">",x))
       # remove all other html-tags
-      m<-lapply(m,function(x) gsub("</*[a-z][^>]*/*>|</*[a-z]/*>","",x))
+      m<-lapply(m,function(x) gsub("</*-*[A-z!][^>]*>","",x))
       m<-lapply(m,function(x) gsub("</*inline[^>]*/*>|</*inline[^>]*/*>","",x))
       # space reduction
       m<-lapply(m,function(x) gsub("  *"," ",x))
-      m<-lapply(m,function(x) gsub("^ $","",x))
+      m<-lapply(m,function(x) gsub("^ | $","",x))
       # remove styles
       m<-lapply(m,function(x) gsub("[\\.@][a-z][^\\{]*\\{[a-z].*\\}\\}","",x))
       m<-lapply(m,function(x) gsub("[\\.@][a-z][^\\{]*\\{[a-z][^\\{]*\\}","",x))
@@ -498,7 +498,7 @@ singleTable2matrix<-function(x,letter.convert=TRUE,# Logical. If TRUE hex codes 
     cells<-lapply(cells,function(x) gsub(">[\\.@][a-z][^\\{]*\\{[a-z].*\\}\\}",">",x))
     cells<-lapply(cells,function(x) gsub(">[\\.@][a-z][^\\{]*\\{[a-z][^\\{]*\\}",">",x))
     # remove all other tags
-    cells<-lapply(cells,function(x) gsub("</*[a-z][^>]*/*>|</*[a-z]/*>","",x))
+    cells<-lapply(cells,function(x) gsub("</*-*[A-z!][^>]*/*>","",x))
     cells<-lapply(cells,function(x) gsub("</*inline[^>]*/*>|</*inline[^>]*/*>","",x))
     # space reduction
     cells<-lapply(cells,function(x) gsub("  *"," ",x))
