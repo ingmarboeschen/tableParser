@@ -127,8 +127,12 @@ A valuable resource for big scale table analyses with tableParser is the PubMed-
 ```
   
 ## References
+<div id="tableParser">
+- Böschen, I. (2026). Extraction of tabulated statistical results with tableParser. arXiv preprint. https://doi.org/10.48550/arXiv.2603.19756
+</div>
+
 <div id="JATSdecoder">
-- Böschen, I. (2021) Software review: The JATSdecoder package—extract metadata, abstract and sectioned text from NISO-JATS coded XML documents; Insights to PubMed central’s open access database. Scientometrics. https://doi.org/10.1007/s11192-021-04162-z
+- Böschen, I. (2021). Software review: The JATSdecoder package—extract metadata, abstract and sectioned text from NISO-JATS coded XML documents; Insights to PubMed central’s open access database. Scientometrics. https://doi.org/10.1007/s11192-021-04162-z
 </div>
   
 <div id="get.stats">
