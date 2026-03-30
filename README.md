@@ -123,14 +123,14 @@ A valuable resource for big scale table analyses with tableParser is the PubMed-
     title = {tableParser: Parse Tabled Content to Text Vector and Extract Statistical Standard Results},
     author = {Ingmar Böschen},
     year = {2026},
-    note = {R package version 1.0.3},
+    note = {R package version 1.0.4},
     url = {https://github.com/ingmarboeschen/tableParser},
   }
 ```
   
 ## References
 <div id="tableParser">
-- Böschen, I. (2026). Extraction of tabulated statistical results with tableParser. arXiv preprint. https://doi.org/10.48550/arXiv.2603.19756
+- Böschen, I. (2026). Extraction of tabulated statistical results with tableParser. arXiv. https://doi.org/10.48550/arXiv.2603.19756
 </div>
 
 <div id="JATSdecoder">
