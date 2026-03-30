@@ -15,5 +15,5 @@ tableClass(x, legend = NULL)
 A character object of length=1 with the table's class.
 }
 \description{
-Classifies matrix content to either 'tabled results', 'correlation', 'matrix', 'text', 'vector', 'model with model statistics', or 'multi model with model statistics'.
+Classifies matrix content to either 'tabled results', 'matrix', 'correlation', 'vector', 'text', 'model with model statistics', or 'multi-model with model statistics'.
 }
