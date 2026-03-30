@@ -436,7 +436,6 @@ singleTable2matrix<-function(x,letter.convert=TRUE,# Logical. If TRUE hex codes 
   # apply function to insert cells by rowspan
   cells<-insert.rowspan(cells,replicate=replicate,repNums=repNums)
   
-  
   # escape if no cells are left
   if(length(cells)==0) return(NULL)
   
@@ -485,8 +484,10 @@ singleTable2matrix<-function(x,letter.convert=TRUE,# Logical. If TRUE hex codes 
   cells<-lapply(cells,function(x) gsub("</t[dr]>|</t[dr]>|<t[dr]/*>|<t[dr] [^>]*>","",x))
   # remove html  
   if(isTRUE(rm.html)){
-    # convert </break> to space, <sub> to _, <sup> to ^ and remove all other html-tags
+    # convert </break>(<br>) to space, <sub> to _, <sup> to ^ and remove all other html-tags
     cells<-lapply(cells,function(x) gsub("</*break/*>"," ",x))
+    cells<-lapply(cells,function(x) gsub("</*br/*>"," ",x))
+    
     cells<-lapply(cells,function(x) gsub(" *<sub> *","_",x))
     cells<-lapply(cells,function(x) gsub(" *<sup> *","^",x))
     # convert bold and italic numbers to number^bold/number^italic

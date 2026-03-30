@@ -304,6 +304,7 @@ headerHandling<-function(m){
   if(nrow(m)==2) loop<-FALSE
   }
   
+  
   #collapse first two lines if second cell in first column is empty and no digit number in second row
   loop<-TRUE
   while(isTRUE(loop) & m[1,1]!=""&m[2,1]==""& length(grep("\\.[0-9]|[Nn]\\.[Ss]\\.|^ns$",m[2,-1]))==0){
@@ -319,11 +320,12 @@ headerHandling<-function(m){
   }
   
   # collapse first two lines if first two rows have character, 
-  # and second row has no result and last row numeric and second row does not only contain the same value 
+  # and second row has no result and last row numeric and second row does not only contain the same value nor digit numbers
   while(nrow(m)>2 & ncol(m)>1 & 
         length(grep("[A-z]|^$",gsub("\\^[A-z]*|<su[pb].*","",m[1,])))==ncol(m) &
         length(grep("[A-z]|^$",gsub("\\^[A-z]*|<su[pb].*","",m[2,])))==ncol(m) &
         length(grep("[A-z]\\^*2* *[<=>][<=>]* *[-0-9\\.]",m[2,]))==0 &
+        length(grep("\\.[0-9]",m[2,]))==0 &
         length(grep("[Nn]\\.[Ss]\\.|^n\\.*s\\.*$",m[2,]))==0 &
         sum(is.element( m[2,-1],m[2,1]))!=length(m[2,-1]) &
         sum(is.element( m[2,-1],""))!=length(m[2,-1]) &
@@ -477,9 +479,9 @@ coding2variable<-function(m){
   preTextRow1<-NULL
   # if first row has sequence at end
   if(
-    hasSequence(suppressWarnings(na.omit(as.numeric(gsub("^[^1-9].*[^A-z\\^]([1-9][0-9]*)\\.*\\)*$","\\1",m[1,]))))) & 
+    hasSequence(suppressWarnings(stats::na.omit(as.numeric(gsub("^[^1-9].*[^A-z\\^]([1-9][0-9]*)\\.*\\)*$","\\1",m[1,]))))) & 
     # and first column has sequence at beginning
-    hasSequence(suppressWarnings(na.omit(as.numeric(gsub("^([1-9]).*","\\1",m[,1])))))
+    hasSequence(suppressWarnings(stats::na.omit(as.numeric(gsub("^([1-9]).*","\\1",m[,1])))))
     ){
     # get preText
     preTextRow1<-gsub("(.*)[^A-z][1-9][0-9]*\\.*\\)*$","\\1",m[1,])
@@ -1100,9 +1102,9 @@ extractMatrix<-function(x,
   if(is.vector(m)) m<-matrix(m,ncol=length(m))
   
   # empty matrix if only one row or column is left
-  if(nrow(m)<=1|ncol(m)<=1) {m<-NULL}else{
+  if(nrow(m)<=1|ncol(m)<=1){m<-NULL}else{
   # remove empty columns
-  m<-m[,colSums(m[,]=="")==(nrow(m))]
+  m<-m[,colSums(m[,]=="")!=(nrow(m))]
   if(is.vector(m)) m<-matrix(m,ncol=1)}
   
   # insert diaginal statistic instead of r=
@@ -2147,7 +2149,7 @@ sequenceSplit<-function(x){
 ## collapse all cells with pasted statistics per col 
 hasSequence<-function(x){
   x<-suppressWarnings(as.numeric(x))
-  x<-unname(na.omit(x))
+  x<-unname(stats::na.omit(x))
   if(length(x)==0) return(FALSE)
   if(length(x)==1) return(FALSE)
   temp<-NULL

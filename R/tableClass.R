@@ -184,8 +184,8 @@ tableClass<-function(x,legend=NULL){
   if(class!="correlation" &
      sum(is.element(unique(m[1,][m[1,]!=""]),unique(m[,1][m[,1]!=""])))>2 | 
      # or a sequence of increasing numbers in row and column
-     (suppressWarnings(hasSequence(na.omit(as.numeric(gsub("^\\(*([1-9][0-9]*)[^0-9]*.*","\\1",m[,1]))))) &
-     suppressWarnings(hasSequence(na.omit(as.numeric(gsub("^\\(*([1-9][0-9]*)[^0-9]*.*","\\1",m[1,]))))))
+     (suppressWarnings(hasSequence(stats::na.omit(as.numeric(gsub("^\\(*([1-9][0-9]*)[^0-9]*.*","\\1",m[,1]))))) &
+     suppressWarnings(hasSequence(stats::na.omit(as.numeric(gsub("^\\(*([1-9][0-9]*)[^0-9]*.*","\\1",m[1,]))))))
   )   class<-"matrix"
   
   

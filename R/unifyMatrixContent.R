@@ -138,6 +138,8 @@ unifyMatrixContent<-function(x,letter.convert=TRUE,
     # super and subscript
     x<-gsub("<sup>","^",x)
     x<-gsub("<sub>","_",x) 
+    x<-gsub("</*br/*>"," ",x)
+    
     # lower asterix to *
     x<-gsub("\u204e","*",x) 
     

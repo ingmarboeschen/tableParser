@@ -84,6 +84,7 @@ matrix2text<-function(x,legend=NULL,
   
   # remove html but convert sub and sup, bold and italic numbers
   x<-lapply(x,function(x) gsub("<sub>","_",gsub("<sup>","^",x)))
+  x<-lapply(x,function(x) gsub("</*br/*>"," ",x))
   
   x<-lapply(x,function(x) gsub("([0-9])</bold>","\\1^bold",gsub("([0-9])</italic>","\\1^italic",x)))
   x<-lapply(x,function(x) gsub("([0-9])</b>","\\1^bold",gsub("([0-9])</i>","\\1^italic",x)))
