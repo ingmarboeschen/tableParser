@@ -67,8 +67,8 @@ Discover further examples for the special handling of correlation matrices and m
 install.packages("tableParser")
 
 # latest github version
-if(require(devtools)!=TRUE) install.packages("devtools")
-devtools::install_github("ingmarboeschen/tableParser")
+if(require(pak)!=TRUE) install.packages("pak")
+pak::pak("ingmarboeschen/tableParser")
 ```
 
 ## Examples for table processing in docx, html and pdf documents
