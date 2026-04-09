@@ -590,6 +590,7 @@ extractCorrelations<-function(x,
                               legendCodes=NULL,
                               remove=FALSE,decodeP=TRUE,noSign2p=TRUE,
                               standardPcoding=TRUE,addNasDF=TRUE){
+  
   if(isFALSE(decodeP)) noSign2p<-FALSE
   # prepare legend codings
   parentheses<-NULL;brackets<-NULL;psign<-NULL;pval<-NULL;italic<-NULL;bold<-NULL;N<-NULL;diagonal<-NULL;boldValue<-NULL;italicValue<-NULL
@@ -634,7 +635,9 @@ extractCorrelations<-function(x,
 #  m[1,]<-gsub( "^A* *[Cc]orrelations* *","",m[1,])
 #  m[1,]<-gsub( "^A* *Pear*s*o*n*'*s* *r* *[Cc]orrelations* *","",m[1,])
   
-  
+  # remove bold and italic from first row and col
+  m[1,]<-gsub("\\^bold|\\italic","",m[1,])
+  m[,1]<-gsub("\\^bold|\\italic","",m[,1])
   m
   # move number in bracket at end in first row and col to front
   m[1,]<-gsub("^([A-z][-A-z _\\^\\.\\*]*) (\\([1-9][0-9]*\\))$","\\2 \\1",m[1,])
@@ -2005,6 +2008,52 @@ newColumnCI<-function(x){
   x<-unname(x)
   return(x)
 }
+
+
+
+# paste rows with only numbers in brackets to row in front
+PasteOnlyBracketRows<-function(x){
+if(!is.matrix(x)) return(x)  
+if(nrow(x)<3) return(x) 
+  # round brackets
+  i <- (x[,1]=="" | c(FALSE,x[-1,1]==x[-nrow(x),1])) &
+    rowSums(matrix(grepl("^$|^\\(-*[0-9\\.][0-9\\.]*\\)|^\\(-*[0-9\\.][0-9\\.]*\\^.*\\)",x[,-1]),nrow=nrow(x)))==(ncol(x)-1)
+  i[1]<-FALSE
+# only if is has no sequence of rows 
+if(sum(i)>0 & sum(which(i)==(which(i)+1))==0){
+  # remove duplicated row name
+  x[c(FALSE,x[-1,1]==x[-nrow(x),1]),1]<-""
+  # paste content
+  x[which(i)-1,]<-matrix(paste(
+    x[which(i)-1,],
+    x[i,]),ncol=ncol(x))
+  Nc<-ncol(x)
+  x<-x[(!i),]
+  if(!is.matrix(x)) x<-matrix(x,ncol=Nc)
+  x<-gsub("  *$","",x)
+}
+
+  # squared brackets
+  i <- (x[,1]=="" | c(FALSE,x[-1,1]==x[-nrow(x),1])) &
+    rowSums(matrix(grepl("^$|^\\[-*[0-9\\.][0-9\\.]*\\]|^\\[-*[0-9\\.][0-9\\.]*\\^.*\\]",x[,-1]),nrow=nrow(x)))==(ncol(x)-1)
+  i[1]<-FALSE
+  # only if is has no sequence of rows 
+  if(sum(i)>0 & sum(which(i)==(which(i)+1))==0){
+    # remove duplicated row name
+    x[c(FALSE,x[-1,1]==x[-nrow(x),1]),1]<-""
+    # paste content
+    x[which(i)-1,]<-matrix(paste(
+      x[which(i)-1,],
+      x[i,]),ncol=ncol(x))
+    Nc<-ncol(x)
+    x<-x[(!i),]
+    if(!is.matrix(x)) x<-matrix(x,ncol=Nc)
+    x<-gsub("  *$","",x)
+  }
+  
+  return(x)
+}
+
 
 # flatten list of lists to simple list
 flatten<-function(x){

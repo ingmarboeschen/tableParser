@@ -206,6 +206,8 @@ parseMatrixContent<-function(x,legend=NULL,
       m<-newColumnBracket(m)
       m<-newColumnCI(m)
       m<-percentHandler(m)
+      m<-PasteOnlyBracketRows(m)
+      
     }
     # Re-classify table
     #class<-tableClass(m,legend=legend)
@@ -250,6 +252,11 @@ parseMatrixContent<-function(x,legend=NULL,
   
   # decode p values 
   if(isTRUE(decodeP)){
+  
+    # remove bold and italic from first row and col
+    m[1,]<-gsub("\\^bold|\\italic","",m[1,])
+    m[,1]<-gsub("\\^bold|\\italic","",m[,1])
+  
   if(length(pval)>0) 
     # full matrix
     m<-sign2p(m,psign,pval,sep=";;")
