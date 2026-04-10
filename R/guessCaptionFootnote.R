@@ -171,12 +171,12 @@ guessCaptionFootnote<-function(x,
     s<-grep("<table[> ]",b)
     e<-grep("</table[> ]",b)
     for(i in 1:length(s)) 
-      b[s[i]]<-paste(b[s[i]:e[i]],collapse = " ")
+      if(s[i]!=e[i]) b[s[i]]<-paste(b[s[i]:e[i]],collapse = " ")
     for(i in length(s):1) 
-      b<-b[-((s[i]+1):e[i])]
+      if(s[i]!=e[i]) b<-b[-((s[i]+1):e[i])]
     # lines with tables
     i<-grepl("<table[> ]",b)
-    
+    sum(i)
     # remove empty entries 
     b<-b[nchar(gsub("^ *$|^ ","",gsub("  "," ",gsub("<[^>][^>]*>","",b[]))))>0]
     
@@ -216,9 +216,26 @@ guessCaptionFootnote<-function(x,
     footer3[unlist(lapply(lapply(footer3,JATSdecoder::text2sentences),length))>MaxFootnoteLength]<-NA
     
     footer1[is.na(footer1)]<-""
-    footer2[is.na(footer2)|footer2==""]<-"REMOVE"
-    footer3[is.na(footer3)|footer3==""]<-"REMOVE"
+    footer2[is.na(footer2)|footer2==""]<-"REMOVED"
+    footer3[is.na(footer3)|footer3==""]<-"REMOVED"
     
+    # remove footers with too many sentences
+    l1<-unlist(lapply(lapply(footer1,JATSdecoder::text2sentences),length))
+    l1[footer1=="REMOVED"]<-0
+    l2<-unlist(lapply(lapply(footer2,JATSdecoder::text2sentences),length))
+    l2[footer2=="REMOVED"]<-0
+    l3<-unlist(lapply(lapply(footer3,JATSdecoder::text2sentences),length))
+    l3[footer3=="REMOVED"]<-0
+    
+    l1+l2+l3
+    footer3[(l1+l2+l3)>MaxFootnoteLength]<-"REMOVED"
+    l3<-unlist(lapply(lapply(footer3,JATSdecoder::text2sentences),length))
+    l3[footer3=="REMOVED"]<-0
+    
+    footer2[(l1+l2+l3)>MaxFootnoteLength]<-"REMOVED"
+    l2[footer2=="REMOVED"]<-0
+    
+    # collapse footer text
     footer<-JATSdecoder::letter.convert(gsub("  *"," ",gsub(" *REMOVED*.*|^  *|  *$","",paste(footer1,footer2,footer3))))
     
     # remove caption, if has more than MaxCaptionLength sentences
