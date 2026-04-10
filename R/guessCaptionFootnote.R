@@ -130,21 +130,37 @@ guessCaptionFootnote<-function(x,
     footer3<-gsub("<[^>][^>]*>","",b[i+3])
     
     footer1[is.na(footer1)]<-""
-    footer2[is.na(footer2)|footer2==""]<-"REMOVE"
-    footer3[is.na(footer3)|footer3==""]<-"REMOVE"
+    footer2[is.na(footer2)|footer2==""]<-"REMOVED"
+    footer3[is.na(footer3)|footer3==""]<-"REMOVED"
     
     # add . ad end if has none.
     footer1<-gsub("([0-9A-z])$","\\1.",footer1)
     footer2<-gsub("([0-9A-z])$","\\1.",footer2)
     footer3<-gsub("([0-9A-z])$","\\1.",footer3)
     
+    # remove footers with too many sentences
+    l1<-unlist(lapply(lapply(footer1,JATSdecoder::text2sentences),length))
+    l1[footer1=="REMOVED"]<-0
+    l2<-unlist(lapply(lapply(footer2,JATSdecoder::text2sentences),length))
+    l2[footer2=="REMOVED"]<-0
+    l3<-unlist(lapply(lapply(footer3,JATSdecoder::text2sentences),length))
+    l3[footer3=="REMOVED"]<-0
+    
+    footer3[(l1+l2+l3)>MaxFootnoteLength]<-"REMOVED"
+    l3<-unlist(lapply(lapply(footer3,JATSdecoder::text2sentences),length))
+    l3[footer3=="REMOVED"]<-0
+    
+    footer2[(l1+l2+l3)>MaxFootnoteLength]<-"REMOVED"
+    l2[footer2=="REMOVED"]<-0
+    
+    # collapse
     footer<-JATSdecoder::letter.convert(gsub("  *"," ",gsub(" *REMOVED*.*|^  *|  *$","",paste(footer1,footer2,footer3))))
     
-    # remove caption, if has more than 2 sentences
+    # remove caption, if has more than MaxCaptionLength sentences
     l<-unlist(lapply(lapply(caption,JATSdecoder::text2sentences),length))
     caption[l>MaxCaptionLength]<-""
     
-    # remove footer, if has more than 4 sentences
+    # remove footer, if has more than MaxFootnoteLength sentences
     l<-unlist(lapply(lapply(footer,JATSdecoder::text2sentences),length))
     footer[l>MaxFootnoteLength]<-""
     
