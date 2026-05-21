@@ -821,7 +821,6 @@ get.diagonal<-function(x){
 
 ## get abbreviations and corresponding values
 get.abbr<-function(text=NULL,footer=NULL){
-
   # escape
   if(length(text)==0&length(footer)==0) return(list(abbreviation=NULL,label=NULL))
   
@@ -874,7 +873,8 @@ get.abbr<-function(text=NULL,footer=NULL){
   x<-gsub(" \\([A-Z][A-z\\.& ]*[,;] [1-2][0-9]{3}\\)","",x)
   # clean up front
   x<-gsub("^[ ,;:\\.]*","",x)
-
+  # { and } to ;
+  x<-gsub(" *\\{|\\} *","; ",x)
   # remove listings of abbreviations
 #  x<-gsub("[A-Z][-0-9A-Z/]*[,; ]*(and|or|[,;]) [A-Z][-0-9A-Z][-0-9A-Z/]*[,; ]*(and|or|[,;]) [A-Z][-0-9A-Z][-0-9A-Z/]*","",x)
 #  x<-gsub("[A-Z][-0-9A-Z/]*[,; ]*(and|or|[,;]) [A-Z][-0-9A-Z][-0-9A-Z/]*","",x)

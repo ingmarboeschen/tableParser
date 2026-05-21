@@ -239,7 +239,8 @@ parseMatrixContent<-function(x,legend=NULL,
     if(length(brackets)>0&length(parentheses)==0) m[-1,-1]<-bracket2value(m[-1,-1],brackets,"parentheses",sep=",")
     if(length(brackets)==0&length(parentheses)>0) m[-1,-1]<-bracket2value(m[-1,-1],brackets,"brackets",sep=",")
     # move descriptor in brackets in first column to numbers in brackets
-    m<-bracketInRowHandler(m)
+    if(class!="correlation") 
+      m<-bracketInRowHandler(m)
     # comma list results in brackets
     m[-1,-1]<-gsub(" \\(([A-z][-_0-9A-z\\^ ]* *[<=>]=* *-*[0-9\\.][0-9\\.\\^]*)\\)",", \\1",m[-1,-1])
   }
@@ -563,7 +564,7 @@ parseContent<-function(x,forceClass=NULL){
   out<-gsub("([,:]) [,:]","\\1",out)
   out<-gsub(", [^,:=]*: , ",", ",out)
   out<-gsub(", [^,:=]*[:,] *$","",out)
-  
+  out<-out[out!=""]
   return(out)
   
 }

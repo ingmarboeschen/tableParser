@@ -99,7 +99,7 @@ prepareMatrix<-function(x,split=FALSE,forceClass=NULL,na.rm=TRUE,legend=NULL){
   
   ## if second column contains enumerated text 
   # paste first and second col -> "col2 (col1)"
-  if(ncol(x)>1 & isTRUE(
+  if(ncol(x)>4 & isTRUE(
     grep("^\\(1\\)|^1\\. *[A-z]",x[-1,2])[1]==grep("^\\(2\\)|^2\\. *[A-z]",x[-1,2])[1]-1&
     grep("^\\(1\\)|^1\\. *[A-z]",x[-1,2])[1]==grep("^\\(3\\)|^3\\. *[A-z]",x[-1,2])[1]-2)){
     x[,2]<-paste0(x[,2],rep(" (",length(x[,1])),x[,1],rep(")",length(x[,1])))
@@ -112,7 +112,8 @@ prepareMatrix<-function(x,split=FALSE,forceClass=NULL,na.rm=TRUE,legend=NULL){
   }
   
   # paste first and second col -> "col2 (col1)"
-  if(ncol(x)>1 & isTRUE(
+  if(ncol(x)>1)
+    if(isTRUE(
     grep("^1[\\.]*$",x[-1,2])[1]==grep("^2[\\.]*$",x[-1,2])[1]-1&
     grep("^1[\\.]*$",x[-1,2])[1]==grep("31[\\.]*$",x[-1,2])[1]-2)){
     x[,2]<-paste0(x[,2],rep(" ",length(x[,1])),x[,1])

@@ -178,25 +178,30 @@ tableClass<-function(x,legend=NULL){
   }
   }
   
-    
+  
   # detect matrix content
   # if 1st row and col contain more than 2 cells with the same name
   if(class!="correlation" &
-     sum(is.element(unique(m[1,][m[1,]!=""]),unique(m[,1][m[,1]!=""])))>2 | 
+     (sum(is.element(unique(m[1,][m[1,]!=""]),unique(m[,1][m[,1]!=""])))>2 | 
      # or a sequence of increasing numbers in row and column
      (suppressWarnings(hasSequence(stats::na.omit(as.numeric(gsub("^\\(*([1-9][0-9]*)[^0-9]*.*","\\1",m[,1]))))) &
-     suppressWarnings(hasSequence(stats::na.omit(as.numeric(gsub("^\\(*([1-9][0-9]*)[^0-9]*.*","\\1",m[1,]))))))
+     suppressWarnings(hasSequence(stats::na.omit(as.numeric(gsub("^\\(*([1-9][0-9]*)[^0-9]*.*","\\1",m[1,])))))
+     )) &
+     # has not more than one of ... in first row
+     length(grep("^[ptF]$|p-value|^SE$|^beta$|^df$| [pt]$| SE$| beta$",m[1,]))<2 &
+     # first column
+     length(grep("^[ptF]$|p-value|^SE$|^beta$|^df$| [pt]$| SE$| beta$",m[,1]))<2
+     
+     
   )   class<-"matrix"
   
   
   # model and multi-model
   if(nrow(m)>2 &
      # has R^2|F|etc
-     (length(grep("^R\\^*2|R\\^*2$|[^A-z]R\\^*2|R[- ][Ss]q|^F$|^AIC|^BIC|Aikaike|[Ii]nformation [Cr]iter",m[-1:-2,1]))>0 
-      | 
+     (length(grep("^R\\^*2|R\\^*2$|[^A-z]R\\^*2|R[- ][Ss]q|^F$|^AIC|^BIC|Aikaike|[Ii]nformation [Cr]iter",m[-1:-2,1]))>0 | 
       length(grep("^R\\^*2|R\\^*2$|[^A-z]R\\^*2|R[- ][Ss]q|^F$|^AIC|^BIC|Aikaike|[Ii]nformation [Cr]iter",m[1,-1:-2]))>0 
-      )
-     & 
+      ) & 
     # has Regression/Model in legend or header?
     (length(grep("[Rr]egression|[Mm]odel",legend))>0|length(grep("[Rr]egression|[Mm]odel",m))>0)
   ){
