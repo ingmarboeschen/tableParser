@@ -829,6 +829,9 @@ get.abbr<-function(text=NULL,footer=NULL){
   
   # correct [.;][A-z]
   x<-gsub("[\\.;]([A-z])",". \\1",x)
+  # remove sorrounding brackets
+  x<-gsub("^ *\\[(.*)\\][ [:punct:]]*$","\\1",x)
+  x<-gsub("^ *\\((.*)\\)[ [:punct:]]*$","\\1",x)
   # unify seperators around abbreviation
   x<-gsub(",( [A-Z][[:punct:]A-Z0-9]*), ",";\\1, ",x)
   x<-gsub(",( [A-Z][[:punct:]A-Z0-9]*)[;:] ",";\\1, ",x)
@@ -1085,6 +1088,10 @@ get.abbr<-function(text=NULL,footer=NULL){
   #    full[i]<-gsub(paste0(".*",specialChars(abb[i]),"([^A-z0-1])"),paste0(abb[i],"\\1"),full[i])
   #}
   
+  # remove sorrounding brackets
+  abb<-gsub("^ *\\[(.*)\\]*[ [:punct:]]*$","\\1",abb)
+  abb<-gsub("^ *\\((.*)\\)*[ [:punct:]]*$","\\1",abb)
+  
   # remove tailoring '' or brackets
   full<-gsub("^[']([^'][^']*)[']*$","\\1",full)
   full<-gsub("^\\(([^\\)][^\\)]*)\\)*$","\\1",full)
@@ -1114,7 +1121,7 @@ get.abbr<-function(text=NULL,footer=NULL){
   
   abb<-abb[i]
   full<-full[i]
-  
+   
   # combine
   abbreviation<-c(abb,brack_abb)
   label<-c(full,brack_label)

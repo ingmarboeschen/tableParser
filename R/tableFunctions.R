@@ -1240,6 +1240,7 @@ groupCor<-function(m){
 # collapse lines with different results with letter-operator
 resultRowCollapse<-function(m){
   if(length(m)==0) return(m)
+  if(!is.matrix(m)) return(m)
   if(nrow(m)<3) return(m)
   if(
     # if first column has at least one empty cell 
@@ -1254,6 +1255,8 @@ resultRowCollapse<-function(m){
     # and only results or empty cells
     j<-which(m[,1]!="")
     j<-j[j>1]
+    if(length(j)==0) return(m)
+    
     # get start and end row
     st<-j
     if(length(j)>1) end<-c(j[-1]-1,nrow(m))
@@ -1565,18 +1568,28 @@ bracket2value<-function(x,value,type=c("parentheses","brackets")[1],sep=","){
 
 abb2text<-function(x,abbr,label){
   if(length(abbr)==0) return(x)
+  
+  # remove sorrounding brackets
+  abbr<-gsub("^ *\\[(.*)\\]*[ [:punct:]]*$","\\1",abbr)
+  abbr<-gsub("^ *\\((.*)\\)*[ [:punct:]]*$","\\1",abbr)
+  
   # reorder by length
   i<-order(abbr,decreasing=TRUE)
+  
   abbr<-abbr[i]
   label<-label[i]
   abbr<-specialChars(abbr)
   abbr<-gsub(" "," *",abbr)
   abbr<-gsub("(\\.)([A-Z])","\\1 *\\2",abbr)
   # expand each abbreviation
-  for(i in 1:length(abbr))  
-    x<-gsub(
+  
+  for(i in 1:length(abbr)){  
+    suppressWarnings(try({
+      x<-gsub(
            paste0("([^A-z]|[[:punct:]])",abbr[i],"([^A-z]|[[:punct:]])|","^",abbr[i],"([^A-z]|[[:punct:]])|",abbr[i],"$"),
            paste0("\\1",label[i],"\\2\\3"),x)
+    },silent=TRUE))
+    }
   return(x)
 }
 
