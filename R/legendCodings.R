@@ -918,9 +918,14 @@ get.abbr<-function(text=NULL,footer=NULL){
     if(length(full)==0) abb<-NULL
     
     # remove abb and full from x
-    for(i in abb) x<-gsub(paste0(specialChars(i),"[,:] "),"",x)
-    for(i in full) x<-gsub(paste0(specialChars(i),"[;,]* *"),"",x)
-    
+    for(i in abb) 
+      suppressWarnings(try({
+        x<-gsub(paste0(specialChars(i),"[,:] "),"",x)
+      },silent=TRUE))
+    for(i in full) 
+      suppressWarnings(try({
+        x<-gsub(paste0(specialChars(i),"[;,]* *"),"",x)
+      },silent=TRUE))
     }
   
   
@@ -946,7 +951,11 @@ get.abbr<-function(text=NULL,footer=NULL){
     if(length(abb)==0) full<-NULL
     if(length(full)==0) abb<-NULL
     # remove abb and full
-    for(i in abb) x<-gsub(paste0(specialChars(i)," *[=:] "),"",x)
+    for(i in abb) 
+      suppressWarnings(try({
+      x<-gsub(paste0(specialChars(i)," *[=:] "),"",x)
+      },silent=TRUE))
+    
     #for(i in full) x<-gsub(paste0(specialChars(i),"[,:] "),"",x)
   }
 
@@ -1057,7 +1066,11 @@ get.abbr<-function(text=NULL,footer=NULL){
     if(length(abb)==0) full<-NULL
     if(length(full)==0) abb<-NULL
     # remove abb and full from input
-    for(i in abb) x<-gsub(paste0(specialChars(i)," *[=,] "),"",x)
+    for(i in abb) 
+      suppressWarnings(try({
+        x<-gsub(paste0(specialChars(i)," *[=,] "),"",x)
+      },silent=TRUE))
+    
     #for(i in full) x<-gsub(paste0(specialChars(i),"[,:] "),"",x)
   }
   
