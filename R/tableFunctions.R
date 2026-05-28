@@ -1847,7 +1847,10 @@ splitLastStat<-function(x){
         
         
         if(lastStat!=x){
-          x<-gsub(paste0("( ",specialChars(lastStat),"[<=>][<=>]*-*[0-9\\.][0-9\\.]*), "),"\\1SPLITHERE",x)
+          suppressWarnings(try({
+            x<-gsub(paste0("( ",specialChars(lastStat),"[<=>][<=>]*-*[0-9\\.][0-9\\.]*), "),"\\1SPLITHERE",x)
+          },silent=TRUE))
+          
           x<-unlist(strsplit(x,"SPLITHERE"))
           #if(length(x)>2){
             # add first cell content to front of new lines
