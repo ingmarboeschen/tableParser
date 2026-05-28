@@ -2011,7 +2011,9 @@ newColumnBracket<-function(x){
       Bracket[1]<-gsub("  *"," ",gsub(".*\\(([^\\)]*)\\).*","\\1",x[1,j+Nadded]))
 
       # and remove from all other entries
+      suppressWarnings(try({
       noBracket<-gsub(paste(paste0(" *\\(",specialChars(Bracket)[nchar(Bracket)>0],"\\)"),collapse="|"),"",noBracket)
+      },silent=TRUE))
       Bracket[1]<-gsub("\\\\","",Bracket[1])
       
       # add column
