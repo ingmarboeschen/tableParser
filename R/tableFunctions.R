@@ -1624,8 +1624,10 @@ sup2text<-function(x,sup=NULL,sup_label=NULL){
      temp<-x==""
      temp[j]<-TRUE
      for(i in 1:length(sup))
+       suppressWarnings(try({
         x[temp]<-gsub(specialChars(sup[i]),paste0(" (",sup_label[i],")"),gsub("([^\\^])\\*","\\1^*",x[temp]))
-    }
+  },silent=TRUE))
+}
   return(x)
 }
 
