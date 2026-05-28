@@ -302,7 +302,10 @@ headerHandling<-function(m){
     if(m[1,1]==""&m[2,1]==""){
     m[1,m[1,]!=m[2,]]<-paste0(m[1,m[1,]!=m[2,]]," ",m[2,m[1,]!=m[2,]])
     # remove duplicated text in first row
-    for(i in 1:length(m[1,])) m[1,i]<-gsub(paste0("(",specialChars(m[2,i]),") ",specialChars(m[2,i]),"$"),"",m[1,i])
+    for(i in 1:length(m[1,])) 
+      suppressWarnings(try({  
+        m[1,i]<-gsub(paste0("(",specialChars(m[2,i]),") ",specialChars(m[2,i]),"$"),"",m[1,i])
+      },silent=TRUE))
     # remove second row
     m<-m[-2,]
   }
@@ -1791,7 +1794,9 @@ splitLastStat<-function(x){
       lastStat<-gsub(".* (omega\\^*2*)$","\\1",lastStat)
       #lastStat<-gsub(".* (R\\^*2*)$","\\1",lastStat)
       if(lastStat!=x){
-      x<-gsub(paste0("([^;][^;] ",specialChars(lastStat),"[<=>][<=>]*-*[0-9\\.]*)[,:]* "),"\\1SPLITHERE",x)
+        suppressWarnings(try({
+          x<-gsub(paste0("([^;][^;] ",specialChars(lastStat),"[<=>][<=>]*-*[0-9\\.]*)[,:]* "),"\\1SPLITHERE",x)
+        },silent=TRUE))
       x<-unlist(strsplit(x,"SPLITHERE"))
       #if(length(x)>2){
         # add first cell content to front of new lines
