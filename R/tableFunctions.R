@@ -322,7 +322,10 @@ headerHandling<-function(m){
       if(m[1,1]!=""&m[2,1]==""){
       m[1,m[1,]!=m[2,]]<-paste0(m[1,m[1,]!=m[2,]]," ",m[2,m[1,]!=m[2,]])
       # remove duplicated text in first row
-      for(i in 1:length(m[1,])) m[1,i]<-gsub(paste0("(",specialChars(m[2,i]),") ",specialChars(m[2,i]),"$"),"\\1",m[1,i])
+      for(i in 1:length(m[1,])) 
+        suppressWarnings(try({
+          m[1,i]<-gsub(paste0("(",specialChars(m[2,i]),") ",specialChars(m[2,i]),"$"),"\\1",m[1,i])
+        },silent=TRUE))
       # remove second row
       m<-m[-2,]
     }
@@ -342,7 +345,10 @@ headerHandling<-function(m){
         length(grep("\\.[0-9]",m[nrow(m),-1])>0) ){
           m[1,m[1,]!=m[2,]]<-paste0(m[1,m[1,]!=m[2,]]," ",m[2,m[1,]!=m[2,]])
           # remove duplicated text in first row
-          for(i in 1:length(m[1,])) m[1,i]<-gsub(paste0("(",specialChars(m[2,i]),") ",specialChars(m[2,i]),"$"),"\\1",m[1,i])
+          for(i in 1:length(m[1,])) 
+            suppressWarnings(try({
+              m[1,i]<-gsub(paste0("(",specialChars(m[2,i]),") ",specialChars(m[2,i]),"$"),"\\1",m[1,i])
+            },silent=TRUE))
           # remove second row
           m<-m[-2,]
     }
@@ -355,7 +361,10 @@ headerHandling<-function(m){
     if((grep("^1\\.*$",m[2,])[1]+1)==grep("^2\\.*$",m[2,])[1]){
       m[1,m[1,]!=m[2,]]<-paste0(m[1,m[1,]!=m[2,]]," ",m[2,m[1,]!=m[2,]])
       # remove duplicated text in first row
-      for(i in 1:length(m[1,])) m[1,i]<-gsub(paste0("(",specialChars(m[2,i]),") ",specialChars(m[2,i]),"$"),"\\1",m[1,i])
+      for(i in 1:length(m[1,])) 
+        suppressWarnings(try({
+          m[1,i]<-gsub(paste0("(",specialChars(m[2,i]),") ",specialChars(m[2,i]),"$"),"\\1",m[1,i])
+        },silent=TRUE))
       # remove second row
       m<-m[-2,]
     }
@@ -367,7 +376,10 @@ headerHandling<-function(m){
         length(grep("[89][059]\\.*9*%[- ]CI|[89][059]\\.*9*%[- ]confidence",m[2,]))>=1){
     m[1,m[1,]!=m[2,]]<-paste0(m[1,m[1,]!=m[2,]]," ",m[2,m[1,]!=m[2,]])
     # remove duplicated text in first row
-    for(i in 1:length(m[1,])) m[1,i]<-gsub(paste0("(",specialChars(m[2,i]),") ",specialChars(m[2,i]),"$"),"\\1",m[1,i])
+    for(i in 1:length(m[1,])) 
+      suppressWarnings(try({
+        m[1,i]<-gsub(paste0("(",specialChars(m[2,i]),") ",specialChars(m[2,i]),"$"),"\\1",m[1,i])
+      },silent=TRUE))
     # remove second row
     m<-m[-2,]
   }
