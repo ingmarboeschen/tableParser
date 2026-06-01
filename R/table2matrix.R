@@ -371,17 +371,19 @@ singleTable2matrix<-function(x,letter.convert=TRUE,# Logical. If TRUE hex codes 
   ##############
   # function to replicate cells with colspan>1
   insert.colspan<-function(cells,replicate=TRUE,repNums=FALSE){
-    line<-which(grepl('colspan=..[1-9]|colspan=.[1-9]',cells))
+    line<-which(grepl('colspan=..[1-9]|colspan=.[1-9]|colspan=[1-9]',cells))
     if(length(line)>0){
       for(k in line){
-        cellIndex<-which(grepl('colspan="[1-9]',cells[[k]]))
-        times<-as.numeric(gsub('.*colspan="([1-9][0-9]*).*',"\\1",cells[[k]][cellIndex]))-1
+        cellIndex<-which(grepl('colspan *= *"[1-9]',cells[[k]]))
+        times<-as.numeric(gsub('.*colspan *= *"([1-9][0-9]*).*',"\\1",cells[[k]][cellIndex]))-1
+        times[is.na(times)]<-1
+        if(length(times)==0) return(cells)
         for(m in 1:length(cellIndex)){
           if(m==1){
             if(isTRUE(repNums)) cell4rep<-ifelse(replicate==TRUE,cells[[k]][cellIndex[m]],"")
             if(isFALSE(repNums)) cell4rep<-ifelse(replicate==TRUE & !is.num[[k]][cellIndex[m]],
                                                 cells[[k]][cellIndex[m]],"")
-            cells[[k]]<-insert(rep(cell4rep,times[m]),cells[[k]],cellIndex[m]+1)
+                  cells[[k]]<-insert(rep(cell4rep,times[m]),cells[[k]],cellIndex[m]+1)
           }
           if(m>1){
             if(isTRUE(repNums)) cell4rep<-ifelse(replicate==TRUE,cells[[k]][cellIndex[m]+sum(times[1:(m-1)])],"")
