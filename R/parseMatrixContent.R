@@ -464,8 +464,9 @@ parseMatrixContent<-function(x,legend=NULL,
   # remove dummy text
   output<-gsub("[^,]*TEMP_TEXT, ","",output)
   firstCell<-"Variable"
+  try({
   output<-gsub(paste0("^(",specialChars(firstCell),": [^:]*: )",specialChars(firstCell),": "),"\\1",output)
-  
+  },silent=TRUE)
   # escape if nothing left
   if(length(output)==0) return(NULL)
   
@@ -504,8 +505,10 @@ parseMatrixContent<-function(x,legend=NULL,
   group<-gsub("^([^:][^:]*): .*","\\1",output)
   ind<-which(group!=output & nchar(group)<100)
   if(length(ind)>0)
-     for(i in ind) output[i]<-gsub(paste0(" ",specialChars(group[i]),": ")," ",output[i])
-
+     for(i in ind) 
+       try({
+         output[i]<-gsub(paste0(" ",specialChars(group[i]),": ")," ",output[i])
+        }, silent=TRUE)
   # clean up spaces
   output<-gsub("  *"," ",output)
   output<-gsub("^ | $","",output)
