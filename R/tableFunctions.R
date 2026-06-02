@@ -1686,9 +1686,10 @@ bracketInRowHandler <- function(x){
 
     # remove from first cell, if no brackets left in row
     # and text has been imputed
+    try({
     if(length(grep("\\(.*\\)",x[j,-1]))==0 & sum(grepl(specialChars(b),x[j,-1]))>1)
          x[j,1]<-gsub(paste0(" \\(",specialChars(b),"\\)"),"",x[j,1])
-  
+    },silent=TRUE)
     }
   x
   # for %-sign in brackets
