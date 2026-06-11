@@ -63,6 +63,10 @@ tableClass<-function(x,legend=NULL){
   
   ###################################
   ## check if is correlation matrix?
+  # only if has no first row/column with p-value
+  if(sum(grepl("^[Pp]-value|[Pp]-value|, [Pp]$",m[1,]))==0 & 
+    sum(grepl("^[Pp]-value|[Pp]-value|, [Pp]$",m[,1]))==0){
+
   if(ncol(m)>2&nrow(m)>2){
   # remove p-values/stars behind numbers
   m<-gsub("([0-9])[,;]* p[<=>][<=>]*[\\.0-9][\\.0-9]*","\\1",m)
@@ -178,7 +182,6 @@ tableClass<-function(x,legend=NULL){
   }
   }
   
-  
   # detect matrix content
   # if 1st row and col contain more than 2 cells with the same name
   if(class!="correlation" &
@@ -195,7 +198,8 @@ tableClass<-function(x,legend=NULL){
      
   )   class<-"matrix"
   
-  
+  }
+
   # model and multi-model
   if(nrow(m)>2 &
      # has R^2|F|etc

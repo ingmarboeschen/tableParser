@@ -747,8 +747,10 @@ extractCorrelations<-function(x,
   # set rows/cols with mean/sd/etc to FALSE
   cors[grep("eta\\^*2|omega\\^2|^rho\\^*2*$|^ICC|intraclass correlation|Cronbach|^[Mm]eans* *[Mm]*$| [Mm]eans*$|^M$|[Ss]ta*n*da*r*d*\\.* [Dd]ev\\.*i*a*t*i*o*n*|^[aA]lpha$| [aA]lpha$",m[,1]),-1]<-FALSE
   cors[grep("^SD[Ss]*$| SD[Ss]*$|[Ss][Qq][Rr]*[Tt]*[- ]AVE|^AVE[^A-z]|[^A-z]AVES*$|^CR |^CR$|^AVE$|^MSV$|^ASV$|Skewnes|[KC]urtosis|[Rr]eliabilit|^[Vv]ariance| [Vv]ariance|[sS]quared",m[,1]),-1]<-FALSE
+  cors[grep("^p|^[Pp][- ][Vv]a|, [pP]$|, [Pp][- ][Vv]al",m[,1]),-1]<-FALSE
   cors[-1,grep("eta\\^*2|omega\\^2|^rho\\^*2*$|^ICC|intraclass correlation|Cronbach|^[Mm]eans* *[Mm]*$| [Mm]eans*$|^M$|[Ss]ta*n*da*r*d*\\.* [Dd]ev\\.*i*a*t*i*o*n*|^[aA]lpha$| [aA]lpha$",m[1,])]<-FALSE
   cors[-1,grep("^SD[Ss]*$| SD[Ss]*$|^[aA]lpha$| [aA]lpha$|^CR |^CR$|[Ss][Qq][Rr]*[Tt]*[- ]AVE|^AVE[^A-z]|[^A-z]AVES*$|^AVE$|^MSV|^ASV$$|Skewnes|[KC]urtosis|[Rr]eliabilit|^[Vv]ariance| [Vv]ariance|[sS]quared",m[1,])]<-FALSE
+  cors[-1,grep("^p$|^[Pp][- ][Vv]al|, [pP]$|, [Pp][- ][Vv]al",m[1,])]<-FALSE
   
   #i<-which(rowSums(cors[-1,-1]==FALSE,na.rm=T)==0)+1
   #j<-which(colSums(cors[-1,-1]==FALSE,na.rm=T)==0)+1
