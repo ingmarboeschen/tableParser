@@ -63,9 +63,12 @@ tableClass<-function(x,legend=NULL){
   
   ###################################
   ## check if is correlation matrix?
-  # only if has no first row/column with p-value
+  # only if has no first row/column with p-value nor %-ci
   if(sum(grepl("^[Pp]-value|[Pp]-value|, [Pp]$",m[1,]))==0 & 
-    sum(grepl("^[Pp]-value|[Pp]-value|, [Pp]$",m[,1]))==0){
+    sum(grepl("^[Pp]-value|[Pp]-value|, [Pp]$",m[,1]))==0 &
+    sum(grepl("[0-9]%[- ]*[cC][iI]|9[509]%*[- ]*ci|[cC][iI] \\(9[509]%\\)|confidence inter|[cC]onf\\.* [iI]nt",m[1,]))==0 &
+    sum(grepl("[0-9]%[- ]*[cC][iI]|9[509]%*[- ]*ci|[cC][iI] \\(9[509]%\\)|confidence inter|[cC]onf\\.* [iI]nt",m[,1]))==0 
+    ){
 
   if(ncol(m)>2&nrow(m)>2){
   # remove p-values/stars behind numbers
