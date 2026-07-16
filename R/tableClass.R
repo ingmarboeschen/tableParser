@@ -64,7 +64,7 @@ tableClass<-function(x,legend=NULL){
   ###################################
   ## check if is correlation matrix?
   # only if has no first row/column with p-value nor %-ci
-  if(sum(grepl("^[Pp]-value|[Pp]-value|, [Pp]$",m[1,]))==0 & 
+  if(sum(grepl("^[Pp]-value|[Pp]-value|, [Pp]$|^[Pp]$",m[1,]))==0 & 
     sum(grepl("^[Pp]-value|[Pp]-value|, [Pp]$",m[,1]))==0 &
     sum(grepl("[0-9]%[- ]*[cC][iI]|9[509]%*[- ]*ci|[cC][iI] \\(9[509]%\\)|confidence inter|[cC]onf\\.* [iI]nt",m[1,]))==0 &
     sum(grepl("[0-9]%[- ]*[cC][iI]|9[509]%*[- ]*ci|[cC][iI] \\(9[509]%\\)|confidence inter|[cC]onf\\.* [iI]nt",m[,1]))==0 
@@ -99,9 +99,15 @@ tableClass<-function(x,legend=NULL){
   t1<-cors|empty
   t1<-sum(t1)==length(t1)
   # has correlation in legend?
-  t2<-length(grep("[Cc]orr*elation|[Aa]ssociation|[Re]elation",legend))>0
+  t2<-length(grep("[Cc]orr*elation|[Aa]ssociation|[Re]elation",legend))>0 &
+    # but no model/beta in legend
+    length(grep("[Mm]odel|[Bb]eta",legend))==0
   # is there no p/d/beta/R^2 value in matrix?
-  t3<-length(grep("[Ii]ntercept|^[PpdDBb]$| [PpdDBb]$|[Pp]-value|[0-9]%[-]*[Cc][oIi]|R\\^*2|eta\\^*2$",m))==0
+  t3<-length(grep("[Ii]ntercept|^[PpdDBb]$| [PpdDBb]$|[Pp]-value|[0-9][- ]*%[- ]*[Cc][oIi]|R\\^*2|eta\\^*2$",m))==0 &
+    # nor "number (number)"
+    sum(grepl("[0-9] *\\(-*[0-9][\\.0-9]*\\)",m[-1,-1]))==0 &
+    sum(grepl("[0-9] *\\(-*[\\.][0-9]*\\)",m[-1,-1]))==0
+    
   # check if matrix has at not more than 3 times as many rows as columns and vice versa
   t4<-TRUE #(nrow(m)/ncol(m))<3 & (nrow(m)/ncol(m))>.33
   # first column has no digit number starting with 0 
@@ -134,7 +140,7 @@ tableClass<-function(x,legend=NULL){
     # minimum length of sequence: 3
     hasSeq<-length(grep("0 1 2|1 2 3|2 3 4|4 5 6",paste0(s[i],collapse=" ")))>0
     # are there no p/d/beta/R^2 value in matrix?
-    t3<-length(grep("^[Ppd]DBb$| [PpdDBb]$[Pp]-value|[0-9]%[-]*[Cc][oIi]|R\\^*2$|R[- ]squa|eta\\^*2",m))==0
+    t3<-length(grep("^[Ppd]DBb$| [PpdDBb]$[Pp]-value|[0-9][- ]*%[- ]*[Cc][oIi]|R\\^*2$|R[- ]squa|eta\\^*2",m))==0
     if(!t3) hasSeq<-FALSE 
     #block<-empty%*%t(empty)
     ## must be better done!!!
@@ -143,7 +149,7 @@ tableClass<-function(x,legend=NULL){
     nums<-nums[!is.na(nums)]
     hasCor<-sum(nums>=-1&nums<=1)>.9*length(nums)
     # is there no p/d/beta/R^2 value in matrix?
-    t3<-length(grep("[Ii]ntercept|^[PpdDBb]$| [PpdDBb]$|[Pp]-value|[0-9]%[-]*[Cc][oIi]|R\\^*2|eta\\^*2$",m))==0
+    t3<-length(grep("[Ii]ntercept|^[PpdDBb]$| [PpdDBb]$|[Pp]-value|[0-9][- ]*%[- ]*[Cc][oIi]|R\\^*2|eta\\^*2$",m))==0
     
     if(hasSeq&hasCor&t3){
       class<-"correlation"
@@ -170,14 +176,14 @@ tableClass<-function(x,legend=NULL){
   grep("^2|^\\(2",gsub("[^:]*: ","",row1))[1]==grep("^4|^\\(4",gsub("[^:]*: ","",row1))[1]-2 &
   # 2, 3, 4 in frist col
     grep("^2|^\\(2",gsub("[^:]*: ","",col1))[1]==grep("^3|^\\(3",gsub("[^:]*: ","",col1))[1]-1&
-  grep("^2|^\\(2",gsub("[^:]*: ","",col1))[1]==grep("^14|^\\(14",gsub("[^:]*: ","",col1))[1]-2
+  grep("^2|^\\(2",gsub("[^:]*: ","",col1))[1]==grep("^4|^\\(4",gsub("[^:]*: ","",col1))[1]-2
 
   if(is.na(t1)) t1<-FALSE
   
   # has correlation in legend?
   t2<-length(grep("[Cc]orr*elation|[Aa]ssociation|[Re]elation",legend))>0
   # is there no p/d/beta/R^2 value in matrix?
-  t3<-length(grep("[Ii]ntercept|^[PpdDBb]$| [PpdDBb]$[Pp]-value|[0-9]%[-]*[Cc][oIi]|R\\^*2$|eta\\^*2",m))==0
+  t3<-length(grep("[Ii]ntercept|^[PpdDBb]$| [PpdDBb]$[Pp]-value|[0-9][- ]*%[- ]*[Cc][oIi]|R\\^*2$|eta\\^*2",m))==0
   
   if(t1&t2&t3){
     class<-"correlation"
